@@ -6,11 +6,15 @@ import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
 // Zaros dependencies source
+import { Math } from "@zaros/utils/Math.sol";
 import { WithdrawalRequest } from "@zaros/market-making/leaves/WithdrawalRequest.sol";
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, IERC4626 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
+
+// PRB Math
+import { UD60x18, ud60x18 } from "@prb-math/ud60x18.sol";
 
 contract Redeem_Integration_Test is Base_Test {
     uint128 constant WITHDRAW_REQUEST_ID = 1;
@@ -32,7 +36,8 @@ contract Redeem_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        assetsToDeposit =
+            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
@@ -66,7 +71,8 @@ contract Redeem_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        assetsToDeposit =
+            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
@@ -97,7 +103,8 @@ contract Redeem_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        assetsToDeposit =
+            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
@@ -133,14 +140,14 @@ contract Redeem_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        uint256 minAssetsToDeposit = 10 ** (18 - fuzzVaultConfig.decimals);
-        assetsToDeposit = bound({ x: assetsToDeposit, min: minAssetsToDeposit, max: fuzzVaultConfig.depositCap });
+        assetsToDeposit =
+            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalanceBefore = IERC20(indexToken).balanceOf(users.naruto.account);
-        assetsToWithdraw = bound({ x: assetsToDeposit, min: minAssetsToDeposit, max: userBalanceBefore });
+        assetsToWithdraw = userBalanceBefore;
         IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
 
         marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
@@ -148,11 +155,27 @@ contract Redeem_Integration_Test is Base_Test {
         // fast forward block.timestamp to after withdraw delay has passed
         skip(fuzzVaultConfig.withdrawalDelay + 1);
 
+        UD60x18 expectedAssetsX18 =
+            marketMakingEngine.getIndexTokenSwapRate(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw), false);
+
+        UD60x18 expectedAssetsMinusRedeemFeeX18 =
+            expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(MOCK_REDEEM_FEE)));
+
+        UD60x18 sharesMinusRedeemFeesX18 = marketMakingEngine.getVaultAssetSwapRate(
+            fuzzVaultConfig.vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false
+        );
+
+        uint256 vaultRedeemFeeRecipientAmountBeforeDeposit =
+            IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);
+
         vm.expectEmit();
         emit VaultRouterBranch.LogRedeem(
-            fuzzVaultConfig.vaultId, users.naruto.account, IERC4626(indexToken).previewRedeem(assetsToWithdraw)
+            fuzzVaultConfig.vaultId, users.naruto.account, sharesMinusRedeemFeesX18.intoUint256()
         );
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
+
+        uint256 vaultRedeemFeeRecipientAmountAfterDeposit =
+            IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);
 
         uint256 userBalanceAfter = IERC20(indexToken).balanceOf(users.naruto.account);
 
@@ -161,6 +184,12 @@ contract Redeem_Integration_Test is Base_Test {
         );
 
         assertEq(withdrawalRequest.fulfilled, true);
+
+        // it should send the fees to the vault redeem fee recipient
+        assertEq(
+            vaultRedeemFeeRecipientAmountAfterDeposit - vaultRedeemFeeRecipientAmountBeforeDeposit,
+            expectedAssetsX18.mul(ud60x18(MOCK_REDEEM_FEE)).intoUint256()
+        );
 
         // it should transfer assets to user
         assertEq(userBalanceBefore - userBalanceAfter, assetsToWithdraw);

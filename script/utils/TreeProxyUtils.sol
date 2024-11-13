@@ -435,7 +435,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](24);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](27);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -470,8 +470,12 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.configureAssetCustomSwapPath.selector;
     marketMakingEngineConfigBranchSelectors[22] = MarketMakingEngineConfigurationBranch.getAssetSwapPath.selector;
     marketMakingEngineConfigBranchSelectors[23] = MarketMakingEngineConfigurationBranch.getUsdTokenSwapFees.selector;
+    marketMakingEngineConfigBranchSelectors[24] = MarketMakingEngineConfigurationBranch.configureDepositFee.selector;
+    marketMakingEngineConfigBranchSelectors[25] = MarketMakingEngineConfigurationBranch.configureredeemFee.selector;
+    marketMakingEngineConfigBranchSelectors[26] =
+        MarketMakingEngineConfigurationBranch.configureVaultDepositAndredeemFeeRecipient.selector;
 
-    bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
+    bytes4[] memory vaultRouterBranchSelectors = new bytes4[](9);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
     vaultRouterBranchSelectors[1] = VaultRouterBranch.getIndexTokenSwapRate.selector;
     vaultRouterBranchSelectors[2] = VaultRouterBranch.getVaultData.selector;
@@ -480,6 +484,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     vaultRouterBranchSelectors[5] = VaultRouterBranch.stake.selector;
     vaultRouterBranchSelectors[6] = VaultRouterBranch.unstake.selector;
     vaultRouterBranchSelectors[7] = VaultRouterBranch.getVaultAssetSwapRate.selector;
+    vaultRouterBranchSelectors[8] = VaultRouterBranch.getActorShares.selector;
 
     bytes4[] memory feeDistributionBranchSelectors = new bytes4[](8);
     feeDistributionBranchSelectors[0] = FeeDistributionBranch.getEarnedFees.selector;

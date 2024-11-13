@@ -29,7 +29,7 @@ contract Unstake_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         depositAmount =
-            bound({ x: depositAmount, min: Constants.MIN_OF_SHARES_TO_STAKE, max: fuzzVaultConfig.depositCap });
+            bound({ x: depositAmount, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
 
         depositAndStakeInVault(fuzzVaultConfig.vaultId, uint128(depositAmount));
 
@@ -41,16 +41,18 @@ contract Unstake_Integration_Test is Base_Test {
     function testFuzz_WhenUserHasEnoughStakedShares(uint256 vaultId, uint256 depositAmount) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         depositAmount =
-            bound({ x: depositAmount, min: Constants.MIN_OF_SHARES_TO_STAKE, max: fuzzVaultConfig.depositCap });
+            bound({ x: depositAmount, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
 
         depositAndStakeInVault(fuzzVaultConfig.vaultId, uint128(depositAmount));
 
+        uint256 actorShares = marketMakingEngine.getActorShares(fuzzVaultConfig.vaultId);
+
         // it should log unstake event
         vm.expectEmit();
-        emit VaultRouterBranch.LogUnstake(fuzzVaultConfig.vaultId, users.naruto.account, depositAmount);
-        marketMakingEngine.unstake(fuzzVaultConfig.vaultId, depositAmount);
+        emit VaultRouterBranch.LogUnstake(fuzzVaultConfig.vaultId, users.naruto.account, actorShares);
+        marketMakingEngine.unstake(fuzzVaultConfig.vaultId, actorShares);
 
         uint256 userBalanceAfter = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
-        assertEq(userBalanceAfter, depositAmount);
+        assertEq(userBalanceAfter, actorShares);
     }
 }

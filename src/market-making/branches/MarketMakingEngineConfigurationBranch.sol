@@ -124,6 +124,18 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param enabled Bool indicating whether the swap path is enabled
     event LogConfiguredSwapPath(address asset, address[] assets, uint128[] dexSwapStrategyIds, bool enabled);
 
+    /// @notice Emitted when the deposit fee is configured.
+    /// @param depositFee The deposit fee.
+    event LogConfigureDepositFee(uint256 depositFee);
+
+    /// @notice Emitted when the redeem fee is configured.
+    /// @param redeemFee The redeem fee.
+    event LogConfigureredeemFee(uint256 redeemFee);
+
+    /// @notice Emitted when the vault deposit and redeem fee recipient is configured.
+    /// @param vaultDepositAndredeemFeeRecipient The vault deposit and redeem fee recipient address.
+    event LogConfigureVaultDepositAndredeemFeeRecipient(address vaultDepositAndredeemFeeRecipient);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -566,6 +578,61 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit the LogConfigureReferralModule event
         emit LogConfigureReferralModule(msg.sender, referralModule);
+    }
+
+    /// @notice Configure deposit fee on Market Making Engine
+    /// @dev Only owner can call this function
+    /// @param depositFee The deposit fee, example 1e18 (100%), 0.5e18 (50%), 0.05e18 (5%), 0.005e18 (0.05%).
+    function configureDepositFee(uint256 depositFee) external onlyOwner {
+        // load the market making engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // update the deposit fee
+        marketMakingEngineConfiguration.depositFee = depositFee;
+
+        // emit the LogConfigureDepositFee event
+        emit LogConfigureDepositFee(depositFee);
+    }
+
+    /// @notice Configure redeem fee on Market Making Engine
+    /// @dev Only owner can call this function
+    /// @param redeemFee The redeem fee, example 1e18 (100%), 0.5e18 (50%), 0.05e18 (5%), 0.005e18 (0.05%).
+    function configureredeemFee(uint256 redeemFee) external onlyOwner {
+        // load the market making engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // update the redeem fee
+        marketMakingEngineConfiguration.redeemFee = redeemFee;
+
+        // emit the LogConfigureredeemFee event
+        emit LogConfigureredeemFee(redeemFee);
+    }
+
+    /// @notice Configure the vault deposit and redeem fee recipient
+    /// @dev Only owner can call this function
+    /// @param vaultDepositAndredeemFeeRecipient The vault deposit and redeem fee recipient
+    function configureVaultDepositAndredeemFeeRecipient(
+        address vaultDepositAndredeemFeeRecipient
+    )
+        external
+        onlyOwner
+    {
+        // revert if the vaultDepositAndredeemFeeRecipient is zero
+        if (vaultDepositAndredeemFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("vaultDepositAndredeemFeeRecipient");
+        }
+
+        // load the market making engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // update the redeem fee
+        marketMakingEngineConfiguration.vaultDepositAndredeemFeeRecipient = vaultDepositAndredeemFeeRecipient;
+
+        // emit the LogConfigureVaultDepositAndredeemFeeRecipient event
+        emit LogConfigureVaultDepositAndredeemFeeRecipient(vaultDepositAndredeemFeeRecipient);
     }
 
     /// @notice Configures a custom swap path for a specific asset.

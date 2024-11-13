@@ -8,4 +8,5 @@ Redeem_Integration_Test
         ├── when assets are less than min amount
         │   └── it should revert
         └── when assets are more than min amount
+            ├── it should send the fees to the vault redeem fee recipient
             └── it should transfer assets to user

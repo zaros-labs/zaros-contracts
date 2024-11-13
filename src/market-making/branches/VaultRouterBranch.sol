@@ -11,16 +11,19 @@ import { Referral } from "@zaros/market-making/leaves/Referral.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
+import { Math } from "@zaros/utils/Math.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { Math as MathOpenZeppelin } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+
+import { console } from "forge-std/console.sol";
 
 // TODO: think about referrals
 contract VaultRouterBranch {
@@ -29,7 +32,7 @@ contract VaultRouterBranch {
     using Distribution for Distribution.Data;
     using Vault for Vault.Data;
     using SafeCast for uint256;
-    using Math for uint256;
+    using MathOpenZeppelin for uint256;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
 
     /// @notice Emitted when a user stakes shares.
@@ -104,8 +107,17 @@ contract VaultRouterBranch {
     /// leaf's methods.
     /// @param vaultId The vault identifier.
     /// @param sharesIn The amount of input shares for which to calculate the swap rate.
+    /// @param shouldDiscountredeemFee The flag that indicates if should discount the redeem fee.
     /// @return assetsOut The swap price from index token to collateral asset.
-    function getIndexTokenSwapRate(uint128 vaultId, uint256 sharesIn) external view returns (UD60x18 assetsOut) {
+    function getIndexTokenSwapRate(
+        uint128 vaultId,
+        uint256 sharesIn,
+        bool shouldDiscountredeemFee
+    )
+        public
+        view
+        returns (UD60x18 assetsOut)
+    {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadExisting(vaultId);
 
@@ -141,8 +153,18 @@ contract VaultRouterBranch {
         uint256 previewAssetsOut = sharesIn.mulDiv(
             totalAssetsMinusUnsettledDebt,
             IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
-            Math.Rounding.Floor
+            MathOpenZeppelin.Rounding.Floor
         );
+
+        if (shouldDiscountredeemFee) {
+            // load the perps engine configuration from storage
+            MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+                MarketMakingEngineConfiguration.load();
+
+            previewAssetsOut = ud60x18(previewAssetsOut).sub(
+                ud60x18(previewAssetsOut).mul(ud60x18(marketMakingEngineConfiguration.redeemFee))
+            ).intoUint256();
+        }
 
         // Return the final adjusted amountOut as UD60x18
         return ud60x18(previewAssetsOut);
@@ -153,8 +175,17 @@ contract VaultRouterBranch {
     /// - Vault MUST exist.
     /// @param vaultId The vault identifier.
     /// @param assetsIn The amount of input assets for which to calculate the swap rate.
+    /// @param shouldDiscountDepositFee The flag that indicates if should discount the deposit fee.
     /// @return sharesOut The swap price from underlying collateral asset to the vault shares.
-    function getVaultAssetSwapRate(uint128 vaultId, uint256 assetsIn) external view returns (UD60x18 sharesOut) {
+    function getVaultAssetSwapRate(
+        uint128 vaultId,
+        uint256 assetsIn,
+        bool shouldDiscountDepositFee
+    )
+        public
+        view
+        returns (UD60x18 sharesOut)
+    {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadExisting(vaultId);
 
@@ -190,8 +221,18 @@ contract VaultRouterBranch {
         uint256 previewSharesOut = assetsIn.mulDiv(
             IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
             totalAssetsMinusUnsettledDebt,
-            Math.Rounding.Floor
+            MathOpenZeppelin.Rounding.Floor
         );
+
+        if (shouldDiscountDepositFee) {
+            // load the perps engine configuration from storage
+            MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+                MarketMakingEngineConfiguration.load();
+
+            previewSharesOut = ud60x18(previewSharesOut).sub(
+                ud60x18(previewSharesOut).mul(ud60x18(marketMakingEngineConfiguration.depositFee))
+            ).intoUint256();
+        }
 
         // Return the final adjusted amountOut as UD60x18
         return ud60x18(previewSharesOut);
@@ -216,26 +257,54 @@ contract VaultRouterBranch {
         // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
+        uint8 vaultAssetDecimals = vault.collateral.decimals;
+
+        // uint256 -> ud60x18 18 decimals
+        UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(vaultAssetDecimals, assets);
+
+        // load the perps engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // calculate the collateral fees
+        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(marketMakingEngineConfiguration.depositFee));
+
+        // calculate assets minus fees
+        UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
+
+        // ud60x18 -> uint256 asset decimals
+        uint256 assetFees = Math.convertUd60x18ToTokenAmount(vaultAssetDecimals, assetFeesX18);
+        uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(vaultAssetDecimals, assetsMinusFeesX18);
+
+        console.log("assets: ", assets);
+        console.log("assetFees: ", assetFees);
+        console.log("assetsMinusFees: ", assetsMinusFees);
+
         // prepare the `Vault::recalculateVaultsCreditCapacity` call
         uint256[] memory vaultsIds = new uint256[](1);
         vaultsIds[0] = uint256(vaultId);
 
         // get the tokens
-        IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assets);
+        IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assetsMinusFees);
+
+        // get the asset fees
+        IERC20(vaultAsset).safeTransferFrom(
+            msg.sender, marketMakingEngineConfiguration.vaultDepositAndredeemFeeRecipient, assetFees
+        );
 
         // increase vault allowance to transfer tokens
-        IERC20(vaultAsset).approve(address(vault.indexToken), assets);
+        IERC20(vaultAsset).approve(address(vault.indexToken), assetsMinusFees);
 
         // then perform the actual deposit
         // NOTE: the following call will update the total assets deposited in the vault
         // NOTE: the following call will validate the vault's deposit cap
-        uint256 shares = IERC4626(vault.indexToken).deposit(assets, msg.sender);
+        uint256 shares = IERC4626(vault.indexToken).deposit(assetsMinusFees, msg.sender);
 
         // assert min shares minted
         if (shares < minShares) revert Errors.SlippageCheckFailed(minShares, shares);
 
         // emit an event
-        emit LogDeposit(vaultId, msg.sender, assets);
+        emit LogDeposit(vaultId, msg.sender, assetsMinusFees);
     }
 
     /// @notice Stakes a given amount of index tokens in the contract.
@@ -378,10 +447,31 @@ contract VaultRouterBranch {
         // updates the vault's credit capacity before redeeming
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
-        // todo: validate the vault.lockedCreditRatio invariant
+        // get shares -> assets
+        UD60x18 expectedAssetsX18 = getIndexTokenSwapRate(vaultId, withdrawalRequest.shares, false);
+
+        // load the perps engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // get assets minus redeem fee
+        UD60x18 expectedAssetsMinusredeemFeeX18 =
+            expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(marketMakingEngineConfiguration.redeemFee)));
+
+        // calculate assets minus redeem fee as shares
+        UD60x18 sharesMinusRedeemFeesX18 =
+            getVaultAssetSwapRate(vaultId, expectedAssetsMinusredeemFeeX18.intoUint256(), false);
+
+        uint256 sharesFees = withdrawalRequest.shares - sharesMinusRedeemFeesX18.intoUint256();
 
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
-        uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, address(this));
+        uint256 assets =
+            IERC4626(vault.indexToken).redeem(sharesMinusRedeemFeesX18.intoUint256(), msg.sender, address(this));
+
+        // get the redeem fee
+        IERC4626(vault.indexToken).redeem(
+            sharesFees, marketMakingEngineConfiguration.vaultDepositAndredeemFeeRecipient, address(this)
+        );
 
         // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed(minAssets, assets);
@@ -390,7 +480,7 @@ contract VaultRouterBranch {
         withdrawalRequest.fulfilled = true;
 
         // emit an event
-        emit LogRedeem(vaultId, msg.sender, assets);
+        emit LogRedeem(vaultId, msg.sender, sharesMinusRedeemFeesX18.intoUint256());
     }
 
     /// @notice Unstakes a given amount of index tokens from the contract.
@@ -437,5 +527,21 @@ contract VaultRouterBranch {
 
         // emit an event
         emit LogUnstake(vaultId, msg.sender, shares);
+    }
+
+    function getActorShares(uint128 vaultId) public view returns (uint256) {
+        // fetch storage slot for vault by id
+        Vault.Data storage vault = Vault.loadLive(vaultId);
+
+        // get vault staking fee distribution data
+        Distribution.Data storage distributionData = vault.wethRewardDistribution;
+
+        // cast actor address to bytes32
+        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
+
+        // get acctor staked shares
+        UD60x18 actorShares = distributionData.getActorShares(actorId);
+
+        return actorShares.intoUint256();
     }
 }

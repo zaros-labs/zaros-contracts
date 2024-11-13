@@ -18,14 +18,30 @@ library MarketMakingEngineConfiguration {
     bytes32 internal constant MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.MarketMakingEngineConfiguration")) - 1));
 
-    // TODO: pack storage slots
+    /// @notice The storage structure for the {MarketMakingEngineConfiguration} namespace.
+    /// @param depositFee The despoit fee in the Vault, example 1e18 (100%), 0.5e18 (50%), 0.05e18 (5%), 0.005e18
+    /// (0.05%).
+    /// @param redeemFee The redeem fee in the Vault, example 1e18 (100%), 0.5e18 (50%), 0.05e18 (5%), 0.005e18
+    /// (0.05%).
+    /// @param usdc The USDC token address.
+    /// @param weth The WETH token address.
+    /// @param feeDistributor The fee distributor address.
+    /// @param referralModule The referral module address.
+    /// @param vaultDepositAndredeemFeeRecipient The vault collaterals fee recipient address.
+    /// @param protocolFeeRecipients The protocol fee recipients.
+    /// @param isRegisteredEngine The mapping of registered engines.
+    /// @param usdTokenOfEngine The mapping of USD tokens of engines.
+    /// @param isSystemKeeperEnabled The mapping of system keepers.
     struct Data {
+        uint256 depositFee;
+        uint256 redeemFee;
         address usdc;
         address weth;
         address feeDistributor;
         address referralModule;
         uint128 settlementBaseFeeUsdX18;
         uint128 totalFeeRecipientsShares;
+        address vaultDepositAndredeemFeeRecipient;
         EnumerableMap.AddressToUintMap protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;

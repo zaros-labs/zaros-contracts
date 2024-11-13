@@ -94,7 +94,8 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         whenSharesAmountIsNotGtUserBalance
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
+        assetsToDeposit =
+            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
 
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         depositInVault(fuzzVaultConfig.vaultId, uint128(assetsToDeposit));
