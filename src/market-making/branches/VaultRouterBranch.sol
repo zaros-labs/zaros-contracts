@@ -107,12 +107,12 @@ contract VaultRouterBranch {
     /// leaf's methods.
     /// @param vaultId The vault identifier.
     /// @param sharesIn The amount of input shares for which to calculate the swap rate.
-    /// @param shouldDiscountredeemFee The flag that indicates if should discount the redeem fee.
+    /// @param shouldDiscountRedeemFee The flag that indicates if should discount the redeem fee.
     /// @return assetsOut The swap price from index token to collateral asset.
     function getIndexTokenSwapRate(
         uint128 vaultId,
         uint256 sharesIn,
-        bool shouldDiscountredeemFee
+        bool shouldDiscountRedeemFee
     )
         public
         view
@@ -156,7 +156,7 @@ contract VaultRouterBranch {
             MathOpenZeppelin.Rounding.Floor
         );
 
-        if (shouldDiscountredeemFee) {
+        if (shouldDiscountRedeemFee) {
             // load the perps engine configuration from storage
             MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
                 MarketMakingEngineConfiguration.load();
