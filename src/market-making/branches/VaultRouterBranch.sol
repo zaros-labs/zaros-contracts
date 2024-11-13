@@ -289,7 +289,7 @@ contract VaultRouterBranch {
 
         // get the asset fees
         IERC20(vaultAsset).safeTransferFrom(
-            msg.sender, marketMakingEngineConfiguration.vaultDepositAndredeemFeeRecipient, assetFees
+            msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, assetFees
         );
 
         // increase vault allowance to transfer tokens
@@ -470,7 +470,7 @@ contract VaultRouterBranch {
 
         // get the redeem fee
         IERC4626(vault.indexToken).redeem(
-            sharesFees, marketMakingEngineConfiguration.vaultDepositAndredeemFeeRecipient, address(this)
+            sharesFees, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, address(this)
         );
 
         // require at least min assets amount returned

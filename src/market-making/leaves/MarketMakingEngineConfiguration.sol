@@ -25,7 +25,7 @@ library MarketMakingEngineConfiguration {
     /// @param weth The WETH token address.
     /// @param feeDistributor The fee distributor address.
     /// @param referralModule The referral module address.
-    /// @param vaultDepositAndredeemFeeRecipient The vault collaterals fee recipient address.
+    /// @param vaultDepositAndRedeemFeeRecipient The vault collaterals fee recipient address.
     /// @param protocolFeeRecipients The protocol fee recipients.
     /// @param isRegisteredEngine The mapping of registered engines.
     /// @param usdTokenOfEngine The mapping of USD tokens of engines.

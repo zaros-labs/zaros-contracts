@@ -133,8 +133,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     event LogConfigureredeemFee(uint256 redeemFee);
 
     /// @notice Emitted when the vault deposit and redeem fee recipient is configured.
-    /// @param vaultDepositAndredeemFeeRecipient The vault deposit and redeem fee recipient address.
-    event LogConfigureVaultDepositAndredeemFeeRecipient(address vaultDepositAndredeemFeeRecipient);
+    /// @param vaultDepositAndRedeemFeeRecipient The vault deposit and redeem fee recipient address.
+    event LogConfigureVaultDepositAndRedeemFeeRecipient(address vaultDepositAndRedeemFeeRecipient);
 
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
@@ -612,16 +612,16 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Configure the vault deposit and redeem fee recipient
     /// @dev Only owner can call this function
-    /// @param vaultDepositAndredeemFeeRecipient The vault deposit and redeem fee recipient
-    function configureVaultDepositAndredeemFeeRecipient(
-        address vaultDepositAndredeemFeeRecipient
+    /// @param vaultDepositAndRedeemFeeRecipient The vault deposit and redeem fee recipient
+    function configureVaultDepositAndRedeemFeeRecipient(
+        address vaultDepositAndRedeemFeeRecipient
     )
         external
         onlyOwner
     {
-        // revert if the vaultDepositAndredeemFeeRecipient is zero
-        if (vaultDepositAndredeemFeeRecipient == address(0)) {
-            revert Errors.ZeroInput("vaultDepositAndredeemFeeRecipient");
+        // revert if the vaultDepositAndRedeemFeeRecipient is zero
+        if (vaultDepositAndRedeemFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("vaultDepositAndRedeemFeeRecipient");
         }
 
         // load the market making engine configuration from storage
@@ -629,10 +629,10 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             MarketMakingEngineConfiguration.load();
 
         // update the redeem fee
-        marketMakingEngineConfiguration.vaultDepositAndredeemFeeRecipient = vaultDepositAndredeemFeeRecipient;
+        marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient = vaultDepositAndRedeemFeeRecipient;
 
-        // emit the LogConfigureVaultDepositAndredeemFeeRecipient event
-        emit LogConfigureVaultDepositAndredeemFeeRecipient(vaultDepositAndredeemFeeRecipient);
+        // emit the LogConfigureVaultDepositAndRedeemFeeRecipient event
+        emit LogConfigureVaultDepositAndRedeemFeeRecipient(vaultDepositAndRedeemFeeRecipient);
     }
 
     /// @notice Configures a custom swap path for a specific asset.
