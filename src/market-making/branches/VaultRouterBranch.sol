@@ -458,6 +458,7 @@ contract VaultRouterBranch {
         UD60x18 sharesMinusRedeemFeesX18 =
             getVaultAssetSwapRate(vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false);
 
+        // get the shares to send to the vault deposit and redeem fee recipient
         uint256 sharesFees = withdrawalRequest.shares - sharesMinusRedeemFeesX18.intoUint256();
 
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
