@@ -297,11 +297,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         uint256 slippageToleranceBps = 100;
         uint24 fee = 3000;
 
-        address[] memory collaterals = new address[](2);
+        address[] memory collaterals = new address[](3);
         collaterals[0] = address(usdc);
         collaterals[1] = address(wEth);
+        collaterals[2] = address(wBtc);
 
-        SwapAssetConfig[] memory collateralData = new SwapAssetConfig[](2);
+        SwapAssetConfig[] memory collateralData = new SwapAssetConfig[](3);
 
         collateralData[0] = SwapAssetConfig({
             decimals: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals,
@@ -311,6 +312,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         collateralData[1] = SwapAssetConfig({
             decimals: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals,
             priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        collateralData[2] = SwapAssetConfig({
+            decimals: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter)
         });
 
         MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter = new MockUniswapV3SwapStrategyRouter();
