@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { IUniswapV3RouterInterface } from "@zaros/utils/interfaces/IUniswapV3RouterInterface.sol";
 import { IDexAdapter, SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
@@ -114,7 +114,12 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IDexAdapter
-    function executeSwapExactInputSingle(SwapPayload calldata swapPayload) external returns (uint256 amountOut) {
+    function executeSwapExactInputSingle(
+        SwapExactInputSinglePayload calldata swapPayload
+    )
+        external
+        returns (uint256 amountOut)
+    {
         // transfer the tokenIn from the send to this contract
         IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
 
@@ -143,6 +148,37 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
                 amountIn: swapPayload.amountIn,
                 amountOutMinimum: amountOutMinimum,
                 sqrtPriceLimitX96: 0
+            })
+        );
+    }
+
+    /// @inheritdoc IDexAdapter
+    function executeSwapExactInput(SwapExactInputPayload calldata swapPayload) external returns (uint256 amountOut) {
+        // transfer the tokenIn from the send to this contract
+        IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
+
+        // instantiate the swap router
+        IUniswapV3RouterInterface swapRouter;
+
+        // get the uniswap v3 swap strategy router
+        swapRouter = IUniswapV3RouterInterface(uniswapV3SwapStrategyRouter);
+
+        // aprove the tokenIn to the swap router
+        IERC20(swapPayload.tokenIn).approve(address(swapRouter), swapPayload.amountIn);
+
+        // get the expected output amount
+        uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
+
+        // Calculate the minimum acceptable output based on the slippage tolerance
+        uint256 amountOutMinimum = calculateAmountOutMin(expectedAmountOut);
+
+        return swapRouter.exactInput(
+            IUniswapV3RouterInterface.ExactInputParams({
+                path: swapPayload.path,
+                recipient: swapPayload.recipient,
+                deadline: deadline,
+                amountIn: swapPayload.amountIn,
+                amountOutMinimum: amountOutMinimum
             })
         );
     }

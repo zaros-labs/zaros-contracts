@@ -2,7 +2,9 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { IDexAdapter, SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import {
+    IDexAdapter, SwapExactInputSinglePayload, SwapExactInputPayload
+} from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -36,12 +38,27 @@ library DexSwapStrategy {
     /// @return amountOut The result of the swap execution.
     function executeSwapExactInputSingle(
         Data storage self,
-        SwapPayload memory swapCallData
+        SwapExactInputSinglePayload memory swapCallData
     )
         internal
         returns (uint256 amountOut)
     {
         IDexAdapter dexAdapter = IDexAdapter(self.dexAdapter);
         return dexAdapter.executeSwapExactInputSingle(swapCallData);
+    }
+
+    /// @notice Executes a swap with the given calldata on the configured router.
+    /// @param self The SwapRouter data storage.
+    /// @param swapCallData The calldata to perform the swap.
+    /// @return amountOut The result of the swap execution.
+    function executeSwapExactInput(
+        Data storage self,
+        SwapExactInputPayload memory swapCallData
+    )
+        internal
+        returns (uint256 amountOut)
+    {
+        IDexAdapter dexAdapter = IDexAdapter(self.dexAdapter);
+        return dexAdapter.executeSwapExactInput(swapCallData);
     }
 }

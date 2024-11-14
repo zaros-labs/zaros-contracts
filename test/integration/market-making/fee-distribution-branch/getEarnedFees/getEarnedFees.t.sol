@@ -48,7 +48,7 @@ contract GetEarnedFees_Integration_Test is Base_Test {
         );
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId, bytes("")
         );
 
         changePrank({ msgSender: users.naruto.account });
