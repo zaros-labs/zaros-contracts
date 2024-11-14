@@ -243,11 +243,11 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         bytes memory path = shouldSwapExactInputSingle
             ? bytes("")
             : abi.encodePacked(
-                address(usdc), uniswapV3Adapter.feeBps, address(wBtc), uniswapV3Adapter.feeBps, address(wEth)
+                address(usdc), uniswapV3Adapter.feeBps(), address(wBtc), uniswapV3Adapter.feeBps(), address(wEth)
             );
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId, bytes("")
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId, path
         );
 
         // it should verify if the asset is different that weth and convert

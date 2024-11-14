@@ -71,12 +71,31 @@ contract MockUniswapV3SwapStrategyRouter is IUniswapV3RouterInterface {
             uint256 amountOut
         )
     {
-        (address tokenIn, address tokenOut,) = params.path.getFirstPool().decodeFirstPool();
+        amountOut = params.amountOutMinimum;
+
+        address tokenIn;
+        address tokenOut;
+
+        while (true) {
+            bool hasMultiplePools = params.path.hasMultiplePools();
+
+            (address _tokenIn, address _tokenOut,) = params.path.getFirstPool().decodeFirstPool();
+
+            if (tokenIn == address(0)) {
+                tokenIn = _tokenIn;
+            }
+
+            // decide whether to continue or terminate
+            if (hasMultiplePools) {
+                params.path = params.path.skipToken();
+            } else {
+                tokenOut = _tokenOut;
+                break;
+            }
+        }
 
         IERC20(tokenIn).transferFrom(msg.sender, address(this), params.amountIn);
         IERC20(tokenOut).transfer(params.recipient, params.amountOutMinimum);
-
-        amountOut = params.amountOutMinimum;
     }
 
     /// @dev Performs a single exact output swap
