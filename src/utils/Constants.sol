@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.25;
 
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+
 /// @notice Constants used across the protocol.
 library Constants {
     /// @notice Protocol wide standard decimals.
@@ -25,7 +28,7 @@ library Constants {
     );
 
     /// @notice BPS denominator value in UD60x18.
-    UD60x18 internal constant BPS_DENOMINATOR_X18 = ud60x18(10_000e18);
+    uint256 internal constant BPS_DENOMINATOR = 10_000e18;
 
     /// @notice Maximum value for shares, example 0.5e18 is 50%.
     /// @dev This is used to avoid overflows when calculating shares.

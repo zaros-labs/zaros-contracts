@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { UsdToken } from "@zaros/usd/UsdToken.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
@@ -18,7 +19,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract StabilityBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
@@ -85,8 +85,8 @@ contract StabilityBranch is EngineAccessControl {
     /// price and the premium or discount to be applied.
     /// @param usdAmountInX18 The amount of USD tokens to be swapped in 18-decimal fixed-point format (UD60x18).
     /// @param priceX18 The price of the collateral asset in 18-decimal fixed-point format (UD60x18).
-    /// @return amountOut The amount of assets to be received using in the ERC20's decimals, calculated from the input
-    /// USD amount and its price.
+    /// @return amountOutX18 The amount of assets to be received using in the ERC20's decimals, calculated from the
+    /// input USD amount and its price.
     function getAmountOfAssetOut(
         UD60x18 usdAmountInX18,
         UD60x18 priceX18
@@ -120,7 +120,7 @@ contract StabilityBranch is EngineAccessControl {
 
         // calculates the swap fee portion rounding up
         swapFeeX18 = Math.divUp(
-            assetsAmountOutX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), Constants.BPS_DENOMINATOR_X18
+            assetsAmountOutX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), ud60x18(Constants.BPS_DENOMINATOR)
         );
 
         // load the mm engine configuration pointer
@@ -152,8 +152,9 @@ contract StabilityBranch is EngineAccessControl {
         // returns the base fee in UD60x18
         baseFeeUsdX18 = ud60x18(tokenSwapData.baseFeeUsd);
         // calculates and returns the swap fee in UD60x18
-        swapFeeUsdX18 =
-            Math.divUp(usdAmountInX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), Constants.BPS_DENOMINATOR_X18);
+        swapFeeUsdX18 = Math.divUp(
+            usdAmountInX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), ud60x18(Constants.BPS_DENOMINATOR)
+        );
     }
 
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
@@ -201,7 +202,7 @@ contract StabilityBranch is EngineAccessControl {
 
         for (uint256 i; i < amountsIn.length; i++) {
             // if trying to create a swap request with a different collateral asset, we must revert
-            if (Vault.load(vaultsIds[i]).collateral.asset != initialVaultCollateralAsset) {
+            if (Vault.load(vaultIds[i]).collateral.asset != initialVaultCollateralAsset) {
                 revert Errors.VaultsCollateralAssetsMismatch();
             }
 
@@ -288,14 +289,20 @@ contract StabilityBranch is EngineAccessControl {
         UD60x18 priceX18 = stabilityConfiguration.verifyOffchainPrice(priceData);
 
         // get amount out asset
-        ud60X18 amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(request.amountIn), priceX18);
+        UD60x18 amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(request.amountIn), priceX18);
 
-        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) = getFeeForAssetAmountOut(amountOutBeforeFeesX18);
+        // gets the base fee and swap fee for the given amount out before fees
+        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) = getFeesForAssetsAmountOut(amountOutBeforeFeesX18, priceX18);
+
+        // cache the collateral asset address
+        address asset = vault.collateral.asset;
+
+        // load the collateral configuration storage pointer
+        Collateral.Data storage collateral = Collateral.load(asset);
 
         // subtract the fees and convert the UD60x18 value to the collateral's decimals value
-        uint256 amountOut = collateral.convertUd60x18ToTokenAmount(
-            amountOutBeforeFeesX18.sub(baseFeeX18.add(swapFeeX18))
-        ).intoUint256();
+        uint256 amountOut =
+            collateral.convertUd60x18ToTokenAmount(amountOutBeforeFeesX18.sub(baseFeeX18.add(swapFeeX18)));
 
         // slippage check
         if (amountOut < request.minAmountOut) {
@@ -303,6 +310,17 @@ contract StabilityBranch is EngineAccessControl {
         }
 
         // todo: distribute rewards to protocol fee recipients and vaults
+
+        // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
+        // recipients' share.
+        UD60x18 protocolSwapFeeX18 = swapFeeX18.mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares());
+        // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
+        uint256 protocolRewardAmount = collateral.convertUd60x18ToTokenAmount(baseFeeX18.add(protocolSwapFeeX18));
+
+        // distribute protocol reward
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolRewardAmount);
+
+        // todo: distribute reward to vault
 
         // burn usd amount from address(this)
         usdToken.burn(request.amountIn);
@@ -321,58 +339,58 @@ contract StabilityBranch is EngineAccessControl {
             request.minAmountOut,
             request.assetOut,
             request.deadline,
-            amountOutAfterFee
+            amountOut
         );
     }
 
     /// @notice Refunds a swap request that has not been processed and has expired.
     /// @param requestId The unique ID of the swap request to be refunded.
     function refundSwap(uint128 requestId, address engine) external {
-        // load swap data
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+        // // load swap data
+        // UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
-        // load swap request
-        UsdTokenSwap.SwapRequest storage request = tokenSwapData.swapRequests[msg.sender][requestId];
+        // // load swap request
+        // UsdTokenSwap.SwapRequest storage request = tokenSwapData.swapRequests[msg.sender][requestId];
 
-        // if request already procesed revert
-        if (request.processed) {
-            revert Errors.RequestAlreadyProcessed(msg.sender, requestId);
-        }
+        // // if request already procesed revert
+        // if (request.processed) {
+        //     revert Errors.RequestAlreadyProcessed(msg.sender, requestId);
+        // }
 
-        // if dealine has not yet passed revert
-        if (request.deadline > block.timestamp) {
-            revert Errors.RequestNotExpired(msg.sender, requestId);
-        }
+        // // if dealine has not yet passed revert
+        // if (request.deadline > block.timestamp) {
+        //     revert Errors.RequestNotExpired(msg.sender, requestId);
+        // }
 
-        // set precessed to true
-        request.processed = true;
+        // // set precessed to true
+        // request.processed = true;
 
-        // load Market making engine config
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
+        // // load Market making engine config
+        // MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+        //     MarketMakingEngineConfiguration.load();
 
-        // get usd token for engine
-        address usdToken = marketMakingEngineConfiguration.usdTokenOfEngine[engine];
+        // // get usd token for engine
+        // address usdToken = marketMakingEngineConfiguration.usdTokenOfEngine[engine];
 
-        // get refund amount
-        (uint256 refundAmount, uint256 feeAmount) = _handleFeeUsd(request.amountIn);
+        // // get refund amount
+        // (uint256 refundAmount, uint256 feeAmount) = _handleFeeUsd(request.amountIn);
 
-        // transfer fee too fee recipient
-        IERC20(usdToken).safeTransfer(address(1), feeAmount); // TODO: set USD token fee recipien
+        // // transfer fee too fee recipient
+        // IERC20(usdToken).safeTransfer(address(1), feeAmount); // TODO: set USD token fee recipien
 
-        // transfer usd refund amount back to user
-        IERC20(usdToken).safeTransfer(msg.sender, refundAmount);
+        // // transfer usd refund amount back to user
+        // IERC20(usdToken).safeTransfer(msg.sender, refundAmount);
 
-        emit LogRefundSwap(
-            msg.sender,
-            requestId,
-            request.vaultId,
-            request.amountIn,
-            request.minAmountOut,
-            request.assetOut,
-            request.deadline,
-            refundAmount
-        );
+        // emit LogRefundSwap(
+        //     msg.sender,
+        //     requestId,
+        //     request.vaultId,
+        //     request.amountIn,
+        //     request.minAmountOut,
+        //     request.assetOut,
+        //     request.deadline,
+        //     refundAmount
+        // );
     }
 
     // /// @notice Applies the swap fee to the USD token amount and either mints or transfers the fee to the fee
