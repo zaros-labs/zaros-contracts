@@ -171,8 +171,10 @@ contract FeeDistributionBranch is EngineAccessControl {
             // approve the collateral token to the dex adapter
             IERC20(asset).approve(dexSwapStrategy.dexAdapter, assetAmount);
 
+            // create variable to store the amount out
             uint256 tokensSwapped;
 
+            // verify if the swap should be input single or multihop
             if (path.length == 0) {
                 // prepare the data for executing the swap
                 SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
@@ -198,6 +200,7 @@ contract FeeDistributionBranch is EngineAccessControl {
                 tokensSwapped = dexSwapStrategy.executeSwapExactInput(swapCallData);
             }
 
+            // uint256 -> ud60x18
             UD60x18 tokensSwappedX18 = wethCollateral.convertTokenAmountToUd60x18(tokensSwapped);
 
             // store the amount of weth received from swap
