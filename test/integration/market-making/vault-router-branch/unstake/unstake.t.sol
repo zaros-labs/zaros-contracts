@@ -28,8 +28,11 @@ contract Unstake_Integration_Test is Base_Test {
         external
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        depositAmount =
-            bound({ x: depositAmount, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
+        depositAmount = bound({
+            x: depositAmount,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
 
         depositAndStakeInVault(fuzzVaultConfig.vaultId, uint128(depositAmount));
 
@@ -40,8 +43,11 @@ contract Unstake_Integration_Test is Base_Test {
 
     function testFuzz_WhenUserHasEnoughStakedShares(uint256 vaultId, uint256 depositAmount) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        depositAmount =
-            bound({ x: depositAmount, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
+        depositAmount = bound({
+            x: depositAmount,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
 
         depositAndStakeInVault(fuzzVaultConfig.vaultId, uint128(depositAmount));
 

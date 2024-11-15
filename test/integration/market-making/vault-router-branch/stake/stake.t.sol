@@ -32,8 +32,11 @@ contract Stake_Integration_Test is Base_Test {
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDepositVault =
-            bound({ x: assetsToDepositVault, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
+        assetsToDepositVault = bound({
+            x: assetsToDepositVault,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
 
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0);

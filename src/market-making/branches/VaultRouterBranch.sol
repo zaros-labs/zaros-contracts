@@ -156,14 +156,9 @@ contract VaultRouterBranch {
 
         // verify if should discount redeem fee
         if (shouldDiscountRedeemFee) {
-            // load the perps engine configuration from storage
-            MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-                MarketMakingEngineConfiguration.load();
-
             // get the preview assets out discounting redeem fee
-            previewAssetsOut = ud60x18(previewAssetsOut).sub(
-                ud60x18(previewAssetsOut).mul(ud60x18(marketMakingEngineConfiguration.redeemFee))
-            ).intoUint256();
+            previewAssetsOut =
+                ud60x18(previewAssetsOut).sub(ud60x18(previewAssetsOut).mul(ud60x18(vault.redeemFee))).intoUint256();
         }
 
         // Return the final adjusted amountOut as UD60x18
@@ -225,13 +220,8 @@ contract VaultRouterBranch {
         );
 
         if (shouldDiscountDepositFee) {
-            // load the perps engine configuration from storage
-            MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-                MarketMakingEngineConfiguration.load();
-
-            previewSharesOut = ud60x18(previewSharesOut).sub(
-                ud60x18(previewSharesOut).mul(ud60x18(marketMakingEngineConfiguration.depositFee))
-            ).intoUint256();
+            previewSharesOut =
+                ud60x18(previewSharesOut).sub(ud60x18(previewSharesOut).mul(ud60x18(vault.depositFee))).intoUint256();
         }
 
         // Return the final adjusted amountOut as UD60x18
@@ -267,7 +257,7 @@ contract VaultRouterBranch {
             MarketMakingEngineConfiguration.load();
 
         // calculate the collateral fees
-        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(marketMakingEngineConfiguration.depositFee));
+        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(vault.depositFee));
 
         // calculate assets minus fees
         UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
@@ -452,7 +442,7 @@ contract VaultRouterBranch {
 
         // get assets minus redeem fee
         UD60x18 expectedAssetsMinusRedeemFeeX18 =
-            expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(marketMakingEngineConfiguration.redeemFee)));
+            expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(vault.redeemFee)));
 
         // calculate assets minus redeem fee as shares
         UD60x18 sharesMinusRedeemFeesX18 =

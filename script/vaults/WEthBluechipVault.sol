@@ -9,4 +9,6 @@ abstract contract WEthBluechipVault {
     uint128 internal constant WETH_BLUECHIP_VAULT_WITHDRAWAL_DELAY = 1 days;
     bool internal constant WETH_BLUECHIP_VAULT_IS_ENABLED = true;
     uint256 internal constant WETH_BLUECHIP_VAULT_CREDIT_RATIO = 2e18;
+    uint256 internal constant WETH_BLUECHIP_VAULT_DEPOSIT_FEE = 0.01e18;
+    uint256 internal constant WETH_BLUECHIP_VAULT_REDEEM_FEE = 0.05e18;
 }

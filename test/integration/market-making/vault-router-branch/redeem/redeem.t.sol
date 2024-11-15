@@ -36,8 +36,11 @@ contract Redeem_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit =
-            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
+        assetsToDeposit = bound({
+            x: assetsToDeposit,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
@@ -71,8 +74,11 @@ contract Redeem_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit =
-            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
+        assetsToDeposit = bound({
+            x: assetsToDeposit,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
@@ -103,8 +109,11 @@ contract Redeem_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit =
-            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
+        assetsToDeposit = bound({
+            x: assetsToDeposit,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
@@ -140,8 +149,11 @@ contract Redeem_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit =
-            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
+        assetsToDeposit = bound({
+            x: assetsToDeposit,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
@@ -158,8 +170,9 @@ contract Redeem_Integration_Test is Base_Test {
         UD60x18 expectedAssetsX18 =
             marketMakingEngine.getIndexTokenSwapRate(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw), false);
 
-        UD60x18 expectedAssetsMinusRedeemFeeX18 =
-            expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(MOCK_REDEEM_FEE)));
+        uint256 redeemFee = vaultsConfig[fuzzVaultConfig.vaultId].redeemFee;
+
+        UD60x18 expectedAssetsMinusRedeemFeeX18 = expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(redeemFee)));
 
         UD60x18 sharesMinusRedeemFeesX18 = marketMakingEngine.getVaultAssetSwapRate(
             fuzzVaultConfig.vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false
@@ -188,7 +201,7 @@ contract Redeem_Integration_Test is Base_Test {
         // it should send the fees to the vault redeem fee recipient
         assertEq(
             vaultRedeemFeeRecipientAmountAfterDeposit - vaultRedeemFeeRecipientAmountBeforeDeposit,
-            expectedAssetsX18.mul(ud60x18(MOCK_REDEEM_FEE)).intoUint256()
+            expectedAssetsX18.mul(ud60x18(redeemFee)).intoUint256()
         );
 
         // it should transfer assets to user

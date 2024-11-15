@@ -580,34 +580,38 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogConfigureReferralModule(msg.sender, referralModule);
     }
 
-    /// @notice Configure deposit fee on Market Making Engine
+    /// @notice Configure deposit and redeem fee to the vault
     /// @dev Only owner can call this function
-    /// @param depositFee The deposit fee, example 1e18 (100%), 1e17 (10%), 1e16 (1%), 1e15 (0,1%).
-    function configureDepositFee(uint256 depositFee) external onlyOwner {
-        // load the market making engine configuration from storage
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
+    /// @param vaultsIds The array of vaults
+    /// @param depositFees The array of deposit fees
+    /// @param redeemFees The array of redeem fees
+    function configureDepositAndRedeemFees(
+        uint128[] calldata vaultsIds,
+        uint128[] calldata depositFees,
+        uint128[] calldata redeemFees
+    )
+        external
+        onlyOwner
+    {
+        // verify the array length
+        if (vaultsIds.length != depositFees.length) {
+            revert Errors.ArrayLengthMismatch(vaultsIds.length, depositFees.length);
+        }
 
-        // update the deposit fee
-        marketMakingEngineConfiguration.depositFee = depositFee;
+        // verify the array length
+        if (depositFees.length != redeemFees.length) {
+            revert Errors.ArrayLengthMismatch(vaultsIds.length, depositFees.length);
+        }
 
-        // emit the LogConfigureDepositFee event
-        emit LogConfigureDepositFee(depositFee);
-    }
+        // loop over the arrays
+        for (uint256 i; i < vaultsIds.length; i++) {
+            // load vault data from storage
+            Vault.Data storage vault = Vault.load(vaultsIds[i]);
 
-    /// @notice Configure redeem fee on Market Making Engine
-    /// @dev Only owner can call this function
-    /// @param redeemFee The redeem fee, example 1e18 (100%), 1e17 (10%), 1e16 (1%), 1e15 (0,1%).
-    function configureRedeemFee(uint256 redeemFee) external onlyOwner {
-        // load the market making engine configuration from storage
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-
-        // update the redeem fee
-        marketMakingEngineConfiguration.redeemFee = redeemFee;
-
-        // emit the LogConfigureRedeemFee event
-        emit LogConfigureRedeemFee(redeemFee);
+            // update deposit and redeem fees
+            vault.depositFee = depositFees[i];
+            vault.redeemFee = redeemFees[i];
+        }
     }
 
     /// @notice Configure the vault deposit and redeem fee recipient

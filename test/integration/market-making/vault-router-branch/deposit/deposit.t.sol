@@ -54,8 +54,10 @@ contract Deposit_Integration_Test is Base_Test {
             fuzzVaultConfig.priceAdapter
         );
 
+        uint256 depositFee = vaultsConfig[fuzzVaultConfig.vaultId].depositFee;
+
         uint256 minDeposit = ud60x18(fuzzVaultConfig.depositCap).add(
-            ud60x18(fuzzVaultConfig.depositCap).mul(ud60x18(MOCK_DEPOSIT_FEE))
+            ud60x18(fuzzVaultConfig.depositCap).mul(ud60x18(depositFee))
         ).add(ud60x18(fuzzVaultConfig.depositCap)).intoUint256();
 
         assetsToDeposit = bound({ x: assetsToDeposit, min: minDeposit, max: type(uint128).max });
@@ -65,7 +67,7 @@ contract Deposit_Integration_Test is Base_Test {
         deal(collateral, users.naruto.account, assetsToDeposit);
 
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
-        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(MOCK_DEPOSIT_FEE));
+        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
         UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
         uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetsMinusFeesX18);
 
@@ -115,12 +117,17 @@ contract Deposit_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit =
-            bound({ x: assetsToDeposit, min: calculateMinOfSharesToStake(), max: fuzzVaultConfig.depositCap });
+        assetsToDeposit = bound({
+            x: assetsToDeposit,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
 
+        uint256 depositFee = vaultsConfig[fuzzVaultConfig.vaultId].depositFee;
+
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
-        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(MOCK_DEPOSIT_FEE));
+        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
         UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
         uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetsMinusFeesX18);
 

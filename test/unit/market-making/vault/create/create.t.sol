@@ -33,7 +33,9 @@ contract Vault_Create_Unit_Test is Base_Test {
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateral
+            collateral: collateral,
+            depositFee: MOCK_DEPOSIT_FEE,
+            redeemFee: MOCK_REDEEM_FEE
         });
 
         // it should revert
@@ -57,7 +59,9 @@ contract Vault_Create_Unit_Test is Base_Test {
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateral
+            collateral: collateral,
+            depositFee: MOCK_DEPOSIT_FEE,
+            redeemFee: MOCK_REDEEM_FEE
         });
 
         // it should create new vault
