@@ -1,0 +1,8 @@
+CreditDelegationBranch_GetAdjustedProfitForMarketId_Integration_Test
+├── when the market is not live
+│   └── it should revert
+└── when the market is live
+    ├── when the credit capacity is less than or equal to zero
+    │   └── it should revert
+    └── when the credit capacity is greater than zero
+        └── it should return the adjusted profit
