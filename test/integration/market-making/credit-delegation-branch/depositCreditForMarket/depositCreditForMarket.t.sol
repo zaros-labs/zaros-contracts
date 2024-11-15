@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
-contract CreditDelegationBranch_GetAdjustedProfitForMarketId_Integration_Test is Base_Test {
+contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });

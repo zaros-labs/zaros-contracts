@@ -1,0 +1,3 @@
+CreditDelegationBranch_UpdateVaultCreditCapacity_Integration_Test
+└── given the updateVaultCreditCapacity is called
+    └── it should recalculate the vault credit capacity
