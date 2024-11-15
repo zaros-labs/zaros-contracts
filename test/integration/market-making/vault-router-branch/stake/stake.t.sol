@@ -45,7 +45,8 @@ contract Stake_Integration_Test is Base_Test {
 
         marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake), "", false);
 
-        uint256 actorShares = marketMakingEngine.getActorShares(fuzzVaultConfig.vaultId);
+        uint256 actorShares =
+            marketMakingEngine.getVaultSharesOfAccount(fuzzVaultConfig.vaultId, users.naruto.account);
 
         // it should update staked shares
         assertEq(sharesToStake, actorShares);

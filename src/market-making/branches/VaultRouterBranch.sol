@@ -516,7 +516,7 @@ contract VaultRouterBranch {
         emit LogUnstake(vaultId, msg.sender, shares);
     }
 
-    function getActorShares(uint128 vaultId) public view returns (uint256) {
+    function getVaultSharesOfAccount(uint128 vaultId, address account) public view returns (uint256) {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
@@ -524,7 +524,7 @@ contract VaultRouterBranch {
         Distribution.Data storage distributionData = vault.wethRewardDistribution;
 
         // cast actor address to bytes32
-        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
+        bytes32 actorId = bytes32(uint256(uint160(account)));
 
         // get acctor staked shares
         UD60x18 actorShares = distributionData.getActorShares(actorId);
