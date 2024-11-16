@@ -62,8 +62,9 @@ contract StabilityBranch is EngineAccessControl {
         address assetOut,
         uint120 deadline,
         uint256 amountOut,
-        uint256 protocolReward,
-        uint256 vaultReward
+        uint256 baseFee,
+        uint256 swapFee,
+        uint256 protocolReward
     );
 
     /// @notice Retrieves a specific USD token swap request for a given user and request ID.
@@ -317,25 +318,22 @@ contract StabilityBranch is EngineAccessControl {
         // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
         uint256 protocolReward = collateral.convertUd60x18ToTokenAmount(baseFeeX18.add(protocolSwapFeeX18));
 
-        // distribute protocol reward
-        marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolReward);
+        // update vault debt
+        vault.unsettledRealizedDebtUsd -= int128(request.amountIn);
 
         // burn usd amount from address(this)
         usdToken.burn(request.amountIn);
 
-        // update vault debt
-        vault.unsettledRealizedDebtUsd -= int128(request.amountIn);
+        // transfer the required assets from the vault to the mm engine contract before distributions
+        IERC20(asset).safeTransferFrom(vault.indexToken, address(this), amountOutBeforeFeesX18.intoUint256());
 
-        // cache the zlp vault'index token contract
-        address indexToken = vault.indexToken;
+        // distribute protocol reward value
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolReward);
 
-        uint256 vaultReward = collateral.convertUd60x18ToTokenAmount(swapFeeX18.sub(protocolSwapFeeX18));
-
-        // send the vault's swap reward share to its index token (ZLP Vault) contract
-        IERC20(asset).safeTransfer(address(indexToken), vaultReward);
-
-        // vault => user
-        IERC20(asset).safeTransferFrom(address(indexToken), user, amountOut);
+        // transfers the remaining amount out to the user, discounting fees
+        // note: the vault's share of the swap fee remains in the index token contract, thus, we don't need transfer
+        // it anywhere. The end result is that vaults have an amount of their debt paid off with a discount.
+        IERC20(asset).safeTransfer(user, amountOut);
 
         emit LogFulfillSwap(
             user,
@@ -346,8 +344,9 @@ contract StabilityBranch is EngineAccessControl {
             request.assetOut,
             request.deadline,
             amountOut,
-            protocolReward,
-            vaultReward
+            baseFeeX18.intoUint256(),
+            swapFeeX18.intoUint256(),
+            protocolReward
         );
     }
 
