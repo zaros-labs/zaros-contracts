@@ -325,7 +325,7 @@ contract StabilityBranch is EngineAccessControl {
         usdToken.burn(request.amountIn);
 
         // transfer the required assets from the vault to the mm engine contract before distributions
-        IERC20(asset).safeTransferFrom(vault.indexToken, address(this), amountOutBeforeFeesX18.intoUint256());
+        IERC20(asset).safeTransferFrom(vault.indexToken, address(this), amountOut + protocolReward);
 
         // distribute protocol reward value
         marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolReward);
