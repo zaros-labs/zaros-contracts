@@ -61,7 +61,9 @@ contract StabilityBranch is EngineAccessControl {
         uint128 minAmountOut,
         address assetOut,
         uint120 deadline,
-        uint256 amountOut
+        uint256 amountOut,
+        uint256 protocolReward,
+        uint256 vaultReward
     );
 
     /// @notice Retrieves a specific USD token swap request for a given user and request ID.
@@ -309,18 +311,14 @@ contract StabilityBranch is EngineAccessControl {
             revert Errors.SlippageCheckFailed(request.minAmountOut, amountOut);
         }
 
-        // todo: distribute rewards to protocol fee recipients and vaults
-
         // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
         // recipients' share.
         UD60x18 protocolSwapFeeX18 = swapFeeX18.mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares());
         // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
-        uint256 protocolRewardAmount = collateral.convertUd60x18ToTokenAmount(baseFeeX18.add(protocolSwapFeeX18));
+        uint256 protocolReward = collateral.convertUd60x18ToTokenAmount(baseFeeX18.add(protocolSwapFeeX18));
 
         // distribute protocol reward
-        marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolRewardAmount);
-
-        // todo: distribute reward to vault
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolReward);
 
         // burn usd amount from address(this)
         usdToken.burn(request.amountIn);
@@ -328,8 +326,16 @@ contract StabilityBranch is EngineAccessControl {
         // update vault debt
         vault.unsettledRealizedDebtUsd -= int128(request.amountIn);
 
+        // cache the zlp vault'index token contract
+        address indexToken = vault.indexToken;
+
+        uint256 vaultReward = collateral.convertUd60x18ToTokenAmount(swapFeeX18.sub(protocolSwapFeeX18));
+
+        // send the vault's swap reward share to its index token (ZLP Vault) contract
+        IERC20(asset).safeTransfer(address(indexToken), vaultReward);
+
         // vault => user
-        IERC20(vault.collateral.asset).safeTransferFrom(address(vault.indexToken), user, amountOut);
+        IERC20(asset).safeTransferFrom(address(indexToken), user, amountOut);
 
         emit LogFulfillSwap(
             user,
@@ -339,7 +345,9 @@ contract StabilityBranch is EngineAccessControl {
             request.minAmountOut,
             request.assetOut,
             request.deadline,
-            amountOut
+            amountOut,
+            protocolReward,
+            vaultReward
         );
     }
 
