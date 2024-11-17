@@ -49,6 +49,7 @@ contract StabilityBranch is EngineAccessControl {
         uint128 minAmountOut,
         address assetOut,
         uint120 deadline,
+        uint256 baseFeeUsd,
         uint256 refundAmount
     );
 
@@ -353,51 +354,58 @@ contract StabilityBranch is EngineAccessControl {
     /// @notice Refunds a swap request that has not been processed and has expired.
     /// @param requestId The unique ID of the swap request to be refunded.
     function refundSwap(uint128 requestId, address engine) external {
-        // // load swap data
-        // UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+        // load swap data
+        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
 
-        // // load swap request
-        // UsdTokenSwap.SwapRequest storage request = tokenSwapData.swapRequests[msg.sender][requestId];
+        // load swap request
+        UsdTokenSwap.SwapRequest storage request = tokenSwapData.swapRequests[msg.sender][requestId];
 
-        // // if request already procesed revert
-        // if (request.processed) {
-        //     revert Errors.RequestAlreadyProcessed(msg.sender, requestId);
-        // }
+        // if request already procesed revert
+        if (request.processed) {
+            revert Errors.RequestAlreadyProcessed(msg.sender, requestId);
+        }
 
-        // // if dealine has not yet passed revert
-        // if (request.deadline > block.timestamp) {
-        //     revert Errors.RequestNotExpired(msg.sender, requestId);
-        // }
+        // if dealine has not yet passed revert
+        if (request.deadline > block.timestamp) {
+            revert Errors.RequestNotExpired(msg.sender, requestId);
+        }
 
-        // // set precessed to true
-        // request.processed = true;
+        // set precessed to true
+        request.processed = true;
 
-        // // load Market making engine config
-        // MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-        //     MarketMakingEngineConfiguration.load();
+        // load Market making engine config
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
 
-        // // get usd token for engine
-        // address usdToken = marketMakingEngineConfiguration.usdTokenOfEngine[engine];
+        // get usd token for engine
+        address usdToken = marketMakingEngineConfiguration.usdTokenOfEngine[engine];
 
-        // // get refund amount
-        // (uint256 refundAmount, uint256 feeAmount) = _handleFeeUsd(request.amountIn);
+        // cache the usd token swap base fee
+        uint256 baseFeeUsd = tokenSwapData.baseFeeUsd;
 
-        // // transfer fee too fee recipient
-        // IERC20(usdToken).safeTransfer(address(1), feeAmount); // TODO: set USD token fee recipien
+        // cache the amount of usd token previously deposited
+        uint128 depositedUsdToken = request.amountIn;
 
-        // // transfer usd refund amount back to user
-        // IERC20(usdToken).safeTransfer(msg.sender, refundAmount);
+        // transfer base fee too protocol fee recipients
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(usdToken, baseFeeUsd);
 
-        // emit LogRefundSwap(
-        //     msg.sender,
-        //     requestId,
-        //     request.vaultId,
-        //     request.amountIn,
-        //     request.minAmountOut,
-        //     request.assetOut,
-        //     request.deadline,
-        //     refundAmount
-        // );
+        // cache the amount of usd tokens to be refunded
+        uint256 refundAmountUsd = depositedUsdToken - baseFeeUsd;
+
+        // transfer usd refund amount back to user
+        IERC20(usdToken).safeTransfer(msg.sender, refundAmountUsd);
+
+        emit LogRefundSwap(
+            msg.sender,
+            requestId,
+            request.vaultId,
+            depositedUsdToken,
+            request.minAmountOut,
+            request.assetOut,
+            request.deadline,
+            baseFeeUsd,
+            refundAmountUsd
+        );
     }
 
     // /// @notice Applies the swap fee to the USD token amount and either mints or transfers the fee to the fee
