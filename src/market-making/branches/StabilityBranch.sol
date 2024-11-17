@@ -126,17 +126,6 @@ contract StabilityBranch is EngineAccessControl {
         swapFeeX18 = Math.divUp(
             assetsAmountOutX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), ud60x18(Constants.BPS_DENOMINATOR)
         );
-
-        // load the mm engine configuration pointer
-        // MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-        //     MarketMakingEngineConfiguration.load();
-
-        // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
-        // recipients' share.
-        // uint256 protocolSwapFee =
-        //     (ud60x18(totalSwapFee).mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares()).intoUint256());
-        // // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
-        // uint256 protocolRewardAmount = baseFee + protocolSwapFee;
     }
 
     /// @notice Applies the swap fee to the USD token amount in the context of a refund.
@@ -407,69 +396,4 @@ contract StabilityBranch is EngineAccessControl {
             refundAmountUsd
         );
     }
-
-    // /// @notice Applies the swap fee to the USD token amount and either mints or transfers the fee to the fee
-    // /// recipient.
-    // /// @param amountIn The original amount of USD tokens to be swapped, before the fee is deducted.
-    // /// @return The amount of USD tokens remaining after the fee is deducted and the fee
-    // function _handleFeeUsd(uint256 amountIn) internal view returns (uint256, uint256) {
-    //     // load swap data
-    //     UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
-
-    //     // Calculate the total fee
-    //     uint256 feeAmount = tokenSwapData.baseFeeUsd + (amountIn * tokenSwapData.swapSettlementFeeBps) / 10_000;
-
-    //     // deduct the fee from the amountIn
-    //     amountIn -= feeAmount;
-
-    //     // return amountIn after fee was applied
-    //     return (amountIn, feeAmount);
-    // }
-
-    // /// @notice Calculates and deducts the applicable fee from the specified asset amount.
-    // /// @param amountOut The initial amount of the asset being processed.
-    // /// @param asset The address of the asset for which the fee is being calculated.
-    // /// @param priceX18 The current price of the asset in UD60x18 format.
-    // /// @return The amount remaining after the base and settlement fees have been deducted.
-    // // todo: refactor this function in two steps, view and non-view, to return the expected amount out to external
-    // // clients taking fees into account.
-    // function _handleFeeAsset(uint256 assetsAmountOut, address asset, UD60x18 priceX18) internal returns (uint256) {
-    //     // load swap data
-    //     UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
-
-    //     // load collateral data
-    //     Collateral.Data storage collateral = Collateral.load(asset);
-
-    //     // convert the base fee in usd to the asset amount to be charged
-    //     UD60x18 baseFeeX18 = ud60x18(tokenSwapData.baseFeeUsd).div(priceX18);
-
-    //     // UD60x18 -> uint256
-    //     uint256 baseFee = collateral.convertUd60x18ToTokenAmount(baseFeeX18);
-    //     // calculates the swap fee portion
-    //     // TODO: come back here and see if we work with bps using 18 decimals or not
-    //     uint256 totalSwapFee = assetsAmountOut * tokenSwapData.swapSettlementFeeBps / Constants.BPS_DENOMINATOR;
-
-    //     // load the mm engine configuration pointer
-    //     MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-    //         MarketMakingEngineConfiguration.load();
-
-    //     // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
-    //     // recipients' share.
-    //     uint256 protocolSwapFee =
-    //         (ud60x18(totalSwapFee).mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares()).intoUint256());
-    //     // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
-    //     uint256 protocolRewardAmount = baseFee + protocolSwapFee;
-
-    //     // todo: distribute fee straight to the vault's weth reward distribution? or store it somewhere else?
-    //     // todo: distribute swapFee - protocolSwapFee to vaults
-
-    //     // distributes the protocol reward paid in the asset
-    //     marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolRewardAmount);
-
-    //     // deduct the fee from the amount in
-    //     assetsAmountOut -= baseFee + totalSwapFee;
-
-    //     // return amountIn after fee was applied
-    //     return assetsAmountOut;
-    // }
 }
