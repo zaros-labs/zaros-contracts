@@ -18,7 +18,7 @@ import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18, convert as ud60x18Convert } from "@prb-math/UD60x18.sol";
 
 contract StabilityBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
@@ -124,7 +124,8 @@ contract StabilityBranch is EngineAccessControl {
 
         // calculates the swap fee portion rounding up
         swapFeeX18 = Math.divUp(
-            assetsAmountOutX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), ud60x18(Constants.BPS_DENOMINATOR)
+            assetsAmountOutX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)),
+            ud60x18Convert(Constants.BPS_DENOMINATOR)
         );
     }
 
@@ -146,7 +147,7 @@ contract StabilityBranch is EngineAccessControl {
         baseFeeUsdX18 = ud60x18(tokenSwapData.baseFeeUsd);
         // calculates and returns the swap fee in UD60x18
         swapFeeUsdX18 = Math.divUp(
-            usdAmountInX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), ud60x18(Constants.BPS_DENOMINATOR)
+            usdAmountInX18.mul(ud60x18(tokenSwapData.swapSettlementFeeBps)), ud60x18Convert(Constants.BPS_DENOMINATOR)
         );
     }
 
