@@ -151,6 +151,11 @@ contract StabilityBranch is EngineAccessControl {
         );
     }
 
+    struct InitiateSwapContext {
+        address initialVaultCollateralAsset;
+        uint128 requestId;
+    }
+
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
     /// @param vaultIds An array of vault IDs from which to take assets.
     /// @param amountsIn An array of USD token amounts to be swapped from the user.
@@ -176,14 +181,14 @@ contract StabilityBranch is EngineAccessControl {
             revert Errors.ArrayLengthMismatch(amountsIn.length, minAmountsOut.length);
         }
 
-        // Load the first vault to store the initial collateral asset for comparison
-        Vault.Data storage initialVault = Vault.load(vaultIds[0]);
+        // working data
+        InitiateSwapContext memory ctx;
 
         // cache the collateral asset's address
-        address initialVaultCollateralAsset = initialVault.collateral.asset;
+        ctx.initialVaultCollateralAsset = Vault.load(vaultIds[0]).collateral.asset;
 
         // load collateral data
-        Collateral.Data storage collateral = Collateral.load(initialVaultCollateralAsset);
+        Collateral.Data storage collateral = Collateral.load(ctx.initialVaultCollateralAsset);
 
         // Ensure the collateral asset is enabled
         collateral.verifyIsEnabled();
@@ -196,7 +201,7 @@ contract StabilityBranch is EngineAccessControl {
 
         for (uint256 i; i < amountsIn.length; i++) {
             // if trying to create a swap request with a different collateral asset, we must revert
-            if (Vault.load(vaultIds[i]).collateral.asset != initialVaultCollateralAsset) {
+            if (Vault.load(vaultIds[i]).collateral.asset != ctx.initialVaultCollateralAsset) {
                 revert Errors.VaultsCollateralAssetsMismatch();
             }
 
@@ -206,21 +211,21 @@ contract StabilityBranch is EngineAccessControl {
             );
 
             // get next request id for user
-            uint128 requestId = tokenSwapData.nextId(msg.sender);
+            ctx.requestId = tokenSwapData.nextId(msg.sender);
 
             // load swap request
-            UsdTokenSwap.SwapRequest storage swapRequest = tokenSwapData.swapRequests[msg.sender][requestId];
+            UsdTokenSwap.SwapRequest storage swapRequest = tokenSwapData.swapRequests[msg.sender][ctx.requestId];
 
             // Set swap request parameters
             swapRequest.minAmountOut = minAmountsOut[i];
             swapRequest.vaultId = vaultIds[i];
-            swapRequest.assetOut = initialVaultCollateralAsset;
+            swapRequest.assetOut = ctx.initialVaultCollateralAsset;
             swapRequest.deadline = uint120(block.timestamp) + uint120(tokenSwapData.maxExecutionTime);
             swapRequest.amountIn = amountsIn[i];
 
             emit LogInitiateSwap(
                 msg.sender,
-                requestId,
+                ctx.requestId,
                 vaultIds[i],
                 amountsIn[i],
                 minAmountsOut[i],
@@ -228,6 +233,18 @@ contract StabilityBranch is EngineAccessControl {
                 swapRequest.deadline
             );
         }
+    }
+
+    struct FulfillSwapContext {
+        UsdToken usdToken;
+        UD60x18 baseFeeX18;
+        UD60x18 swapFeeX18;
+        address asset;
+        UD60x18 priceX18;
+        uint256 amountOut;
+        UD60x18 amountOutBeforeFeesX18;
+        UD60x18 protocolSwapFeeX18;
+        uint256 protocolReward;
     }
 
     /// @notice Fulfills a USD token swap request by converting the specified amount of USD tokens to a collateral
@@ -266,6 +283,9 @@ contract StabilityBranch is EngineAccessControl {
         // set request processed to true
         request.processed = true;
 
+        // working data
+        FulfillSwapContext memory ctx;
+
         // load market making engine config
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
@@ -274,57 +294,57 @@ contract StabilityBranch is EngineAccessControl {
         Vault.Data storage vault = Vault.load(request.vaultId);
 
         // get usd token of engine
-        UsdToken usdToken = UsdToken(marketMakingEngineConfiguration.usdTokenOfEngine[engine]);
+        ctx.usdToken = UsdToken(marketMakingEngineConfiguration.usdTokenOfEngine[engine]);
 
         // load Stability configuration data
         StabilityConfiguration.Data storage stabilityConfiguration = StabilityConfiguration.load();
 
         // get price from report in 18 dec
-        UD60x18 priceX18 = stabilityConfiguration.verifyOffchainPrice(priceData);
+        ctx.priceX18 = stabilityConfiguration.verifyOffchainPrice(priceData);
 
         // get amount out asset
-        UD60x18 amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(request.amountIn), priceX18);
+        ctx.amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(request.amountIn), ctx.priceX18);
 
         // gets the base fee and swap fee for the given amount out before fees
-        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) = getFeesForAssetsAmountOut(amountOutBeforeFeesX18, priceX18);
+        (ctx.baseFeeX18, ctx.swapFeeX18) = getFeesForAssetsAmountOut(ctx.amountOutBeforeFeesX18, ctx.priceX18);
 
         // cache the collateral asset address
-        address asset = vault.collateral.asset;
+        ctx.asset = vault.collateral.asset;
 
         // load the collateral configuration storage pointer
-        Collateral.Data storage collateral = Collateral.load(asset);
+        Collateral.Data storage collateral = Collateral.load(ctx.asset);
 
         // subtract the fees and convert the UD60x18 value to the collateral's decimals value
-        uint256 amountOut =
-            collateral.convertUd60x18ToTokenAmount(amountOutBeforeFeesX18.sub(baseFeeX18.add(swapFeeX18)));
+        ctx.amountOut =
+            collateral.convertUd60x18ToTokenAmount(ctx.amountOutBeforeFeesX18.sub(ctx.baseFeeX18.add(ctx.swapFeeX18)));
 
         // slippage check
-        if (amountOut < request.minAmountOut) {
-            revert Errors.SlippageCheckFailed(request.minAmountOut, amountOut);
+        if (ctx.amountOut < request.minAmountOut) {
+            revert Errors.SlippageCheckFailed(request.minAmountOut, ctx.amountOut);
         }
 
         // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
         // recipients' share.
-        UD60x18 protocolSwapFeeX18 = swapFeeX18.mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares());
+        ctx.protocolSwapFeeX18 = ctx.swapFeeX18.mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares());
         // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
-        uint256 protocolReward = collateral.convertUd60x18ToTokenAmount(baseFeeX18.add(protocolSwapFeeX18));
+        ctx.protocolReward = collateral.convertUd60x18ToTokenAmount(ctx.baseFeeX18.add(ctx.protocolSwapFeeX18));
 
         // update vault debt
         vault.unsettledRealizedDebtUsd -= int128(request.amountIn);
 
         // burn usd amount from address(this)
-        usdToken.burn(request.amountIn);
+        ctx.usdToken.burn(request.amountIn);
 
         // transfer the required assets from the vault to the mm engine contract before distributions
-        IERC20(asset).safeTransferFrom(vault.indexToken, address(this), amountOut + protocolReward);
+        IERC20(ctx.asset).safeTransferFrom(vault.indexToken, address(this), ctx.amountOut + ctx.protocolReward);
 
         // distribute protocol reward value
-        marketMakingEngineConfiguration.distributeProtocolAssetReward(asset, protocolReward);
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(ctx.asset, ctx.protocolReward);
 
         // transfers the remaining amount out to the user, discounting fees
         // note: the vault's share of the swap fee remains in the index token contract, thus, we don't need transfer
         // it anywhere. The end result is that vaults have an amount of their debt paid off with a discount.
-        IERC20(asset).safeTransfer(user, amountOut);
+        IERC20(ctx.asset).safeTransfer(user, ctx.amountOut);
 
         emit LogFulfillSwap(
             user,
@@ -334,10 +354,10 @@ contract StabilityBranch is EngineAccessControl {
             request.minAmountOut,
             request.assetOut,
             request.deadline,
-            amountOut,
-            baseFeeX18.intoUint256(),
-            swapFeeX18.intoUint256(),
-            protocolReward
+            ctx.amountOut,
+            ctx.baseFeeX18.intoUint256(),
+            ctx.swapFeeX18.intoUint256(),
+            ctx.protocolReward
         );
     }
 
