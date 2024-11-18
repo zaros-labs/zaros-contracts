@@ -24,10 +24,12 @@ library UsdTokenSwap {
 
     /// @notice Represents the configuration and state data for USD token swaps.
     /// @param baseFeeUsd The flat fee for each swap, denominated in USD.
-    /// @param swapSettlementFeeBps The swap settlement fee in basis points (bps), applied as a percentage of the swap amount.
+    /// @param swapSettlementFeeBps The swap settlement fee in basis points (bps), applied as a percentage of the swap
+    /// amount.
     /// @param maxExecutionTime The maximum allowed time, in seconds, to execute a swap after it has been requested.
     /// @param swapRequestIdCounter A counter for tracking the number of swap requests per user address.
-    /// @param swapRequests A mapping that tracks all swap requests for each user, by user address and swap request id.
+    /// @param swapRequests A mapping that tracks all swap requests for each user, by user address and swap request
+    /// id.
     struct Data {
         uint128 baseFeeUsd; // 1 USD
         uint128 swapSettlementFeeBps; // 0.3 %
@@ -47,8 +49,10 @@ library UsdTokenSwap {
 
     /// @notice Updates the fee and execution time parameters for USD token swaps.
     /// @param baseFeeUsd The new flat fee for each swap, denominated in USD.
-    /// @param swapSettlementFeeBps The new swap settlement fee in basis points (bps), applied as a percentage of the swap amount.
-    /// @param maxExecutionTime The new maximum allowed time, in seconds, to execute a swap after it has been requested.
+    /// @param swapSettlementFeeBps The new swap settlement fee in basis points (bps), applied as a percentage of the
+    /// swap amount.
+    /// @param maxExecutionTime The new maximum allowed time, in seconds, to execute a swap after it has been
+    /// requested.
     function update(uint128 baseFeeUsd, uint128 swapSettlementFeeBps, uint128 maxExecutionTime) internal {
         Data storage self = load();
 
@@ -58,7 +62,8 @@ library UsdTokenSwap {
     }
 
     /// @notice Increments and returns the next swap request ID for a given user.
-    /// @dev This function updates the `swapRequestIdCounter` mapping to generate a unique ID for each user's swap request.
+    /// @dev This function updates the `swapRequestIdCounter` mapping to generate a unique ID for each user's swap
+    /// request.
     /// @param user The address of the user for whom the next swap request ID is being generated.
     /// @return id The new incremented swap request ID for the specified user.
     function nextId(Data storage self, address user) internal returns (uint128 id) {

@@ -494,13 +494,14 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     feeDistributionBranchSelectors[4] = FeeDistributionBranch.claimFees.selector;
 
     bytes4[] memory stabilityBranchSelectors = new bytes4[](7);
-    stabilityBranchSelectors[0] = StabilityBranch.initiateSwap.selector;
-    stabilityBranchSelectors[1] = StabilityBranch.refundSwap.selector;
-    stabilityBranchSelectors[2] = StabilityBranch.fulfillSwap.selector;
-    stabilityBranchSelectors[3] = StabilityBranch.getSwapRequest.selector;
-    stabilityBranchSelectors[4] = StabilityBranch.getAmountOutCollateral.selector;
-    stabilityBranchSelectors[5] = StabilityBranch.deductFeeCollateral.selector;
-    stabilityBranchSelectors[6] = StabilityBranch.deductFeeUsd.selector;
+
+    stabilityBranchSelectors[0] = StabilityBranch.getSwapRequest.selector;
+    stabilityBranchSelectors[1] = StabilityBranch.getAmountOfAssetOut.selector;
+    stabilityBranchSelectors[2] = StabilityBranch.getFeesForAssetsAmountOut.selector;
+    stabilityBranchSelectors[3] = StabilityBranch.getFeesForUsdTokenAmountIn.selector;
+    stabilityBranchSelectors[4] = StabilityBranch.initiateSwap.selector;
+    stabilityBranchSelectors[5] = StabilityBranch.fulfillSwap.selector;
+    stabilityBranchSelectors[6] = StabilityBranch.refundSwap.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = marketMakingEngineConfigBranchSelectors;
@@ -511,9 +512,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     return selectors;
 }
 
-function deployMarketMakingHarnesses(
-    RootProxy.BranchUpgrade[] memory branchUpgrades
-)
+function deployMarketMakingHarnesses(RootProxy.BranchUpgrade[] memory branchUpgrades)
     returns (RootProxy.BranchUpgrade[] memory)
 {
     address[] memory harnesses = deployMarketMakingAddressHarnesses();
@@ -638,7 +637,8 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     dexSwapStrategyHarnessSelectors[0] = DexSwapStrategyHarness.exposed_dexSwapStrategy_load.selector;
 
     bytes4[] memory stabilityConfigurationHarnessSelectors = new bytes4[](1);
-    stabilityConfigurationHarnessSelectors[0] = StabilityConfigurationHarness.exposed_StabilityConfiguration_load.selector;
+    stabilityConfigurationHarnessSelectors[0] =
+        StabilityConfigurationHarness.exposed_StabilityConfiguration_load.selector;
 
     selectors[0] = vaultHarnessSelectors;
     selectors[1] = withdrawalRequestHarnessSelectors;

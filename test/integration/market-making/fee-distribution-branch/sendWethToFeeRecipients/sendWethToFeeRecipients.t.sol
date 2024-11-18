@@ -50,9 +50,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_ThereIsNoAvailableFeesToWithdraw(
-        uint256 marketId
-    )
+    function testFuzz_RevertWhen_ThereIsNoAvailableFeesToWithdraw(uint256 marketId)
         external
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
@@ -179,11 +177,10 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
 
         // it should emit {LogSendWethToFeeRecipients} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
-        for (uint256 i = 0; i < quantityOfFeeRecipients; i++) {
-            emit FeeDistributionBranch.LogSendWethToFeeRecipients(
-                feeRecipients[i], expectedFeePerRecipientX18.intoUint256()
-            );
-        }
+
+        emit FeeDistributionBranch.LogSendWethToFeeRecipients(
+            uint128(marketId), expectedPendingProtocolWethRewardX18.intoUint256()
+        );
 
         marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketId);
 

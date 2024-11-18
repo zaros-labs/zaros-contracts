@@ -88,9 +88,7 @@ contract VaultHarness {
         Vault.update(params);
     }
 
-    function workaround_Vault_getConnectedMarkets(
-        uint128 vaultId
-    )
+    function workaround_Vault_getConnectedMarkets(uint128 vaultId)
         external
         view
         returns (uint128[] memory connectedMarkets)

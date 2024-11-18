@@ -7,7 +7,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityConfiguration } from "@zaros/market-making/leaves/StabilityConfiguration.sol";
 
 contract MarketMakingEngineConfigurationBranch_UpdateStabilityConfiguration_Integration_Test is Base_Test {
-
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
@@ -27,7 +26,10 @@ contract MarketMakingEngineConfigurationBranch_UpdateStabilityConfiguration_Inte
         _;
     }
 
-    function testFuzz_RevertWhen_MaxVerificationDelayIsZero(address chailinkVerifier) external whenChainlinkVerifierIsNotAddressZero {
+    function testFuzz_RevertWhen_MaxVerificationDelayIsZero(address chailinkVerifier)
+        external
+        whenChainlinkVerifierIsNotAddressZero
+    {
         vm.assume(chailinkVerifier != address(0));
 
         uint128 maxVerificationDelay = 0;
@@ -37,7 +39,13 @@ contract MarketMakingEngineConfigurationBranch_UpdateStabilityConfiguration_Inte
         marketMakingEngine.updateStabilityConfiguration(chailinkVerifier, maxVerificationDelay);
     }
 
-    function testFuzz_WhenMaxVerificationDelayIsNotZero(address chailinkVerifier, uint128 maxVerificationDelay) external whenChainlinkVerifierIsNotAddressZero {
+    function testFuzz_WhenMaxVerificationDelayIsNotZero(
+        address chailinkVerifier,
+        uint128 maxVerificationDelay
+    )
+        external
+        whenChainlinkVerifierIsNotAddressZero
+    {
         vm.assume(chailinkVerifier != address(0));
         maxVerificationDelay = uint128(bound({ x: maxVerificationDelay, min: 1, max: uint256(type(uint128).max) }));
 

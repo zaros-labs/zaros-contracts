@@ -105,7 +105,7 @@ abstract contract Vaults is
 
             vaultsConfig[i].indexToken = address(zlpVault);
 
-            if(usdTokenSwapKeepers[vaultAsset] == address(0)) {
+            if (usdTokenSwapKeepers[vaultAsset] == address(0)) {
                 deployUsdTokenSwapKeeper(owner, marketMakingEngine, vaultAsset, vaultsConfig[i].streamIdString);
             }
         }

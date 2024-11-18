@@ -23,7 +23,13 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_WhenDeadlineHasExpored(uint256 vaultId, uint256 assetsToDeposit) external givenCheckLogIsCalled {
+    function testFuzz_WhenDeadlineHasExpored(
+        uint256 vaultId,
+        uint256 assetsToDeposit
+    )
+        external
+        givenCheckLogIsCalled
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1e18, max: fuzzVaultConfig.depositCap });
@@ -68,7 +74,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
 
         bytes memory extraData = abi.encode("extraData");
 
-        (bool upkeepNeeded, ) = UsdTokenSwapKeeper(usdTokenSwapKeeper).checkLog(mockedLog, extraData);
+        (bool upkeepNeeded,) = UsdTokenSwapKeeper(usdTokenSwapKeeper).checkLog(mockedLog, extraData);
 
         // it should return false
         assertEq(upkeepNeeded, false);
@@ -78,7 +84,11 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_WhenAssetsMissmatch(uint256 assetsToDeposit) external givenCheckLogIsCalled whenDeadlineHasNotExpired {
+    function testFuzz_WhenAssetsMissmatch(uint256 assetsToDeposit)
+        external
+        givenCheckLogIsCalled
+        whenDeadlineHasNotExpired
+    {
         VaultConfig memory initialVaultConfig = getFuzzVaultConfig(INITIAL_VAULT_ID);
         VaultConfig memory vaultConfig = getFuzzVaultConfig(FINAL_VAULT_ID);
 
@@ -123,13 +133,16 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
 
         bytes memory extraData = abi.encode("extraData");
 
-        (bool upkeepNeeded, ) = UsdTokenSwapKeeper(usdTokenSwapKeeper).checkLog(mockedLog, extraData);
+        (bool upkeepNeeded,) = UsdTokenSwapKeeper(usdTokenSwapKeeper).checkLog(mockedLog, extraData);
 
         // it should return false
         assertEq(upkeepNeeded, false);
     }
 
-    function testFuzz_RevertWhen_AssetsMatch(uint256 vaultId, uint256 assetsToDeposit)
+    function testFuzz_RevertWhen_AssetsMatch(
+        uint256 vaultId,
+        uint256 assetsToDeposit
+    )
         external
         givenCheckLogIsCalled
         whenDeadlineHasNotExpired

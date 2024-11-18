@@ -52,13 +52,7 @@ library StabilityConfiguration {
     /// @param self The {StabilityConfiguration} storage pointer.
     /// @param priceData The unverified price report data.
     /// @return priceX18 The offchain price.
-    function verifyOffchainPrice(
-        Data storage self,
-        bytes memory priceData
-    )
-        internal
-        returns (UD60x18 priceX18)
-    {
+    function verifyOffchainPrice(Data storage self, bytes memory priceData) internal returns (UD60x18 priceX18) {
         bytes memory reportData = ChainlinkUtil.getReportData(priceData);
         (FeeAsset memory fee) = ChainlinkUtil.getEthVericationFee(self.chainlinkVerifier, reportData);
         bytes memory verifiedPricetData = ChainlinkUtil.verifyReport(self.chainlinkVerifier, fee, priceData);
