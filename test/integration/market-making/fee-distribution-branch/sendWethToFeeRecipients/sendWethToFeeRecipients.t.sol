@@ -92,7 +92,10 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID()
+            fuzzPerpMarketCreditConfig.marketId,
+            address(usdc),
+            uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID(),
+            bytes("")
         );
 
         changePrank({ msgSender: address(users.owner.account) });
@@ -162,7 +165,10 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
             amountOutMinX18.mul(marketMakingEngine.exposed_getTotalFeeRecipientsShares());
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID()
+            fuzzPerpMarketCreditConfig.marketId,
+            address(usdc),
+            uniswapV3Adapter.UNISWAP_V3_SWAP_STRATEGY_ID(),
+            bytes("")
         );
 
         UD60x18 expectedFeePerRecipientX18 = expectedPendingProtocolWethRewardX18.mul(sharePerFeeRecipientX18);

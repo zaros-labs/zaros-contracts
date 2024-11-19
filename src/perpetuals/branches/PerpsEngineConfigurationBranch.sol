@@ -11,6 +11,7 @@ import { MarketConfiguration } from "@zaros/perpetuals/leaves/MarketConfiguratio
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -107,10 +108,10 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param marketId The perps market id.
     event LogDisablePerpMarket(address indexed sender, uint128 marketId);
 
-    /// @notice Emitted when a custom referral code is created.
-    /// @param referrer The address of the referrer.
-    /// @param customReferralCode The custom referral code.
-    event LogCreateCustomReferralCode(address indexed referrer, string customReferralCode);
+    /// @notice Emitted whe the referral module is configured.
+    /// @param sender The address that configured the referral module.
+    /// @param referralModule The address of the referral module.
+    event LogConfigureReferralModule(address sender, address referralModule);
 
     /// @notice Ensures that perp market is initialized.
     /// @param marketId The perps market id.
@@ -149,14 +150,19 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
     function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) {
-        return CustomReferralConfiguration.load(customReferralCode).referrer;
+        // load the perps engine configuration from storage
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+
+        return IReferral(perpsEngineConfiguration.referralModule).getCustomReferralCodeReferrer(customReferralCode);
     }
 
     /// @dev Returns the maximum amount that can be deposited as margin for a given
     /// collateral type.
     /// @param collateralType The address of the collateral type.
     /// @return marginCollateralConfiguration The configuration parameters of the given collateral type.
-    function getMarginCollateralConfiguration(address collateralType)
+    function getMarginCollateralConfiguration(
+        address collateralType
+    )
         external
         pure
         returns (MarginCollateralConfiguration.Data memory)
@@ -272,6 +278,13 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param maxPositionsPerAccount The maximum number of open positions per account.
     /// @param marketOrderMinLifetime The minimum lifetime of a market order to be considered active.
     /// @param liquidationFeeUsdX18 The liquidation fee in USD.
+    /// @param marginCollateralRecipient The address that receives the margin collateral.
+    /// @param orderFeeRecipient The address that receives the order fees.
+    /// @param settlementFeeRecipient The address that receives the settlement fees.
+    /// @param liquidationFeeRecipient The address that receives the liquidation fees.
+    /// @param marketMakingEngine The address of the market making engine.
+    /// @param referralModule The address of the referral module.
+    /// @param maxVerificationDelay The maximum verification delay.
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
@@ -281,6 +294,7 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         address settlementFeeRecipient,
         address liquidationFeeRecipient,
         address marketMakingEngine,
+        address referralModule,
         uint256 maxVerificationDelay
     )
         external
@@ -314,6 +328,10 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("marketMakingEngine");
         }
 
+        if (referralModule == address(0)) {
+            revert Errors.ZeroInput("referralModule");
+        }
+
         if (maxVerificationDelay == 0) {
             revert Errors.ZeroInput("maxVerificationDelay");
         }
@@ -328,6 +346,7 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         perpsEngineConfiguration.settlementFeeRecipient = settlementFeeRecipient;
         perpsEngineConfiguration.liquidationFeeRecipient = liquidationFeeRecipient;
         perpsEngineConfiguration.marketMakingEngine = marketMakingEngine;
+        perpsEngineConfiguration.referralModule = referralModule;
         perpsEngineConfiguration.maxVerificationDelay = maxVerificationDelay;
 
         emit LogConfigureSystemParameters(
@@ -575,9 +594,14 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param referrer The address of the referrer.
     /// @param customReferralCode The custom referral code.
     function createCustomReferralCode(address referrer, string memory customReferralCode) external onlyOwner {
-        CustomReferralConfiguration.load(customReferralCode).referrer = referrer;
+        // load the perps engine configuration from storage
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
-        emit LogCreateCustomReferralCode(referrer, customReferralCode);
+        // load the referral module
+        IReferral referralModule = IReferral(perpsEngineConfiguration.referralModule);
+
+        // create the custom referral code
+        referralModule.createCustomReferralCode(referrer, customReferralCode);
     }
 
     /// @notice Updates the allowance of the market making engine to spend the provided tokens.
@@ -605,5 +629,24 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         for (uint256 i; i < tokens.length; i++) {
             tokens[i].approve(perpsEngineConfiguration.marketMakingEngine, allowances[i]);
         }
+    }
+
+    /// @notice Configures the referral module.
+    /// @dev Only owner can configure the referral module.
+    /// @param referralModule The address of the referral module.
+    function configureReferralModule(address referralModule) external onlyOwner {
+        // revert if the referral module is zero
+        if (referralModule == address(0)) {
+            revert Errors.ZeroInput("referralModule");
+        }
+
+        // load the perps engine configuration from storage
+        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+
+        // set the referral module
+        perpsEngineConfiguration.referralModule = referralModule;
+
+        // emit the LogConfigureReferralModule event
+        emit LogConfigureReferralModule(msg.sender, referralModule);
     }
 }

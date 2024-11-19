@@ -23,6 +23,7 @@ library MarketMakingEngineConfiguration {
         address usdc;
         address weth;
         address feeDistributor;
+        address referralModule;
         EnumerableMap.AddressToUintMap protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;

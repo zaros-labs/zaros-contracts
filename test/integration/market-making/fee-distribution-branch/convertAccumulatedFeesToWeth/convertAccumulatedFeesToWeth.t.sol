@@ -36,7 +36,9 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, users.naruto.account) });
 
-        marketMakingEngine.convertAccumulatedFeesToWeth(uint128(marketId), address(usdc), dexSwapStrategyId);
+        marketMakingEngine.convertAccumulatedFeesToWeth(
+            uint128(marketId), address(usdc), dexSwapStrategyId, bytes("")
+        );
     }
 
     modifier givenTheSenderIsRegisteredEngine() {
@@ -54,7 +56,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketId) });
 
-        marketMakingEngine.convertAccumulatedFeesToWeth(invalidMarketId, address(usdc), dexSwapStrategyId);
+        marketMakingEngine.convertAccumulatedFeesToWeth(invalidMarketId, address(usdc), dexSwapStrategyId, bytes(""));
     }
 
     modifier whenTheMarketExist() {
@@ -79,7 +81,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralDisabled.selector, address(0)) });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, assetNotEnabled, dexSwapStrategyId
+            fuzzPerpMarketCreditConfig.marketId, assetNotEnabled, dexSwapStrategyId, bytes("")
         );
     }
 
@@ -106,7 +108,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), dexSwapStrategyId
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), dexSwapStrategyId, bytes("")
         );
     }
 
@@ -134,7 +136,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.AssetAmountIsZero.selector, address(usdc)) });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), dexSwapStrategyId
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), dexSwapStrategyId, bytes("")
         );
     }
 
@@ -175,13 +177,14 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), wrongStrategyId
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), wrongStrategyId, bytes("")
         );
     }
 
     function testFuzz_WhenTheDexSwapStrategyHasAValidDexAdapter(
         uint256 marketId,
-        uint256 amount
+        uint256 amount,
+        bool shouldSwapExactInputSingle
     )
         external
         givenTheSenderIsRegisteredEngine
@@ -235,8 +238,14 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
             "the asset should be in the received market fees"
         );
 
+        bytes memory path = shouldSwapExactInputSingle
+            ? bytes("")
+            : abi.encodePacked(
+                address(usdc), uniswapV3Adapter.feeBps(), address(wBtc), uniswapV3Adapter.feeBps(), address(wEth)
+            );
+
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId, path
         );
 
         // it should verify if the asset is different that weth and convert

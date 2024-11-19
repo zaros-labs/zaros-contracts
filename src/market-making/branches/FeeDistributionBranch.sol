@@ -10,7 +10,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
-import { SwapPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 
 // PRB Math dependencies
@@ -111,10 +111,16 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @param marketId The id of the market to have its fees converted to WETH.
     /// @param asset The asset to be swapped for WETH.
     /// @param dexSwapStrategyId The dex swap strategy id to be used for swapping.
+    /// @param path The path is a sequence of (tokenAddress - fee - tokenAddress),
+    /// which are the variables needed to compute each pool contract address in our sequence of swaps.
+    /// The multihop swap router code will automatically find the correct pool with these variables,
+    /// and execute the swap needed within each pool in our sequence.
+    /// The path param could be empty if the swap is single input.
     function convertAccumulatedFeesToWeth(
         uint128 marketId,
         address asset,
-        uint128 dexSwapStrategyId
+        uint128 dexSwapStrategyId,
+        bytes memory path
     )
         external
         onlyRegisteredSystemKeepers
@@ -165,12 +171,36 @@ contract FeeDistributionBranch is EngineAccessControl {
             // approve the collateral token to the dex adapter
             IERC20(asset).approve(dexSwapStrategy.dexAdapter, assetAmount);
 
-            // prepare the data for executing the swap
-            SwapPayload memory swapCallData =
-                SwapPayload({ tokenIn: asset, tokenOut: weth, amountIn: assetAmount, recipient: address(this) });
+            // create variable to store the amount out
+            uint256 tokensSwapped;
 
-            // Swap collected collateral fee amount for WETH and store the obtained amount
-            uint256 tokensSwapped = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
+            // verify if the swap should be input single or multihop
+            if (path.length == 0) {
+                // prepare the data for executing the swap
+                SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
+                    tokenIn: asset,
+                    tokenOut: weth,
+                    amountIn: assetAmount,
+                    recipient: address(this)
+                });
+
+                // Swap collected collateral fee amount for WETH and store the obtained amount
+                tokensSwapped = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
+            } else {
+                // prepare the data for executing the swap
+                SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
+                    path: path,
+                    tokenIn: asset,
+                    tokenOut: weth,
+                    amountIn: assetAmount,
+                    recipient: address(this)
+                });
+
+                // Swap collected collateral fee amount for WETH and store the obtained amount
+                tokensSwapped = dexSwapStrategy.executeSwapExactInput(swapCallData);
+            }
+
+            // uint256 -> ud60x18
             UD60x18 tokensSwappedX18 = wethCollateral.convertTokenAmountToUd60x18(tokensSwapped);
 
             // store the amount of weth received from swap

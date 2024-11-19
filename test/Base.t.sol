@@ -26,6 +26,7 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
 import { SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -44,9 +45,6 @@ import { PerpMarketHarness } from "test/harnesses/perpetuals/leaves/PerpMarketHa
 import { PositionHarness } from "test/harnesses/perpetuals/leaves/PositionHarness.sol";
 import { SettlementConfigurationHarness } from "test/harnesses/perpetuals/leaves/SettlementConfigurationHarness.sol";
 import { TradingAccountHarness } from "test/harnesses/perpetuals/leaves/TradingAccountHarness.sol";
-import { ReferralHarness } from "test/harnesses/perpetuals/leaves/ReferralHarness.sol";
-import { CustomReferralConfigurationHarness } from
-    "test/harnesses/perpetuals/leaves/CustomReferralConfigurationHarness.sol";
 import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
 import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
@@ -79,6 +77,7 @@ import {
 } from "script/utils/TreeProxyUtils.sol";
 import { ChainlinkAutomationUtils } from "script/utils/ChainlinkAutomationUtils.sol";
 import { DexAdapterUtils } from "script/utils/DexAdapterUtils.sol";
+import { ReferralUtils } from "script/utils/ReferralUtils.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -104,9 +103,7 @@ abstract contract IPerpsEngine is
     PerpMarketHarness,
     PositionHarness,
     SettlementConfigurationHarness,
-    TradingAccountHarness,
-    ReferralHarness,
-    CustomReferralConfigurationHarness
+    TradingAccountHarness
 { }
 
 abstract contract IMarketMakingEngine is
@@ -151,6 +148,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     MockERC20 internal weEth;
     MockERC20 internal wEth;
     MockERC20 internal wBtc;
+
+    IReferral internal referralModule;
 
     IPerpsEngine internal perpsEngine;
     IPerpsEngine internal perpsEngineImplementation;
@@ -302,11 +301,12 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         uint256 slippageToleranceBps = 100;
         uint24 fee = 3000;
 
-        address[] memory collaterals = new address[](2);
+        address[] memory collaterals = new address[](3);
         collaterals[0] = address(usdc);
         collaterals[1] = address(wEth);
+        collaterals[2] = address(wBtc);
 
-        SwapAssetConfig[] memory collateralData = new SwapAssetConfig[](2);
+        SwapAssetConfig[] memory collateralData = new SwapAssetConfig[](3);
 
         collateralData[0] = SwapAssetConfig({
             decimals: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals,
@@ -316,6 +316,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         collateralData[1] = SwapAssetConfig({
             decimals: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals,
             priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        collateralData[2] = SwapAssetConfig({
+            decimals: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter)
         });
 
         MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter = new MockUniswapV3SwapStrategyRouter();
@@ -350,6 +355,17 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
             marketMakingEngine.configureVaultConnectedMarkets(uint128(i), perpMarketsCreditConfigIds);
         }
+
+        // Referral Module setup
+        changePrank({ msgSender: users.owner.account });
+
+        referralModule = IReferral(ReferralUtils.deployReferralModule(users.owner.account));
+
+        referralModule.configureEngine(address(perpsEngine), true);
+        referralModule.configureEngine(address(marketMakingEngine), true);
+
+        perpsEngine.configureReferralModule(address(referralModule));
+        marketMakingEngine.configureReferralModule(address(referralModule));
 
         // Other Set Up
         approveContracts();
@@ -475,6 +491,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
             liquidationFeeRecipient: users.liquidationFeeRecipient.account,
             marketMakingEngine: address(marketMakingEngine),
+            referralModule: address(referralModule),
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });
     }

@@ -10,6 +10,8 @@ import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 import { Referral } from "@zaros/market-making/leaves/Referral.sol";
 import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
+import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
@@ -26,10 +28,10 @@ contract VaultRouterBranch {
     using SafeERC20 for IERC20;
     using Collateral for Collateral.Data;
     using Distribution for Distribution.Data;
-    using Referral for Referral.Data;
     using Vault for Vault.Data;
     using SafeCast for uint256;
     using Math for uint256;
+    using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
 
     /// @notice Emitted when a user stakes shares.
     /// @param vaultId The ID of the vault which shares are staked.
@@ -48,15 +50,6 @@ contract VaultRouterBranch {
     /// @param user The address of the user who unstaked the shares.
     /// @param shares The amount of shares unstaked by the user.
     event LogUnstake(uint256 indexed vaultId, address indexed user, uint256 shares);
-
-    /// @notice Emitted when a referral code is set.
-    /// @param stakingUser The user address that stakes.
-    /// @param referrer The referrer address.
-    /// @param referralCode The referral code.
-    /// @param isCustomReferralCode A boolean indicating if the referral code is custom.
-    event LogReferralSet(
-        address indexed stakingUser, address indexed referrer, bytes referralCode, bool isCustomReferralCode
-    );
 
     /// @notice Emitted when a user deposist assets.
     /// @param vaultId The ID of the vault which assets are deposited.
@@ -290,30 +283,14 @@ contract VaultRouterBranch {
         // updates the vault's credit capacity
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
+        // load the perps engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        IReferral referralModule = IReferral(marketMakingEngineConfiguration.referralModule);
+
         if (referralCode.length != 0) {
-            Referral.Data storage referral = Referral.load(msg.sender);
-
-            if (isCustomReferralCode) {
-                CustomReferralConfiguration.Data storage customReferral =
-                    CustomReferralConfiguration.load(string(referralCode));
-
-                if (customReferral.referrer == address(0)) {
-                    revert Errors.InvalidReferralCode();
-                }
-
-                referral.referralCode = referralCode;
-                referral.isCustomReferralCode = true;
-            } else {
-                address referrer = abi.decode(referralCode, (address));
-
-                if (referrer == msg.sender) {
-                    revert Errors.InvalidReferralCode();
-                }
-
-                referral.referralCode = referralCode;
-                referral.isCustomReferralCode = false;
-            }
-            emit LogReferralSet(msg.sender, referral.getReferrerAddress(), referralCode, isCustomReferralCode);
+            referralModule.registerReferral(abi.encode(msg.sender), msg.sender, referralCode, isCustomReferralCode);
         }
 
         // transfer shares from actor

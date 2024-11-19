@@ -6,6 +6,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { Base_Test } from "test/Base.t.sol";
+import { Referral } from "@zaros/referral/Referral.sol";
 
 contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
     function setUp() public override {
@@ -55,7 +56,9 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         assertEq(tradingAccountTokenReturned, address(tradingAccountToken), "createTradingAccountAndMulticall");
     }
 
-    function testFuzz_CreateTradingAccountAndDepositMargin(uint256 amountToDeposit)
+    function testFuzz_CreateTradingAccountAndDepositMargin(
+        uint256 amountToDeposit
+    )
         external
         whenTheDataArrayDoesNotProvideARevertingCall
     {
@@ -122,9 +125,14 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         uint128 expectedTradingAccountId = 1;
 
         // it should emit {LogReferralSet} event
-        vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogReferralSet(
-            users.naruto.account, expectedTradingAccountId, users.owner.account, bytes(customReferralCode), true
+        address referralModule = perpsEngine.workaround_getReferralModule();
+        vm.expectEmit({ emitter: referralModule });
+        emit Referral.LogReferralSet(
+            address(perpsEngine),
+            abi.encode(expectedTradingAccountId),
+            users.naruto.account,
+            bytes(customReferralCode),
+            true
         );
 
         perpsEngine.createTradingAccountAndMulticall(data, bytes(customReferralCode), true);
@@ -175,9 +183,10 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         uint128 expectedTradingAccountId = 1;
 
         // it should emit {LogReferralSet} event
-        vm.expectEmit({ emitter: address(perpsEngine) });
-        emit TradingAccountBranch.LogReferralSet(
-            users.naruto.account, expectedTradingAccountId, users.owner.account, referralCode, false
+        address referralModule = perpsEngine.workaround_getReferralModule();
+        vm.expectEmit({ emitter: referralModule });
+        emit Referral.LogReferralSet(
+            address(perpsEngine), abi.encode(expectedTradingAccountId), users.naruto.account, referralCode, false
         );
 
         perpsEngine.createTradingAccountAndMulticall(data, referralCode, false);
