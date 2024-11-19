@@ -268,7 +268,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
             "the available fees to withdraw is wrong"
         );
 
-        // it should remove the asset from receivedMarketFees
+        // it should remove the asset from receivedFees
         assertEq(
             marketMakingEngine.workaround_getIfReceivedMarketFeesContainsTheAsset(
                 fuzzPerpMarketCreditConfig.marketId, address(usdc)

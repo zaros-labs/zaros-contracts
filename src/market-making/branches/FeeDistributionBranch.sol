@@ -95,7 +95,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
         // increment received fees amount
-        market.incrementReceivedMarketFees(asset, amountX18);
+        market.depositFee(asset, amountX18);
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
@@ -135,10 +135,10 @@ contract FeeDistributionBranch is EngineAccessControl {
         Market.Data storage market = Market.loadExisting(marketId);
 
         // reverts if the market hasn't received any fees for the given asset
-        if (!market.receivedMarketFees.contains(asset)) revert Errors.MarketDoesNotContainTheAsset(asset);
+        if (!market.receivedFees.contains(asset)) revert Errors.MarketDoesNotContainTheAsset(asset);
 
         // get the amount of asset received as fees
-        UD60x18 assetAmountX18 = ud60x18(market.receivedMarketFees.get(asset));
+        UD60x18 assetAmountX18 = ud60x18(market.receivedFees.get(asset));
 
         // reverts if the amount is zero
         if (assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
@@ -216,7 +216,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             receivedWethX18.mul(ud60x18(Constants.MAX_SHARES).sub(feeRecipientsSharesX18));
 
         // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine as
-        // fees, and remove its balance from the market's `receivedMarketFees` map
+        // fees, and remove its balance from the market's `receivedFees` map
         market.receiveWethReward(asset, receivedProtocolWethRewardX18, receivedVaultsWethRewardX18);
 
         // emit event to log the conversion of fees to weth

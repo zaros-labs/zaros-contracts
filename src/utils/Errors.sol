@@ -12,7 +12,12 @@ library Errors {
     /// @notice Thrown when two or more array parameters are expected to have the same length, but they don't.
     error ArrayLengthMismatch(uint256 expected, uint256 actual);
 
-    /// @notice Router errors.
+    /// @notice AssetToAmountMap utility errors.
+
+    /// @notice Thrown when trying to decrement an asset that is not in the map.
+    error InvalidAssetToAmountMapUpdate();
+
+    /// @notice RootProxy errors.
     error UnsupportedFunction(bytes4 functionSignature);
 
     /// @notice RootUpgrade errors.

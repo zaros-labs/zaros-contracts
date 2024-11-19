@@ -185,7 +185,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         } else {
             // deposits the received collateral to the market to be distributed to vaults, and then settled in the
             // future
-            market.depositCollateral(collateralType, amountX18);
+            market.depositCredit(collateralType, amountX18);
         }
 
         // transfers the margin collateral asset from the perps engine to the market making engine
@@ -315,7 +315,12 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// neutral compared to the others that may be in credit or debt state.
     /// @dev Invariants involved in the call:
     /// TODO: add invariants
-    function settleVaultsDebt() external { }
+    function settleVaultsDebt() external {
+        // if the vault is in debt, it will swap its assets to USDC
+
+        // if the vault is in credit, it will swap its USDC previously accumulated from markets' deposits to its
+        // underlying assets
+    }
 
     /// @notice Updates the credit delegations from ZLP Vaults to the given market id.
     /// @dev Must be called whenever an engine needs to know the current credit capacity of a given market id.

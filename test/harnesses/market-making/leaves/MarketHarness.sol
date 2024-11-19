@@ -25,12 +25,12 @@ contract MarketHarness {
 
     function workaround_getReceivedMarketFees(uint128 marketId, address asset) external view returns (uint256) {
         Market.Data storage market = Market.load(marketId);
-        return market.receivedMarketFees.get(asset);
+        return market.receivedFees.get(asset);
     }
 
     function workaround_setReceivedMarketFees(uint128 marketId, address asset, uint256 amount) external {
         Market.Data storage market = Market.load(marketId);
-        market.receivedMarketFees.set(asset, amount);
+        market.receivedFees.set(asset, amount);
     }
 
     function workaround_getPendingProtocolWethReward(uint128 marketId) external view returns (uint256) {
@@ -47,7 +47,7 @@ contract MarketHarness {
         returns (bool)
     {
         Market.Data storage market = Market.load(marketId);
-        return market.receivedMarketFees.contains(asset);
+        return market.receivedFees.contains(asset);
     }
 
     function workaround_getMarketEngine(uint128 marketId) external view returns (address) {

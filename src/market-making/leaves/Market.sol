@@ -2,11 +2,11 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { AssetToAmountMap } from "@zaros/utils/libraries/AssetToAmountMap.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
-import { CreditDeposit } from "@zaros/market-making/leaves/CreditDeposit.sol";
 import { Distribution } from "./Distribution.sol";
 
 // Open Zeppelin dependencies
@@ -25,7 +25,6 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 // flow.
 library Market {
     using Collateral for Collateral.Data;
-    using CreditDeposit for CreditDeposit.Data;
     using Distribution for Distribution.Data;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -62,11 +61,10 @@ library Market {
     /// @param engine The address of the market's connected engine, used to fetch the market's unrealized debt and
     /// system validations.
     /// @param isLive Whether the market is currently live or paused.
-    /// @param depositedCollateralTypes Stores the set of addresses of collateral assets used for credit deposits to a
-    /// market.
+    /// @param creditDeposits The map that stores the amount of collateral assets deposited in the market as credit.
     /// @param connectedVaults The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
-    /// @param receivedMarketFees An enumerable map that stores the amount of fees received from the engine per asset,
+    /// @param receivedFees An enumerable map that stores the amount of fees received from the engine per asset,
     /// available to be converted to weth.
     /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
     /// `valuePerShare`: USD denominated market debt or credit per share.
@@ -83,8 +81,8 @@ library Market {
         uint128 pendingProtocolWethReward;
         address engine;
         bool isLive;
-        EnumerableMap.AddressToUintMap receivedMarketFees;
-        EnumerableSet.AddressSet depositedCollateralTypes;
+        EnumerableMap.AddressToUintMap receivedFees;
+        EnumerableMap.AddressToUintMap creditDeposits;
         EnumerableSet.UintSet[] connectedVaults;
         Distribution.Data vaultsDebtDistribution;
     }
@@ -228,20 +226,18 @@ library Market {
         }
         // otherwise, we'll need to recalculate the realized debt value
 
-        // load the deposited collateral types address set storage pointer
-        EnumerableSet.AddressSet storage depositedCollateralTypes = self.depositedCollateralTypes;
+        // load the map of credit deposits' pointer
+        EnumerableMap.AddressToUintMap storage creditDeposits = self.creditDeposits;
 
-        for (uint256 i; i < depositedCollateralTypes.length(); i++) {
-            address collateralType = depositedCollateralTypes.at(i);
+        for (uint256 i; i < creditDeposits.length(); i++) {
+            // load the credit deposit data
+            (address asset, uint256 value) = creditDeposits.at(i);
             // load the configured collateral type storage pointer
-            Collateral.Data storage collateral = Collateral.load(collateralType);
-            // load the credit deposit storage pointer
-            CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.id, collateralType);
+            Collateral.Data storage collateral = Collateral.load(asset);
 
             // add the credit deposit usd value to the realized debt return value
-            realizedDebtUsdX18 = realizedDebtUsdX18.add(
-                (collateral.getAdjustedPrice().mul(ud60x18(creditDeposit.value))).intoSD59x18()
-            );
+            realizedDebtUsdX18 =
+                realizedDebtUsdX18.add((collateral.getAdjustedPrice().mul(ud60x18(value))).intoSD59x18());
         }
 
         // finally after looping over the credit deposits, add the realized usdToken debt to the realized debt to be
@@ -347,23 +343,24 @@ library Market {
         }
     }
 
-    /// @notice Deposits collateral to the market as credit.
+    /// @notice Deposits assets to the market as additional credit.
     /// @dev This function assumes the collateral type address is configured in the protocol and has been previously
     /// verified.
     /// @param self The market storage pointer.
-    /// @param collateralType The address of the collateral type to deposit.
-    /// @param amountX18 The amount of collateral to deposit in the market in 18 decimals.
-    function depositCollateral(Data storage self, address collateralType, UD60x18 amountX18) internal {
-        EnumerableSet.AddressSet storage depositedCollateralTypes = self.depositedCollateralTypes;
+    /// @param asset The address of the collateral type being deposited.
+    /// @param amountX18 The amount of assets to deposit in the market in 18 decimals.
+    function depositCredit(Data storage self, address asset, UD60x18 amountX18) internal {
+        AssetToAmountMap.update(self.creditDeposits, asset, amountX18, true);
+    }
 
-        // adds the collateral type address to the address set if it's not already there
-        // NOTE: we don't need to check with `EnumerableSet::contains` as the following function already performs this
-        depositedCollateralTypes.add(collateralType);
-
-        // loads the credit deposit storage pointer
-        CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.id, collateralType);
-        // adds the amount of deposited collateral
-        creditDeposit.add(amountX18);
+    /// @notice Deposits assets to the market as additional received fees.
+    /// @dev This function assumes the collateral type address is configured in the protocol and has been previously
+    /// verified.
+    /// @param self The market storage pointer.
+    /// @param asset The address of the collateral type being deposited..
+    /// @param amountX18 The amount of assets to deposit in the market in 18 decimals.
+    function depositFee(Data storage self, address asset, UD60x18 amountX18) internal {
+        AssetToAmountMap.update(self.receivedFees, asset, amountX18, true);
     }
 
     /// @notice Distributes the market's unrealized and realized debt to the connected vaults.
@@ -516,27 +513,6 @@ library Market {
         creditDelegationChangeUsdX18 = vaultsDebtDistribution.setActorShares(actorId, newCreditDelegationUsdX18);
     }
 
-    /// @notice Support function to increment the received fees for a specific asset
-    /// @param self The fee storage pointer
-    /// @param asset The asset address
-    /// @param amountX18 The amount to be incremented
-    function incrementReceivedMarketFees(Data storage self, address asset, UD60x18 amountX18) internal {
-        // declare newAmount variable
-        UD60x18 newAmount;
-
-        // check if the asset is already in the receivedMarketFees map
-        if (self.receivedMarketFees.contains(asset)) {
-            // if it is, increment the amount
-            newAmount = amountX18.add(ud60x18(self.receivedMarketFees.get(asset)));
-        } else {
-            // if it's not, set the amount
-            newAmount = amountX18;
-        }
-
-        // set the new amount in the receivedMarketFees map
-        self.receivedMarketFees.set(asset, newAmount.intoUint256());
-    }
-
     /// @notice Adds the received weth rewards to the stored values of pending protocol weth rewards and vaults' total
     /// weth reward.
     /// @dev For vaults we store the value of all time weth rewards, as the received weth value needs to be further
@@ -554,7 +530,7 @@ library Market {
     {
         // removes the given asset from the received market fees enumerable map as we assume it's been fully swapped
         // to weth
-        self.receivedMarketFees.remove(asset);
+        self.receivedFees.remove(asset);
 
         self.pendingProtocolWethReward =
             ud60x18(self.pendingProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();

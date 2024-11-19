@@ -19,5 +19,5 @@ ConvertAccumulatedFeesToWeth_Integration_Test
                     └── when the dex swap strategy has a valid dex adapter
                         ├── it should verify if the asset is different that weth and convert
                         ├── it should update the pending protocol weth reward
-                        ├── it should remove the asset from receivedMarketFees
+                        ├── it should remove the asset from receivedFees
                         └── it should emit {LogConvertAccumulatedFeesToWeth} event
