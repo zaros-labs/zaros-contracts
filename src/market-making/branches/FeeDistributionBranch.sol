@@ -248,6 +248,16 @@ contract FeeDistributionBranch is EngineAccessControl {
         uint256 pendingProtocolWethReward =
             wethCollateralData.convertUd60x18ToTokenAmount(ud60x18(market.pendingProtocolWethReward));
 
+        // get total shares
+        UD60x18 totalShares = marketMakingEngineConfiguration.getTotalFeeRecipientsShares();
+
+        if (totalShares.isZero()) {
+            // if total shares is zero, revert
+            revert Errors.NoSharesAvailable();
+        }
+
+        market.pendingProtocolWethReward = 0;
+
         // sends the accumulated protocol weth reward to the configured fee recipients
         marketMakingEngineConfiguration.distributeProtocolAssetReward(weth, pendingProtocolWethReward);
 

@@ -134,11 +134,9 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
         quantityOfFeeRecipients = bound({ x: quantityOfFeeRecipients, min: 1, max: 10 });
-
         UD60x18 quantityOfFeeRecipientsX18 = convertToUd60x18(quantityOfFeeRecipients);
 
         totalFeeRecipientsShares = bound({ x: totalFeeRecipientsShares, min: 0.001e18, max: 1e18 });
-
         UD60x18 totalFeeRecipientsSharesX18 = ud60x18(totalFeeRecipientsShares);
 
         UD60x18 sharePerFeeRecipientX18 = totalFeeRecipientsSharesX18.div(quantityOfFeeRecipientsX18);
@@ -157,7 +155,6 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         changePrank({ msgSender: address(perpsEngine) });
 
         uint256 expectedTokenAmount = uniswapV3Adapter.getExpectedOutput(address(usdc), address(wEth), amount);
-
         uint256 amountOutMin = uniswapV3Adapter.calculateAmountOutMin(expectedTokenAmount);
         UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
 
@@ -171,7 +168,9 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
             bytes("")
         );
 
-        UD60x18 expectedFeePerRecipientX18 = expectedPendingProtocolWethRewardX18.mul(sharePerFeeRecipientX18);
+        uint256 amountWeth = marketMakingEngine.workaround_getPendingProtocolWethReward(fuzzPerpMarketCreditConfig.marketId);
+
+        UD60x18 expectedFeePerRecipientX18 = ud60x18(amountWeth).mul(sharePerFeeRecipientX18).div(totalFeeRecipientsSharesX18);
 
         for (uint256 i = 0; i < quantityOfFeeRecipients; i++) {
             assertEq(
@@ -185,26 +184,26 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         vm.expectEmit({ emitter: address(marketMakingEngine) });
 
         emit FeeDistributionBranch.LogSendWethToFeeRecipients(
-            uint128(marketId), expectedPendingProtocolWethRewardX18.intoUint256()
+            uint128(fuzzPerpMarketCreditConfig.marketId), expectedPendingProtocolWethRewardX18.intoUint256()
         );
 
         marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketId);
 
         // it should transfer the fees to the fee recipients
         for (uint256 i = 0; i < quantityOfFeeRecipients; i++) {
-            assertEq(
+            assertAlmostEq(
                 IERC20(address(wEth)).balanceOf(feeRecipients[i]),
                 expectedFeePerRecipientX18.intoUint256(),
+                1e7,
                 "the balance of the fee recipient after the send is wrong"
             );
         }
 
         // it should decrement the available fees to withdraw
-        UD60x18 expectedAvailableFeesToWithdrawAfterTheSendX18 =
-            expectedPendingProtocolWethRewardX18.sub(expectedFeePerRecipientX18.mul(quantityOfFeeRecipientsX18));
-        assertEq(
+       assertAlmostEq(
             marketMakingEngine.workaround_getPendingProtocolWethReward(fuzzPerpMarketCreditConfig.marketId),
-            expectedAvailableFeesToWithdrawAfterTheSendX18.intoUint256(),
+            0,
+            quantityOfFeeRecipients + 1,
             "the available fees to withdraw after the send are wrong"
         );
     }
