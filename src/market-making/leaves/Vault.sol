@@ -248,6 +248,7 @@ library Vault {
                 continue;
             }
 
+            // get the latest realized debt of the market while potentially saving gas
             SD59x18 marketRealizedDebtUsdX18 =
                 market.isRealizedDebtUpdateRequired() ? market.updateRealizedDebt() : market.getRealizedDebtUsd();
 

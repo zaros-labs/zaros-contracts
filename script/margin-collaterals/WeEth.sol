@@ -20,4 +20,8 @@ abstract contract WeEth {
     uint256 internal constant WEETH_LIQUIDATION_PRIORITY = 6;
     uint8 internal constant WEETH_DECIMALS = 18;
     uint32 internal constant WEETH_PRICE_FEED_HEARBEAT_SECONDS = 86_400;
+
+    bytes32 internal constant WEETH_USD_STREAM_ID = 0x000362205e10b3a147d02792eccee483dca6c7b44ecce7012cb8c6e0b68b3ae9;
+    string internal constant WEETH_USD_STREAM_ID_STRING =
+        "0x000362205e10b3a147d02792eccee483dca6c7b44ecce7012cb8c6e0b68b3ae9";
 }

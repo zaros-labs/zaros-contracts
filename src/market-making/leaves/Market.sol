@@ -57,7 +57,8 @@ library Market {
     /// debt distribution.
     /// @param vaultsWethReward The all time amount of weth rewards accumulated by the market, paid by its engine,
     /// which are constantly distributed to vaults following the `vaultsDebtDistribution`.
-    /// @param pendingProtocolWethReward The amount of weth available to be sent to the protocol fee recipients.
+    /// @param pendingProtocolWethReward The amount of weth available to be sent to the protocol fee recipients, in 18
+    /// decimals.
     /// @param engine The address of the market's connected engine, used to fetch the market's unrealized debt and
     /// system validations.
     /// @param isLive Whether the market is currently live or paused.
@@ -203,9 +204,7 @@ library Market {
     /// @notice Returns all the credit delegated by the vaults connected to the market.
     /// @param self The market storage pointer.
     /// @return totalDelegatedCreditUsdX18 The total credit delegated by the vaults in USD.
-    function getTotalDelegatedCreditUsd(
-        Data storage self
-    )
+    function getTotalDelegatedCreditUsd(Data storage self)
         internal
         view
         returns (UD60x18 totalDelegatedCreditUsdX18)

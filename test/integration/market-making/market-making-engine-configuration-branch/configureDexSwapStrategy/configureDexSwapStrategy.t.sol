@@ -49,9 +49,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureDexSwapStrategy_Integrat
         _;
     }
 
-    function testFuzz_RevertWhen_DexAdapterIsZero(
-        uint128 dexSwapStrategyId
-    )
+    function testFuzz_RevertWhen_DexAdapterIsZero(uint128 dexSwapStrategyId)
         external
         givenTheSenderIsTheOwner
         whenDexSwapStrategyIdIsNotZero
@@ -64,9 +62,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureDexSwapStrategy_Integrat
         marketMakingEngine.configureDexSwapStrategy(dexSwapStrategyId, address(0));
     }
 
-    function testFuzz_WhenDexAdapterIsNotZero(
-        uint128 dexSwapStrategyId
-    )
+    function testFuzz_WhenDexAdapterIsNotZero(uint128 dexSwapStrategyId)
         external
         givenTheSenderIsTheOwner
         whenDexSwapStrategyIdIsNotZero

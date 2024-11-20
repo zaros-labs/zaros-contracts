@@ -212,7 +212,9 @@ library Errors {
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
     /// @notice Thrown when a slippage check fails.
-    error SlippageCheckFailed();
+    /// @param minAmountOut The min amnount of assets to receive back
+    /// @param amountOut The result of the swap execution
+    error SlippageCheckFailed(uint256 minAmountOut, uint256 amountOut);
 
     /// @notice Thrown when a user does not have enough shares.
     error NotEnoughShares();
@@ -268,4 +270,29 @@ library Errors {
     /// @notice Thrown when the asset amount is zero
     /// @param asset The asset that has zero amount
     error AssetAmountIsZero(address asset);
+
+    /// @notice MarketMakingEngine.StabilityBranch errors.
+
+    /// @notice Thrown when swap request is not yet expired
+    /// @param user the user that initiated the request
+    /// @param requestId The id of the request
+    error RequestNotExpired(address user, uint128 requestId);
+
+    /// @notice Thrown when request was already processed
+    /// @param user the user that initiated the request
+    /// @param requestId The id of the request
+    error RequestAlreadyProcessed(address user, uint128 requestId);
+
+    /// @notice Thrown when trying to swap usd tokens for different assets in a single `StabilityBranch::initiateSwap`
+    /// call.
+    error VaultsCollateralAssetsMismatch();
+
+    /// @notice Thrown when the data stream report has expired
+    error DataStreamReportExpired();
+
+    /// Thrown when the request has expired
+    /// @param user the user that initiated the request
+    /// @param requestId The id of the request
+    /// @param expiration The request expiration time
+    error SwapRequestExpired(address user, uint128 requestId, uint256 expiration);
 }

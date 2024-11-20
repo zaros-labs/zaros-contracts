@@ -74,9 +74,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureFeeRecipient_Integration
         marketMakingEngine.configureFeeRecipient(users.naruto.account, maxOfSharesX18.intoUint256());
     }
 
-    function testFuzz_WhenTheTotalOfFeeRecipientsShareIsLessOrEqualThenTheMaxOfShares(
-        uint256 quantityOfFeeRecipients
-    )
+    function testFuzz_WhenTheTotalOfFeeRecipientsShareIsLessOrEqualThenTheMaxOfShares(uint256 quantityOfFeeRecipients)
         external
         givenTheSenderIsTheOwner
         whenFeeRecipientIsNotZero

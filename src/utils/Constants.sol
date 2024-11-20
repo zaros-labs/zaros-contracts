@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.25;
 
+// PRB Math dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+
 /// @notice Constants used across the protocol.
 library Constants {
     /// @notice Protocol wide standard decimals.
@@ -24,7 +27,7 @@ library Constants {
         "CreateOffchainOrder(uint128 tradingAccountId,uint128 marketId,int128 sizeDelta,uint128 targetPrice,bool shouldIncreaseNonce,uint120 nonce,bytes32 salt)"
     );
 
-    /// @notice BPS denominator value.
+    /// @notice basis points denominator value.
     uint256 internal constant BPS_DENOMINATOR = 10_000;
 
     /// @notice Maximum value for shares, example 0.5e18 is 50%.

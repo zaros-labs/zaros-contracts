@@ -40,9 +40,7 @@ contract MockUniswapV3SwapStrategyRouter is IUniswapV3RouterInterface {
     }
 
     /// @inheritdoc IUniswapV3RouterInterface
-    function exactInputSingle(
-        ExactInputSingleParams calldata params
-    )
+    function exactInputSingle(ExactInputSingleParams calldata params)
         external
         payable
         override
@@ -60,9 +58,7 @@ contract MockUniswapV3SwapStrategyRouter is IUniswapV3RouterInterface {
     }
 
     /// @inheritdoc IUniswapV3RouterInterface
-    function exactInput(
-        ExactInputParams memory params
-    )
+    function exactInput(ExactInputParams memory params)
         external
         payable
         override
@@ -110,9 +106,7 @@ contract MockUniswapV3SwapStrategyRouter is IUniswapV3RouterInterface {
     { }
 
     /// @inheritdoc IUniswapV3RouterInterface
-    function exactOutputSingle(
-        ExactOutputSingleParams calldata params
-    )
+    function exactOutputSingle(ExactOutputSingleParams calldata params)
         external
         payable
         override
@@ -123,9 +117,7 @@ contract MockUniswapV3SwapStrategyRouter is IUniswapV3RouterInterface {
     { }
 
     /// @inheritdoc IUniswapV3RouterInterface
-    function exactOutput(
-        ExactOutputParams calldata params
-    )
+    function exactOutput(ExactOutputParams calldata params)
         external
         payable
         override

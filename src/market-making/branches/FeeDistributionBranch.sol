@@ -24,16 +24,16 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
 contract FeeDistributionBranch is EngineAccessControl {
-    using SafeERC20 for IERC20;
-    using DexSwapStrategy for DexSwapStrategy.Data;
     using Collateral for Collateral.Data;
-    using Vault for Vault.Data;
-    using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+    using DexSwapStrategy for DexSwapStrategy.Data;
     using Distribution for Distribution.Data;
-    using Market for Market.Data;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using Market for Market.Data;
+    using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+    using SafeERC20 for IERC20;
+    using Vault for Vault.Data;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   EVENTS
@@ -49,10 +49,10 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @param totalWethX18 The total amounf of weth received once converted.
     event LogConvertAccumulatedFeesToWeth(uint256 totalWethX18);
 
-    /// @notice Emitted when end user/fee recipient receives their weth token fees
-    /// @param recipient The account address receiving the fees
-    /// @param amount The token amount received by recipient
-    event LogSendWethToFeeRecipients(address indexed recipient, uint256 amount);
+    /// @notice Emitted when weth rewards are sent to fee recipients.
+    /// @param marketId The market that distributed weth to the protocol fee recipients.
+    /// @param totalWethReward The total weth reward amount sent to fee recipients, using weth's decimals.
+    event LogSendWethToFeeRecipients(uint128 indexed marketId, uint256 totalWethReward);
 
     /// @notice Emitted when a user claims their accumulated fees.
     /// @param claimer Address of the user who claimed the fees.
@@ -234,68 +234,36 @@ contract FeeDistributionBranch is EngineAccessControl {
         if (market.pendingProtocolWethReward == 0) revert Errors.NoWethFeesCollected();
 
         // loads the market making engine configuration data storage pointer
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfigurationData =
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
-        // loads the protocol fee recipients storage pointer
-        EnumerableMap.AddressToUintMap storage protocolFeeRecipients =
-            marketMakingEngineConfigurationData.protocolFeeRecipients;
+        // cache the weth address
+        address weth = marketMakingEngineConfiguration.weth;
 
-        // store the length of the fee recipients list
-        uint256 recipientListLength = protocolFeeRecipients.length();
+        // load weth collateral configuration
+        Collateral.Data storage wethCollateralData = Collateral.load(weth);
 
-        // weth address
-        address weth = marketMakingEngineConfigurationData.weth;
+        // convert collected fees to UD60x18 and convert decimals if needed, to ensure it's using the network's weth
+        // decimals value
+        uint256 pendingProtocolWethReward =
+            wethCollateralData.convertUd60x18ToTokenAmount(ud60x18(market.pendingProtocolWethReward));
 
-        // convert collected fees to UD60x18
-        UD60x18 pendingProtocolWethRewardX18 = ud60x18(market.pendingProtocolWethReward);
+        // get total shares
+        UD60x18 totalShares = marketMakingEngineConfiguration.getTotalFeeRecipientsShares();
 
-        // variable to store the total shares of fee recipients
-        UD60x18 totalSharesX18;
-
-        // load the weth collateral data storage pointer
-        Collateral.Data storage wethCollateral = Collateral.load(weth);
-
-        // store the recipients and shares in cache
-        address[] memory cacheRecipientsList = new address[](recipientListLength);
-        uint256[] memory cacheSharesList = new uint256[](recipientListLength);
-
-        // get total shares of fee recipients
-        for (uint256 i; i < recipientListLength; ++i) {
-            // get the recipient and shares
-            (cacheRecipientsList[i], cacheSharesList[i]) = protocolFeeRecipients.at(i);
-
-            // add the shares to the total shares
-            totalSharesX18 = totalSharesX18.add(ud60x18(cacheSharesList[i]));
-        }
-
-        if (totalSharesX18.isZero()) {
+        if (totalShares.isZero()) {
             // if total shares is zero, revert
             revert Errors.NoSharesAvailable();
         }
 
-        // send amount between fee recipients
-        for (uint256 i; i < recipientListLength; ++i) {
-            // calculate the amount to send to the fee recipient
-            UD60x18 amountToSendX18 = pendingProtocolWethRewardX18.mul(ud60x18(cacheSharesList[i]));
+        // set to zero the amount of pending weth to be distributed
+        market.pendingProtocolWethReward = 0;
 
-            if (amountToSendX18.isZero()) {
-                // if the amount to send is zero, continue
-                continue;
-            }
+        // sends the accumulated protocol weth reward to the configured fee recipients
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(weth, pendingProtocolWethReward);
 
-            // subtract the protocol weth reward being sent
-            market.pendingProtocolWethReward -= amountToSendX18.intoUint128();
-
-            // convert the amountToSendX18 to weth amount
-            uint256 amountToSend = wethCollateral.convertUd60x18ToTokenAmount(amountToSendX18);
-
-            // send the amount to the fee recipient
-            IERC20(weth).safeTransfer(cacheRecipientsList[i], amountToSend);
-
-            // emit event to log the amount sent to the fee recipient
-            emit LogSendWethToFeeRecipients(cacheRecipientsList[i], amountToSend);
-        }
+        // emit event to log the weth sent to fee recipients
+        emit LogSendWethToFeeRecipients(marketId, pendingProtocolWethReward);
     }
 
     /// @notice allows user to claim their share of fees

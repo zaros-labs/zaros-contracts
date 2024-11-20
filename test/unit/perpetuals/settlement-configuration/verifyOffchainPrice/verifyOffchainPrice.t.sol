@@ -61,6 +61,8 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
     {
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
 
+        vm.assume(bytes32(fuzzStreamId) != fuzzMarketConfig.streamId);
+
         SettlementConfiguration.DataStreamsStrategy memory dataStreamsStrategy = SettlementConfiguration
             .DataStreamsStrategy({
             chainlinkVerifier: IVerifierProxy(address(mockChainlinkVerifier)),

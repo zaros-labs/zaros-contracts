@@ -20,4 +20,8 @@ abstract contract Usdc {
     uint256 internal constant USDC_LIQUIDATION_PRIORITY = 2;
     uint8 internal constant USDC_DECIMALS = 6;
     uint32 internal constant USDC_PRICE_FEED_HEARBEAT_SECONDS = 86_400;
+
+    bytes32 internal constant USDC_USD_STREAM_ID = 0x00038f83323b6b08116d1614cf33a9bd71ab5e0abf0c9f1b783a74a43e7bd992;
+    string internal constant USDC_USD_STREAM_ID_STRING =
+        "0x00038f83323b6b08116d1614cf33a9bd71ab5e0abf0c9f1b783a74a43e7bd992";
 }

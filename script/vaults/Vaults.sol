@@ -8,6 +8,7 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
+import { UsdTokenSwapKeeper } from "@zaros/external/chainlink/keepers/usd-token-swap-keeper/UsdTokenSwapKeeper.sol";
 
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
@@ -35,6 +36,7 @@ import { WstEthBluechipVault } from "./WstEthBluechipVault.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
+import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
 enum VaultTypes {
     Core, // 0
@@ -75,12 +77,17 @@ abstract contract Vaults is
         uint8 decimals;
         address priceAdapter;
         VaultTypes vaultType;
+        string streamIdString;
+        bytes32 streamId;
     }
 
     /// @notice Vault configurations mapped by vault id.
     mapping(uint256 vaultId => VaultConfig vaultConfig) internal vaultsConfig;
 
     mapping(address asset => mapping(VaultTypes vaultType => ZlpVault zlpVault)) internal zlpVaults;
+
+    /// @notice Usd token swap keepers contracts mapped by asset.
+    mapping(address asset => address keeper) internal usdTokenSwapKeepers;
 
     function createZlpVaults(address marketMakingEngine, address owner, uint256[2] memory vaultsIdsRange) public {
         uint256 initialVaultId = vaultsIdsRange[0];
@@ -97,13 +104,16 @@ abstract contract Vaults is
             zlpVaults[vaultAsset][vaultType] = zlpVault;
 
             vaultsConfig[i].indexToken = address(zlpVault);
+
+            if (usdTokenSwapKeepers[vaultAsset] == address(0)) {
+                deployUsdTokenSwapKeeper(owner, marketMakingEngine, vaultAsset, vaultsConfig[i].streamIdString);
+            }
         }
     }
 
     function setupVaultsConfig() internal {
         // Not using the margin collateral address or price feed constants as it is reset in the marginCollaterals
-        // mapping
-        // when MarginCollaterals::configureMarginCollaterals() is called
+        // mapping when MarginCollaterals::configureMarginCollaterals() is called
         address usdcAddress = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
         address usdcPriceAdapter = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
         VaultConfig memory usdcCore = VaultConfig({
@@ -117,7 +127,9 @@ abstract contract Vaults is
             isEnabled: USDC_CORE_VAULT_IS_ENABLED,
             decimals: USDC_DECIMALS,
             priceAdapter: usdcPriceAdapter,
-            vaultType: VaultTypes.Core
+            vaultType: VaultTypes.Core,
+            streamIdString: USDC_USD_STREAM_ID_STRING,
+            streamId: USDC_USD_STREAM_ID
         });
         vaultsConfig[USDC_CORE_VAULT_ID] = usdcCore;
 
@@ -132,7 +144,9 @@ abstract contract Vaults is
             isEnabled: USDC_BLUECHIP_VAULT_IS_ENABLED,
             decimals: USDC_DECIMALS,
             priceAdapter: usdcPriceAdapter,
-            vaultType: VaultTypes.Bluechip
+            vaultType: VaultTypes.Bluechip,
+            streamIdString: USDC_USD_STREAM_ID_STRING,
+            streamId: USDC_USD_STREAM_ID
         });
         vaultsConfig[USDC_BLUECHIP_VAULT_ID] = usdcBluechip;
 
@@ -147,7 +161,9 @@ abstract contract Vaults is
             isEnabled: USDC_DEGEN_VAULT_IS_ENABLED,
             decimals: USDC_DECIMALS,
             priceAdapter: usdcPriceAdapter,
-            vaultType: VaultTypes.Degen
+            vaultType: VaultTypes.Degen,
+            streamIdString: USDC_USD_STREAM_ID_STRING,
+            streamId: USDC_USD_STREAM_ID
         });
         vaultsConfig[USDC_DEGEN_VAULT_ID] = usdcDegen;
 
@@ -164,7 +180,9 @@ abstract contract Vaults is
             isEnabled: WBTC_CORE_VAULT_IS_ENABLED,
             decimals: WBTC_DECIMALS,
             priceAdapter: wBtcPriceAdapter,
-            vaultType: VaultTypes.Core
+            vaultType: VaultTypes.Core,
+            streamIdString: WBTC_USD_STREAM_ID_STRING,
+            streamId: WBTC_USD_STREAM_ID
         });
         vaultsConfig[WBTC_CORE_VAULT_ID] = wBtcCore;
 
@@ -179,7 +197,9 @@ abstract contract Vaults is
             isEnabled: WBTC_BLUECHIP_VAULT_IS_ENABLED,
             decimals: WBTC_DECIMALS,
             priceAdapter: wBtcPriceAdapter,
-            vaultType: VaultTypes.Bluechip
+            vaultType: VaultTypes.Bluechip,
+            streamIdString: WBTC_USD_STREAM_ID_STRING,
+            streamId: WBTC_USD_STREAM_ID
         });
         vaultsConfig[WBTC_BLUECHIP_VAULT_ID] = wBtcBluechip;
 
@@ -194,7 +214,9 @@ abstract contract Vaults is
             isEnabled: WBTC_DEGEN_VAULT_IS_ENABLED,
             decimals: WBTC_DECIMALS,
             priceAdapter: wBtcPriceAdapter,
-            vaultType: VaultTypes.Degen
+            vaultType: VaultTypes.Degen,
+            streamIdString: WBTC_USD_STREAM_ID_STRING,
+            streamId: WBTC_USD_STREAM_ID
         });
         vaultsConfig[WBTC_DEGEN_VAULT_ID] = wBtcDegen;
 
@@ -211,7 +233,9 @@ abstract contract Vaults is
             isEnabled: WEETH_CORE_VAULT_IS_ENABLED,
             decimals: WEETH_DECIMALS,
             priceAdapter: weEthPriceAdapter,
-            vaultType: VaultTypes.Core
+            vaultType: VaultTypes.Core,
+            streamIdString: WEETH_USD_STREAM_ID_STRING,
+            streamId: WEETH_USD_STREAM_ID
         });
         vaultsConfig[WEETH_CORE_VAULT_ID] = weEthCore;
 
@@ -226,7 +250,9 @@ abstract contract Vaults is
             isEnabled: WEETH_BLUECHIP_VAULT_IS_ENABLED,
             decimals: WEETH_DECIMALS,
             priceAdapter: weEthPriceAdapter,
-            vaultType: VaultTypes.Bluechip
+            vaultType: VaultTypes.Bluechip,
+            streamIdString: WEETH_USD_STREAM_ID_STRING,
+            streamId: WEETH_USD_STREAM_ID
         });
         vaultsConfig[WEETH_BLUECHIP_VAULT_ID] = weEthBluechip;
 
@@ -241,7 +267,9 @@ abstract contract Vaults is
             isEnabled: WEETH_DEGEN_VAULT_IS_ENABLED,
             decimals: WEETH_DECIMALS,
             priceAdapter: weEthPriceAdapter,
-            vaultType: VaultTypes.Degen
+            vaultType: VaultTypes.Degen,
+            streamIdString: WEETH_USD_STREAM_ID_STRING,
+            streamId: WEETH_USD_STREAM_ID
         });
         vaultsConfig[WEETH_DEGEN_VAULT_ID] = weEthDegen;
 
@@ -258,7 +286,9 @@ abstract contract Vaults is
             isEnabled: WETH_CORE_VAULT_IS_ENABLED,
             decimals: WETH_DECIMALS,
             priceAdapter: wEthPriceAdapter,
-            vaultType: VaultTypes.Core
+            vaultType: VaultTypes.Core,
+            streamIdString: WETH_USD_STREAM_ID_STRING,
+            streamId: WETH_USD_STREAM_ID
         });
         vaultsConfig[WETH_CORE_VAULT_ID] = wEthCore;
 
@@ -273,7 +303,9 @@ abstract contract Vaults is
             isEnabled: WETH_BLUECHIP_VAULT_IS_ENABLED,
             decimals: WETH_DECIMALS,
             priceAdapter: wEthPriceAdapter,
-            vaultType: VaultTypes.Bluechip
+            vaultType: VaultTypes.Bluechip,
+            streamIdString: WETH_USD_STREAM_ID_STRING,
+            streamId: WETH_USD_STREAM_ID
         });
         vaultsConfig[WETH_BLUECHIP_VAULT_ID] = wEthBluechip;
 
@@ -288,7 +320,9 @@ abstract contract Vaults is
             isEnabled: WETH_DEGEN_VAULT_IS_ENABLED,
             decimals: WETH_DECIMALS,
             priceAdapter: wEthPriceAdapter,
-            vaultType: VaultTypes.Degen
+            vaultType: VaultTypes.Degen,
+            streamIdString: WETH_USD_STREAM_ID_STRING,
+            streamId: WETH_USD_STREAM_ID
         });
         vaultsConfig[WETH_DEGEN_VAULT_ID] = wEthDegen;
 
@@ -305,7 +339,9 @@ abstract contract Vaults is
             isEnabled: WSTETH_CORE_VAULT_IS_ENABLED,
             decimals: WSTETH_DECIMALS,
             priceAdapter: wStEthPriceAdapter,
-            vaultType: VaultTypes.Core
+            vaultType: VaultTypes.Core,
+            streamIdString: WSTETH_USD_STREAM_ID_STRING,
+            streamId: WSTETH_USD_STREAM_ID
         });
         vaultsConfig[WSTETH_CORE_VAULT_ID] = wStEthCore;
 
@@ -320,7 +356,9 @@ abstract contract Vaults is
             isEnabled: WSTETH_BLUECHIP_VAULT_IS_ENABLED,
             decimals: WSTETH_DECIMALS,
             priceAdapter: wStEthPriceAdapter,
-            vaultType: VaultTypes.Bluechip
+            vaultType: VaultTypes.Bluechip,
+            streamIdString: WSTETH_USD_STREAM_ID_STRING,
+            streamId: WSTETH_USD_STREAM_ID
         });
         vaultsConfig[WSTETH_BLUECHIP_VAULT_ID] = wStEthBluechip;
 
@@ -335,7 +373,9 @@ abstract contract Vaults is
             isEnabled: WSTETH_DEGEN_VAULT_IS_ENABLED,
             decimals: WSTETH_DECIMALS,
             priceAdapter: wStEthPriceAdapter,
-            vaultType: VaultTypes.Degen
+            vaultType: VaultTypes.Degen,
+            streamIdString: WSTETH_USD_STREAM_ID_STRING,
+            streamId: WSTETH_USD_STREAM_ID
         });
         vaultsConfig[WSTETH_DEGEN_VAULT_ID] = wStEthDegen;
     }
@@ -348,13 +388,15 @@ abstract contract Vaults is
         public
     {
         for (uint256 i = initialVaultId; i <= finalVaultId; i++) {
-            Collateral.Data memory collateral = Collateral.Data(
+            marketMakingEngine.configureCollateral(
+                vaultsConfig[i].asset,
+                vaultsConfig[i].priceAdapter,
                 vaultsConfig[i].creditRatio,
                 vaultsConfig[i].isEnabled,
-                vaultsConfig[i].decimals,
-                vaultsConfig[i].priceAdapter,
-                vaultsConfig[i].asset
+                vaultsConfig[i].decimals
             );
+
+            Collateral.Data memory collateral = marketMakingEngine.getCollateralData(vaultsConfig[i].asset);
 
             marketMakingEngine.createVault(
                 Vault.CreateParams({
@@ -382,5 +424,35 @@ abstract contract Vaults is
         }
 
         return filteredVaultsConfig;
+    }
+
+    function deployUsdTokenSwapKeeper(
+        address deployer,
+        address marketMakingEngine,
+        address asset,
+        string memory streamIdString
+    )
+        internal
+        returns (address usdTokenSwapKeeper)
+    {
+        address usdTokenSwapKeeperImplementation = address(new UsdTokenSwapKeeper());
+
+        usdTokenSwapKeeper = address(
+            new ERC1967Proxy(
+                usdTokenSwapKeeperImplementation,
+                abi.encodeWithSelector(
+                    UsdTokenSwapKeeper.initialize.selector,
+                    deployer,
+                    IMarketMakingEngine(marketMakingEngine),
+                    asset,
+                    streamIdString
+                )
+            )
+        );
+
+        usdTokenSwapKeepers[asset] = usdTokenSwapKeeper;
+
+        changePrank({ msgSender: deployer });
+        IMarketMakingEngine(marketMakingEngine).configureSystemKeeper(usdTokenSwapKeeper, true);
     }
 }

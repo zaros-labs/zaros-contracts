@@ -45,9 +45,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_TheMarketDoesNotExist(
-        uint128 dexSwapStrategyId
-    )
+    function testFuzz_RevertWhen_TheMarketDoesNotExist(uint128 dexSwapStrategyId)
         external
         givenTheSenderIsRegisteredEngine
     {

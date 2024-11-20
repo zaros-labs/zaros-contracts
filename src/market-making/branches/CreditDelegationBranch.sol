@@ -288,6 +288,20 @@ contract CreditDelegationBranch is EngineAccessControl {
                                    UNPROTECTED FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    // function settleMarketsCollateralDeposits(uint128[] calldata marketsIds) external {
+    //     // loads the market's data storage pointer
+    //     Market.Data storage market = Market.loadLive(marketId);
+
+    //     // loads the market's connected vaults ids and `mstore` them
+    //     uint256[] memory connectedVaults = market.getConnectedVaultsIds();
+
+    //     // swaps the market's collected collateral deposits to USDC, by updating the `Market.Data.realizedDebtUsd`
+    //     // value
+
+    //     // once the collateral is distributed, we need to update the credit delegated by these vaults to the market
+    //     Vault.recalculateVaultsCreditCapacity(connectedVaults);
+    // }
+
     /// @dev Converts ZLP Vaults unsettled debt to settled debt by:
     ///     - Swapping the balance of collected margin collateral to USDC, if available.
     ///     - Swapping the ZLP Vaults assets to USDC, according to the state of

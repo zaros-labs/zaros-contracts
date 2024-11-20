@@ -4,12 +4,17 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
+import { StabilityConfiguration } from "@zaros/market-making/leaves/StabilityConfiguration.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
+import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
+import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
 // Open Zeppelin Upgradeable dependencies
@@ -418,6 +423,62 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogConfigureFeeRecipient(feeRecipient, share);
     }
 
+    /// @notice Updates the stability configuration settings, including the Chainlink verifier and maximum
+    /// verification delay.
+    /// @param chainlinkVerifier The address of the Chainlink verifier contract to be used for price verification.
+    /// @param maxVerificationDelay The maximum allowed delay, in seconds, for price verification.
+    function updateStabilityConfiguration(
+        address chainlinkVerifier,
+        uint128 maxVerificationDelay
+    )
+        external
+        onlyOwner
+    {
+        if (chainlinkVerifier == address(0)) {
+            revert Errors.ZeroInput("chainlinkVerifier");
+        }
+
+        if (maxVerificationDelay == 0) {
+            revert Errors.ZeroInput("maxVerificationDelay");
+        }
+
+        StabilityConfiguration.update(chainlinkVerifier, maxVerificationDelay);
+    }
+
+    /// @notice Updates the asset allowance for a specific vault.
+    /// @param vaultId The ID of the vault for which the asset allowance is being updated.
+    /// @param allowance The new asset allowance amount to be set for the vault's index token.
+    function updateVaultAssetAllowance(uint128 vaultId, uint256 allowance) external onlyOwner {
+        Vault.Data storage vault = Vault.load(vaultId);
+
+        ZlpVault(vault.indexToken).updateAssetAllowance(allowance);
+    }
+
+    /// @notice Configures the USD token swap parameters.
+    /// @param baseFeeUsd The base fee applied to each swap.
+    /// @param swapSettlementFeeBps The settlement fee in basis points applied to each swap.
+    /// @param maxExecutionTime The maximum allowable time (in seconds) for swap execution.
+    function configureUsdTokenSwap(
+        uint128 baseFeeUsd,
+        uint128 swapSettlementFeeBps,
+        uint128 maxExecutionTime
+    )
+        external
+        onlyOwner
+    {
+        if (maxExecutionTime == 0) {
+            revert Errors.ZeroInput("maxExecutionTime");
+        }
+
+        UsdTokenSwap.update(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
+    }
+
+    /// @notice Retrieves the collateral data for a given asset.
+    /// @param asset The address of the asset for which the collateral data is being retrieved.
+    /// @return The collateral data associated with the specified asset.
+    function getCollateralData(address asset) external pure returns (Collateral.Data memory) {
+        return Collateral.load(asset);
+    }
     /// @notice Configures the referral module.
     /// @dev Only owner can configure the referral module.
     /// @param referralModule The address of the referral module.

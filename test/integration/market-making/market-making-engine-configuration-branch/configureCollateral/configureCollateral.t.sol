@@ -57,9 +57,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureCollateral_Integration_T
         _;
     }
 
-    function testFuzz_RevertWhen_PriceAdapterIsZero(
-        bool isEnabled
-    )
+    function testFuzz_RevertWhen_PriceAdapterIsZero(bool isEnabled)
         external
         givenTheSenderIsTheOwner
         whenCollateralIsNotZero
@@ -80,9 +78,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureCollateral_Integration_T
         _;
     }
 
-    function testFuzz_RevertWhen_CreditRatioIsZero(
-        bool isEnabled
-    )
+    function testFuzz_RevertWhen_CreditRatioIsZero(bool isEnabled)
         external
         givenTheSenderIsTheOwner
         whenCollateralIsNotZero
@@ -104,9 +100,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureCollateral_Integration_T
         _;
     }
 
-    function test_RevertWhen_DecimalsIsZero(
-        bool isEnabled
-    )
+    function test_RevertWhen_DecimalsIsZero(bool isEnabled)
         external
         givenTheSenderIsTheOwner
         whenCollateralIsNotZero
@@ -125,9 +119,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureCollateral_Integration_T
         );
     }
 
-    function testFuzz_WhenDecimalsIsNotZero(
-        bool isEnabled
-    )
+    function testFuzz_WhenDecimalsIsNotZero(bool isEnabled)
         external
         givenTheSenderIsTheOwner
         whenCollateralIsNotZero
