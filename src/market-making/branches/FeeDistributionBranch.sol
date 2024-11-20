@@ -256,6 +256,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             revert Errors.NoSharesAvailable();
         }
 
+        // set to zero the amount of pending weth to be distributed
         market.pendingProtocolWethReward = 0;
 
         // sends the accumulated protocol weth reward to the configured fee recipients
