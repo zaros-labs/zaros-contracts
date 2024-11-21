@@ -24,10 +24,10 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 /// deleveraged, and lps of vaults providing liquidity to that engine may be exploited by that bad implementation.
 /// @dev Vault's debt for credit delegation purposes = unrealized debt of each market (Market::getTotalDebt or
 /// market unrealized debt) +
-/// unsettledRealizedDebtUsd (comes from each market's realized debt) + settledRealizedDebtUsd.
+/// unsettledRealizedDebtUsd (comes from each market's realized debt).
 /// @dev NOTE: each market's realized debt must always be distributed as unsettledRealizedDebt to vaults following the
 /// Debt Distribution System.
-/// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd + settledRealizedDebtUsd
+/// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd
 /// @dev A swap adds `settledRealizedDebt` but subtracts `unsettledRealizedDebt`. The Vault earns a swap fee for the
 /// inconvenience, allocated as additional WETH staking rewards.2
 /// TODO: we need to update the system's global debt during vault debt distribution triggers, will do so in a next PR
@@ -68,8 +68,8 @@ library Vault {
     /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
     /// @param marketsUnrealizedDebtUsd The total amount of unrealized debt coming from markets in USD.
     /// @param unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
-    // TODO: we may be able to remove the next variable
-    /// @param settledRealizedDebtUsd The total amount of settled debt in USD.
+    /// @param marketDepositedUsdc The total amount of credit deposits from markets that have been converted and
+    /// distributed as USDC to vaults.
     /// @param indexToken The index token address.
     /// @param collateral The collateral asset data.
     /// @param stakingFeeDistribution `actor`: Stakers, `shares`: Staked index tokens, `valuePerShare`: WETH fee
@@ -87,7 +87,7 @@ library Vault {
         uint128 lockedCreditRatio;
         int128 marketsUnrealizedDebtUsd;
         int128 unsettledRealizedDebtUsd;
-        int128 settledRealizedDebtUsd;
+        uint128 marketDepositedUsdc;
         address indexToken;
         bool isLive;
         Collateral.Data collateral;
