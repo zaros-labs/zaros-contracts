@@ -281,6 +281,13 @@ contract CreditDelegationBranch is EngineAccessControl {
                 REGISTERED SYSTEM KEEPERS ONLY PROTECTED FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Converts assets deposited as credit to a given market for USDC.
+    /// @dev USDC accumulated by swaps is stored at markets, and later pushed to its connected vaults in order to
+    /// cover an engine's usd token.
+    /// @param marketId The market identifier.
+    /// @param asset The asset used for credit deposits to be settled for USDC.
+    /// @param dexSwapStrategyId The identifier of the dex swap strategy to be used.
+    /// @param path Used when the keeper wants to perform a multihop swap using the given swap strategy.
     function convertMarketCreditDepositsToUsdc(
         uint128 marketId,
         address asset,
@@ -401,6 +408,8 @@ contract CreditDelegationBranch is EngineAccessControl {
 
         // if the vault is in credit, it will swap its USDC previously accumulated from markets' deposits to its
         // underlying assets
+        // todo: if vault is in credit and has a negative amount of realized usd token debt, should we mint usd tokens
+        // and swap for assets of the most in debt vaults? helps rebalancing the system right?
     }
 
     /*//////////////////////////////////////////////////////////////////////////

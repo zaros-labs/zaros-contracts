@@ -125,6 +125,7 @@ library Vault {
     /// @notice Loads a {Vault} namespace.
     /// @param vaultId The vault identifier.
     /// @return vault The loaded vault storage pointer.
+    // todo: add engine parameter
     function load(uint128 vaultId) internal pure returns (Data storage vault) {
         bytes32 slot = keccak256(abi.encode(VAULT_LOCATION, vaultId));
         assembly {
