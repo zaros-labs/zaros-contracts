@@ -15,7 +15,6 @@ import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
-import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 // PRB Math dependencies
@@ -29,7 +28,6 @@ contract CreditDelegationBranch is EngineAccessControl {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
-    using SafeCast for uint256;
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -382,8 +380,8 @@ contract CreditDelegationBranch is EngineAccessControl {
             // prepare to pay the base fee to protocol fee recipients using the `usdcOut` value and have it subtracted
             uint256 netUsdcAccumulated = usdcOut - settlementBaseFeeUsd;
 
-            // update the market's accumulated usdc credit, to be later distributed to connected vaults
-            market.accumulatedUsdcCredit += netUsdcAccumulated.toUint128();
+            // update the market's credit deposits accounting
+            market.settleCreditDeposit(asset, netUsdcAccumulated);
 
             // distribute the base fee to protocol fee recipients
             marketMakingEngineConfiguration.distributeProtocolAssetReward(usdc, settlementBaseFeeUsd);

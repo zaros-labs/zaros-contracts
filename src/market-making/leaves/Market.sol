@@ -408,6 +408,19 @@ library Market {
         }
     }
 
+    /// @notice Updates the amount of usdc available to be distributed to vaults delegating credit to this market.
+    /// @dev This function must be called whenever a credit deposit asset is fully swapped for usdc.
+    /// @param self The market storage pointer.
+    /// @param settledAsset The credit deposit asset that has just been settled for usdc.
+    /// @param accumulatedUsdc The net amount of usdc bought from onchain markets.
+    function settleCreditDeposit(Data storage self, address settledAsset, uint256 accumulatedUsdc) internal {
+        // removes the credit deposit asset that has just been settled for usdc
+        self.creditDeposits.remove(settledAsset);
+
+        // add the usdc acquired to the accumulated usdc credit variable
+        self.accumulatedUsdcCredit += accumulatedUsdc.toUint128();
+    }
+
     /// @notice Accumulates a vault's share of the market's unrealized and realized debt since the last distribution,
     /// and calculates the vault's debt changes in USD.
     /// @param self The market storage pointer.
@@ -542,22 +555,5 @@ library Market {
             ud60x18(self.pendingProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();
         // increment the all time weth reward storage
         self.vaultsWethReward = ud60x18(self.vaultsWethReward).add(receivedVaultsWethRewardX18).intoUint128();
-    }
-
-    /// @notice Support function to calculate the accumulated wEth allocated for the beneficiary
-    /// @param totalAmountX18 The total amount or value to be distributed
-    /// @param shareX18 The share that needs to be calculated
-    /// @param denominatorX18 The denominator representing the total divisions or base value
-    /// @return amountX18 The calculated amount to be distributed
-    function calculateFees(
-        UD60x18 totalAmountX18,
-        UD60x18 shareX18,
-        UD60x18 denominatorX18
-    )
-        internal
-        pure
-        returns (UD60x18 amountX18)
-    {
-        amountX18 = (totalAmountX18.mul(shareX18)).div(denominatorX18);
     }
 }
