@@ -6,7 +6,6 @@ import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
 contract CreditDelegationBranch_GetCreditCapacityForMarketId_Integration_Test is Base_Test {
-
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });

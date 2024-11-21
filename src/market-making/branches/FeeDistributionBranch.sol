@@ -2,6 +2,9 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { Constants } from "@zaros/utils/Constants.sol";
+import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
+import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
@@ -9,9 +12,6 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
-import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
-import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";

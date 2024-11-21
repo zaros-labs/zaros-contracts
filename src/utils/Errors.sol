@@ -189,6 +189,7 @@ library Errors {
     /// NOTE: This error must be unreachable as the system enforces market to have a minimum delegated credit through
     /// Vault.Data.lockedCreditRatio.
     error NoDelegatedCredit(uint128 marketId);
+    error FailedToPaySettlementBaseFee();
 
     /// @notice MarketMakingEngine.Collateral errors.
     error CollateralDisabled(address collateralType);

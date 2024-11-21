@@ -17,6 +17,7 @@ library DexSwapStrategy {
 
     /// @notice DexSwapStrategy data storage struct.
     /// @param id The unique identifier of the DexSwapStrategy.
+    /// @param baseFeeUsd The base fee in usd paid to the protocol fee recipients to cover keeper costs.
     /// @param dexAdapter The address of the DexAdapter contract.
     struct Data {
         uint128 id;

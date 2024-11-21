@@ -27,6 +27,7 @@ library MarketMakingEngineConfiguration {
         address weth;
         address feeDistributor;
         address referralModule;
+        uint256 settlementBaseFeeUsdX18;
         EnumerableMap.AddressToUintMap protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;

@@ -48,6 +48,10 @@ library Market {
     /// ADL polynomial regression curve.
     /// @param realizedDebtUsd Stores the market's latest realized debt value in USD, taking into account usd tokens
     /// that have been directly minted or burned by the market's engine, and the net sum of all credit deposits.
+    /// NOTE: The next variable stores USDC using its native decimals value, according to its smart contract in the
+    /// underlying chain.
+    /// @param accumulatedUsdcCredit Stores the amount of usdc acquired using the market's credit deposited in
+    /// multiple collateral types.
     /// @param lastRealizedDebtUpdateTime The last `block.timestamp` value where the `realizedDebtUsd` value has been
     /// updated.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
@@ -74,6 +78,7 @@ library Market {
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
         int128 realizedDebtUsd;
+        uint128 accumulatedUsdcCredit;
         uint128 lastRealizedDebtUpdateTime;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
@@ -532,6 +537,7 @@ library Market {
         // to weth
         self.receivedFees.remove(asset);
 
+        // increment the amount o pending weth reward to be distributed to fee recipients
         self.pendingProtocolWethReward =
             ud60x18(self.pendingProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();
         // increment the all time weth reward storage
