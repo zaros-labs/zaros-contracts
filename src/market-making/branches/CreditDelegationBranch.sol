@@ -142,11 +142,6 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of collateral to receive.
     /// @dev Invariants:
-    ///     * market.getTotalDelegatedCreditUsd() > 0
-    ///     * ERC20(collateralType).allowance(perpsEngine, marketMakingEngine) >= amount
-    ///     * ERC20(collateralType).balanceOf(perpsEngine) >= amount
-    ///     * market.collectedMarginCollateral.get(collateralType) ==  ∑convertTokenAmountToUd60x18(amount)
-    ///     * ERC20(collateralType).balanceOf(marketMakingEngine) == ∑amount
     /// The Market of `marketId` MUST exist.
     /// The Market of `marketId` MUST be live.
     function depositCreditForMarket(

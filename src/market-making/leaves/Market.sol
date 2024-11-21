@@ -46,13 +46,16 @@ library Market {
     /// the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleveragePowerScale An admin configurable exponent used to determine the acceleration of the
     /// ADL polynomial regression curve.
-    /// @param realizedDebtUsd Stores the market's latest realized debt value in USD, taking into account usd tokens
+    /// @param realizedUsdTokenDebt Stores the market's latest realized debt value in USD, taking into account usd
+    /// tokens
     /// that have been directly minted or burned by the market's engine, and the net sum of all credit deposits.
     /// NOTE: The next variable stores USDC using its native decimals value, according to its smart contract in the
     /// underlying chain.
     /// @param accumulatedUsdcCredit Stores the amount of usdc acquired using the market's credit deposited in
     /// multiple collateral types.
-    /// @param lastRealizedDebtUpdateTime The last `block.timestamp` value where the `realizedDebtUsd` value has been
+    /// @param lastRealizedUsdTokenDebtUpdateTime The last `block.timestamp` value where the `realizedUsdTokenDebt`
+    /// value has
+    /// been
     /// updated.
     /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
     /// vaults.
@@ -77,9 +80,9 @@ library Market {
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
-        int128 realizedDebtUsd;
+        int128 realizedUsdTokenDebt;
         uint128 accumulatedUsdcCredit;
-        uint128 lastRealizedDebtUpdateTime;
+        uint128 lastRealizedUsdTokenDebtUpdateTime;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
         uint128 vaultsWethReward;
@@ -138,7 +141,7 @@ library Market {
     /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
-    /// marketDebtRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedDebtUsd) /
+    /// marketDebtRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedUsdTokenDebt) /
     /// Market::getCreditCapacityUsd
     /// @param self The market storage pointer.
     /// @param delegatedCreditUsdX18 The market's credit delegated by vaults in USD, used to determine the ADL state.
@@ -226,8 +229,8 @@ library Market {
     /// @return realizedDebtUsdX18 The market's total realized debt in USD.
     function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) {
         // if the realized debt is up to date, return the stored value
-        if (block.timestamp <= self.lastRealizedDebtUpdateTime) {
-            return sd59x18(self.realizedDebtUsd);
+        if (block.timestamp <= self.lastRealizedUsdTokenDebtUpdateTime) {
+            return sd59x18(self.realizedUsdTokenDebt);
         }
         // otherwise, we'll need to recalculate the latest realized debt value
 
@@ -247,7 +250,7 @@ library Market {
 
         // finally after looping over the credit deposits, add the realized usdToken debt to the realized debt to be
         // returned
-        realizedDebtUsdX18 = realizedDebtUsdX18.add(sd59x18(self.realizedDebtUsd));
+        realizedDebtUsdX18 = realizedDebtUsdX18.add(sd59x18(self.realizedUsdTokenDebt));
     }
 
     /// @notice Returns the credit delegated by a vault to the market in USD.
@@ -313,7 +316,7 @@ library Market {
     /// @dev Functions that require the updated market realized debt value must use this method to understand whether
     /// they should call `getRealizedDebtUsd`, which is an expensive operation, o
     function isRealizedDebtUpdateRequired(Data storage self) internal view returns (bool) {
-        return block.timestamp > self.lastRealizedDebtUpdateTime;
+        return block.timestamp > self.lastRealizedUsdTokenDebtUpdateTime;
     }
 
     /// @notice Updates the market's configuration parameters.
@@ -489,7 +492,8 @@ library Market {
     /// @param self The market storage pointer.
     /// @param debtToRealizeUsdX18 The amount of debt to realize in USD.
     function realizeUsdTokenDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
-        self.realizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
+        self.realizedUsdTokenDebt =
+            sd59x18(self.realizedUsdTokenDebt).add(debtToRealizeUsdX18).intoInt256().toInt128();
     }
 
     /// @notice Updates the market's realized debt usd value by taking into account the market's credit deposits.
@@ -500,8 +504,8 @@ library Market {
     /// @return marketRealizedDebtUsdX18 The market's total realized debt in USD.
     function updateRealizedDebt(Data storage self) internal returns (SD59x18 marketRealizedDebtUsdX18) {
         marketRealizedDebtUsdX18 = getRealizedDebtUsd(self);
-        self.realizedDebtUsd = marketRealizedDebtUsdX18.intoInt256().toInt128();
-        self.lastRealizedDebtUpdateTime = block.timestamp.toUint128();
+        self.realizedUsdTokenDebt = marketRealizedDebtUsdX18.intoInt256().toInt128();
+        self.lastRealizedUsdTokenDebtUpdateTime = block.timestamp.toUint128();
     }
 
     /// @notice Updates a vault's credit delegation to a market, updating each vault's unrealized and realized debt
