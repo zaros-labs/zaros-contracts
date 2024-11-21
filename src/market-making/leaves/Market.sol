@@ -49,10 +49,6 @@ library Market {
     /// @param realizedUsdTokenDebt Stores the market's latest realized debt value in USD, taking into account usd
     /// tokens
     /// that have been directly minted or burned by the market's engine, and the net sum of all credit deposits.
-    /// NOTE: The next variable stores USDC using its native decimals value, according to its smart contract in the
-    /// underlying chain.
-    /// @param accumulatedUsdcCredit Stores the amount of usdc acquired using the market's credit deposited in
-    /// multiple collateral types.
     /// @param lastRealizedUsdTokenDebtUpdateTime The last `block.timestamp` value where the `realizedUsdTokenDebt`
     /// value has
     /// been
@@ -61,8 +57,12 @@ library Market {
     /// vaults.
     /// @param lastDistributedUnrealizedDebtUsd The last unrealized debt in USD distributed as `value` to the vaults
     /// debt distribution.
-    /// @param vaultsWethReward The all time amount of weth rewards accumulated by the market, paid by its engine,
-    /// which are constantly distributed to vaults following the `vaultsDebtDistribution`.
+    /// NOTE: The next two variables use 18 decimals to account for USDC credit and WETH reward.
+    /// @param allTimeVaultsUsdcCredit The all time amount of usdc credit accumulated by the market, using assets
+    /// deposited by its engine as credit which are at some point swapped for USDC, which is constantly distributed to
+    /// vaults according to their share of the `vaultsDebtDistribution`.
+    /// @param allTimeVaultsWethReward The all time amount of weth reward accumulated by the market, paid by its
+    /// engine, which is constantly distributed to vaults according to their share of the `vaultsDebtDistribution`.
     /// @param pendingProtocolWethReward The amount of weth available to be sent to the protocol fee recipients, in 18
     /// decimals.
     /// @param engine The address of the market's connected engine, used to fetch the market's unrealized debt and
@@ -81,11 +81,11 @@ library Market {
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
         int128 realizedUsdTokenDebt;
-        uint128 accumulatedUsdcCredit;
         uint128 lastRealizedUsdTokenDebtUpdateTime;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
-        uint128 vaultsWethReward;
+        uint128 allTimeVaultsUsdcCreditCredit;
+        uint128 allTimeVaultsWethReward;
         uint128 pendingProtocolWethReward;
         address engine;
         bool isLive;
@@ -226,8 +226,8 @@ library Market {
     /// @notice Returns the market's realized debt in USD.
     /// @dev `updateRealizedDebt` uses this method to update the stored value and the last update timestamp.
     /// @param self The market storage pointer.
-    /// @return realizedDebtUsdX18 The market's total realized debt in USD.
-    function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) {
+    /// @return realizedUsdTokenDebtX18 The market's total realized debt in USD.
+    function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedUsdTokenDebtX18) {
         // if the realized debt is up to date, return the stored value
         if (block.timestamp <= self.lastRealizedUsdTokenDebtUpdateTime) {
             return sd59x18(self.realizedUsdTokenDebt);
@@ -244,13 +244,13 @@ library Market {
             Collateral.Data storage collateral = Collateral.load(asset);
 
             // add the credit deposit usd value to the realized debt return value
-            realizedDebtUsdX18 =
-                realizedDebtUsdX18.add((collateral.getAdjustedPrice().mul(ud60x18(value))).intoSD59x18());
+            realizedUsdTokenDebtX18 =
+                realizedUsdTokenDebtX18.add((collateral.getAdjustedPrice().mul(ud60x18(value))).intoSD59x18());
         }
 
         // finally after looping over the credit deposits, add the realized usdToken debt to the realized debt to be
         // returned
-        realizedDebtUsdX18 = realizedDebtUsdX18.add(sd59x18(self.realizedUsdTokenDebt));
+        realizedUsdTokenDebtX18 = realizedUsdTokenDebtX18.add(sd59x18(self.realizedUsdTokenDebt));
     }
 
     /// @notice Returns the credit delegated by a vault to the market in USD.
@@ -415,13 +415,20 @@ library Market {
     /// @dev This function must be called whenever a credit deposit asset is fully swapped for usdc.
     /// @param self The market storage pointer.
     /// @param settledAsset The credit deposit asset that has just been settled for usdc.
-    /// @param accumulatedUsdc The net amount of usdc bought from onchain markets.
-    function settleCreditDeposit(Data storage self, address settledAsset, uint256 accumulatedUsdc) internal {
+    /// @param allTimeVaultsUsdcCreditX18 The net amount of usdc bought from onchain markets as UD60x18.
+    function settleCreditDeposit(
+        Data storage self,
+        address settledAsset,
+        UD60x18 allTimeVaultsUsdcCreditX18
+    )
+        internal
+    {
         // removes the credit deposit asset that has just been settled for usdc
         self.creditDeposits.remove(settledAsset);
 
         // add the usdc acquired to the accumulated usdc credit variable
-        self.accumulatedUsdcCredit += accumulatedUsdc.toUint128();
+        self.allTimeVaultsUsdcCreditCredit =
+            ud60x18(self.allTimeVaultsUsdcCreditCredit).add(allTimeVaultsUsdcCreditX18).intoUint128();
     }
 
     /// @notice Accumulates a vault's share of the market's unrealized and realized debt since the last distribution,
@@ -462,10 +469,11 @@ library Market {
 
             // accumulates the vault's share of the market's total weth reward since the last interaction
             if (lastVaultDistributedWethRewardX18.isZero()) {
-                wethRewardChangeX18 = vaultCreditRatioX18.mul(ud60x18(self.vaultsWethReward));
+                wethRewardChangeX18 = vaultCreditRatioX18.mul(ud60x18(self.allTimeVaultsWethReward));
             } else {
-                wethRewardChangeX18 =
-                    vaultCreditRatioX18.mul(lastVaultDistributedWethRewardX18.sub(ud60x18(self.vaultsWethReward)));
+                wethRewardChangeX18 = vaultCreditRatioX18.mul(
+                    lastVaultDistributedWethRewardX18.sub(ud60x18(self.allTimeVaultsWethReward))
+                );
             }
 
             // cache UD60x18 -> SD59x18 for gas savings
@@ -558,6 +566,7 @@ library Market {
         self.pendingProtocolWethReward =
             ud60x18(self.pendingProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();
         // increment the all time weth reward storage
-        self.vaultsWethReward = ud60x18(self.vaultsWethReward).add(receivedVaultsWethRewardX18).intoUint128();
+        self.allTimeVaultsWethReward =
+            ud60x18(self.allTimeVaultsWethReward).add(receivedVaultsWethRewardX18).intoUint128();
     }
 }

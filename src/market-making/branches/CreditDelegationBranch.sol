@@ -208,21 +208,21 @@ contract CreditDelegationBranch is EngineAccessControl {
         // caches the market's unrealized debt
         SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
         // caches the market's realized debt
-        SD59x18 realizedDebtUsdX18 =
+        SD59x18 realizedUsdTokenDebtX18 =
             market.isRealizedDebtUpdateRequired() ? market.updateRealizedDebt() : market.getRealizedDebtUsd();
 
         // load the market's connected vaults ids and `mstore` them
         uint256[] memory connectedVaults = market.getConnectedVaultsIds();
 
         // distributes the up to date unrealized and realized debt values to the market's connected vaults
-        market.distributeDebtToVaults(unrealizedDebtUsdX18, realizedDebtUsdX18);
+        market.distributeDebtToVaults(unrealizedDebtUsdX18, realizedUsdTokenDebtX18);
 
         // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
         // market
         Vault.recalculateVaultsCreditCapacity(connectedVaults);
 
         // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedDebtUsdX18);
+        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedUsdTokenDebtX18);
 
         // cache the market's delegated credit
         UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
@@ -379,10 +379,10 @@ contract CreditDelegationBranch is EngineAccessControl {
             }
 
             // prepare to pay the base fee to protocol fee recipients using the `usdcOut` value and have it subtracted
-            uint256 netUsdcAccumulated = usdcOut - settlementBaseFeeUsd;
+            UD60x18 netUsdcAccumulatedX18 = usdcCollateral.convertTokenAmountToUd60x18(usdcOut - settlementBaseFeeUsd);
 
             // update the market's credit deposits accounting
-            market.settleCreditDeposit(asset, netUsdcAccumulated);
+            market.settleCreditDeposit(asset, netUsdcAccumulatedX18);
 
             // distribute the base fee to protocol fee recipients
             marketMakingEngineConfiguration.distributeProtocolAssetReward(usdc, settlementBaseFeeUsd);
