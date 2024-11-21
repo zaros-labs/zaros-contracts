@@ -70,7 +70,6 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// The Market MUST exist.
     /// @param marketId The engine's market id.
     /// @return creditCapacityUsdX18 The current credit capacity of the given market id in USD.
-    // TODO: add invariants
     function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18) {
         Market.Data storage market = Market.loadExisting(marketId);
 
@@ -89,7 +88,6 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @param marketId The engine's market id.
     /// @param profitUsd The position's profit in USD.
     /// @return adjustedProfitUsdX18 The adjusted profit in USD Token, according to the market's health.
-    // TODO: add invariants
     function getAdjustedProfitForMarketId(
         uint128 marketId,
         uint256 profitUsd
@@ -143,7 +141,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @param marketId The engine's market id.
     /// @param collateralType The margin collateral address.
     /// @param amount The token amount of collateral to receive.
-    /// @dev Invariants: TODO: update invariants
+    /// @dev Invariants:
     ///     * market.getTotalDelegatedCreditUsd() > 0
     ///     * ERC20(collateralType).allowance(perpsEngine, marketMakingEngine) >= amount
     ///     * ERC20(collateralType).balanceOf(perpsEngine) >= amount
@@ -215,7 +213,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         // caches the market's unrealized debt
         SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
         // caches the market's realized debt
-        SD59x18 realizedDebtUsdX18 = market.getRealizedDebtUsd();
+        SD59x18 realizedDebtUsdX18 =
+            market.isRealizedDebtUpdateRequired() ? market.updateRealizedDebt() : market.getRealizedDebtUsd();
 
         // load the market's connected vaults ids and `mstore` them
         uint256[] memory connectedVaults = market.getConnectedVaultsIds();
@@ -402,8 +401,6 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @dev In order to determine the logic above, it should be taken into account a vault's participation in the
     /// system debt or credit. E.g if the protocol is in a given state and a new ZLP vault is added, this new vault is
     /// neutral compared to the others that may be in credit or debt state.
-    /// @dev Invariants involved in the call:
-    /// TODO: add invariants
     function settleVaultsDebt() external onlyRegisteredSystemKeepers {
         // if the vault is in debt, it will swap its assets to USDC
 
@@ -417,7 +414,6 @@ contract CreditDelegationBranch is EngineAccessControl {
 
     /// @notice Updates the credit delegations from ZLP Vaults to the given market id.
     /// @dev Must be called whenever an engine needs to know the current credit capacity of a given market id.
-    /// TODO: add invariants
     function updateMarketCreditDelegations(uint128 marketId) public {
         // load the market's data storage pointer
         Market.Data storage market = Market.loadLive(marketId);

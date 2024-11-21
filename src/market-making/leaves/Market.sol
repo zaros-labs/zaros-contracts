@@ -229,7 +229,7 @@ library Market {
         if (block.timestamp <= self.lastRealizedDebtUpdateTime) {
             return sd59x18(self.realizedDebtUsd);
         }
-        // otherwise, we'll need to recalculate the realized debt value
+        // otherwise, we'll need to recalculate the latest realized debt value
 
         // load the map of credit deposits' pointer
         EnumerableMap.AddressToUintMap storage creditDeposits = self.creditDeposits;
