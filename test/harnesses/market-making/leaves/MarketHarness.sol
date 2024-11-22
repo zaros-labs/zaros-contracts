@@ -35,7 +35,7 @@ contract MarketHarness {
 
     function workaround_getPendingProtocolWethReward(uint128 marketId) external view returns (uint256) {
         Market.Data storage market = Market.load(marketId);
-        return market.pendingProtocolWethReward;
+        return market.availableProtocolWethReward;
     }
 
     function workaround_getIfReceivedMarketFeesContainsTheAsset(

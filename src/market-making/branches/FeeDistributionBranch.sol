@@ -231,7 +231,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         Market.Data storage market = Market.loadExisting(marketId);
 
         // reverts if no protocol weth rewards have been collected
-        if (market.pendingProtocolWethReward == 0) revert Errors.NoWethFeesCollected();
+        if (market.availableProtocolWethReward == 0) revert Errors.NoWethFeesCollected();
 
         // loads the market making engine configuration data storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
@@ -245,8 +245,8 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         // convert collected fees to UD60x18 and convert decimals if needed, to ensure it's using the network's weth
         // decimals value
-        uint256 pendingProtocolWethReward =
-            wethCollateralData.convertUd60x18ToTokenAmount(ud60x18(market.pendingProtocolWethReward));
+        uint256 availableProtocolWethReward =
+            wethCollateralData.convertUd60x18ToTokenAmount(ud60x18(market.availableProtocolWethReward));
 
         // get total shares
         UD60x18 totalShares = marketMakingEngineConfiguration.getTotalFeeRecipientsShares();
@@ -260,10 +260,10 @@ contract FeeDistributionBranch is EngineAccessControl {
         market.pendingProtocolWethReward = 0;
 
         // sends the accumulated protocol weth reward to the configured fee recipients
-        marketMakingEngineConfiguration.distributeProtocolAssetReward(weth, pendingProtocolWethReward);
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(weth, availableProtocolWethReward);
 
         // emit event to log the weth sent to fee recipients
-        emit LogSendWethToFeeRecipients(marketId, pendingProtocolWethReward);
+        emit LogSendWethToFeeRecipients(marketId, availableProtocolWethReward);
     }
 
     /// @notice allows user to claim their share of fees

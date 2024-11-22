@@ -37,7 +37,6 @@ library Market {
     bytes32 internal constant MARKET_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Market")) - 1));
 
-    // todo: work with and store values per share, not total values. simulate Distribution struct
     /// @notice {Market} namespace storage structure.
     /// @param id The market identifier, must be the same one stored in the Market Making Engine and in its connected
     /// engine.
@@ -47,53 +46,48 @@ library Market {
     /// the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleveragePowerScale An admin configurable exponent used to determine the acceleration of the
     /// ADL polynomial regression curve.
-    /// @param realizedUsdTokenDebt Stores the market's latest realized debt value in USD, taking into account usd
-    /// tokens
+    /// @param netUsdTokenIssuance The net value of usd tokens minted and burned by this market, mints add while burns
+    /// subtract from this variable.
     /// that have been directly minted or burned by the market's engine, and the net sum of all credit deposits.
-    /// @param lastRealizedUsdTokenDebtUpdateTime The last `block.timestamp` value where the `realizedUsdTokenDebt`
-    /// value has
-    /// been
-    /// updated.
-    /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
-    /// vaults.
-    /// @param lastDistributedUnrealizedDebtUsd The last unrealized debt in USD distributed as `value` to the vaults
-    /// debt distribution.
-    /// NOTE: The next two variables use 18 decimals to account for USDC credit and WETH reward.
-    /// @param allTimeVaultsUsdcCredit The all time amount of usdc credit accumulated by the market, using assets
-    /// deposited by its engine as credit which are at some point swapped for USDC, which is constantly distributed to
-    /// vaults according to their share of the `vaultsDebtDistribution`.
-    /// @param allTimeVaultsWethReward The all time amount of weth reward accumulated by the market, paid by its
-    /// engine, which is constantly distributed to vaults according to their share of the `vaultsDebtDistribution`.
-    /// @param pendingProtocolWethReward The amount of weth available to be sent to the protocol fee recipients, in 18
-    /// decimals.
-    /// @param engine The address of the market's connected engine, used to fetch the market's unrealized debt and
-    /// system validations.
+    /// @param creditDepositsValueCacheUsd The last USD value that accounts for the sum of all credit deposited by the
+    /// engine to this market in form of `n` assets.
+    /// @param lastCreditDepositsValueCacheTime The last timestamp where `creditDepositsValueCacheUsd` has been
+    /// updated, avoids wasting gas.
+    /// @param realizedDebtUsdPerVaultShare The market's latest net realized debt per vault delegated credit (share)
+    /// in USD.
+    /// @param unrealizedDebtUsdPerVaultShare The market's latest net unrealized debt per vault delegated credit
+    /// (share) in USD.
+    /// NOTE: The next three variables use 18 decimals to account for USDC credit and WETH reward per share values.
+    /// @param usdcCreditPerVaultShare The amount of usdc credit accumulated by the market per vault delegated credit
+    /// (share), using assets deposited by its engine as credit which are at some point swapped for USDC.
+    /// @param wethRewardPerVaultShare The  amount of weth reward accumulated by the market per vault delegated credit
+    /// (share).
+    /// @param availableProtocolWethReward The amount of weth available to be sent to the protocol fee recipients.
+    /// @param engine The address of the market's connected engine.
     /// @param isLive Whether the market is currently live or paused.
     /// @param creditDeposits The map that stores the amount of collateral assets deposited in the market as credit.
     /// @param connectedVaults The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
     /// @param receivedFees An enumerable map that stores the amount of fees received from the engine per asset,
     /// available to be converted to weth.
-    /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
-    /// `valuePerShare`: USD denominated market debt or credit per share.
     struct Data {
         uint128 id;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
-        int128 realizedUsdTokenDebt;
-        uint128 lastRealizedUsdTokenDebtUpdateTime;
-        int128 lastDistributedRealizedDebtUsd;
-        int128 lastDistributedUnrealizedDebtUsd;
-        uint128 allTimeVaultsUsdcCredit;
-        uint128 allTimeVaultsWethReward;
-        uint128 pendingProtocolWethReward;
+        int128 netUsdTokenIssuance;
+        uint128 creditDepositsValueCacheUsd;
+        uint128 lastCreditDepositsValueCacheTime;
+        int128 realizedDebtUsdPerVaultShare;
+        int128 unrealizedDebtUsdPerVaultShare;
+        uint128 usdcCreditPerVaultShare;
+        uint128 wethRewardPerVaultShare;
+        uint128 availableProtocolWethReward;
         address engine;
         bool isLive;
         EnumerableMap.AddressToUintMap receivedFees;
         EnumerableMap.AddressToUintMap creditDeposits;
         EnumerableSet.UintSet[] connectedVaults;
-        Distribution.Data vaultsDebtDistribution;
     }
 
     /// @notice Loads a {Market} namespace.
@@ -228,6 +222,8 @@ library Market {
     /// @dev `updateRealizedDebt` uses this method to update the stored value and the last update timestamp.
     /// @param self The market storage pointer.
     /// @return realizedUsdTokenDebtX18 The market's total realized debt in USD.
+    // todo: refactor this to return netUsdTokenIssuance + creditDepositsValueUsd
+    // todo: subtract settled credit deposits from netUsdTokenIssuance
     function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedUsdTokenDebtX18) {
         // if the realized debt is up to date, return the stored value
         if (block.timestamp <= self.lastRealizedUsdTokenDebtUpdateTime) {
@@ -416,11 +412,11 @@ library Market {
     /// @dev This function must be called whenever a credit deposit asset is fully swapped for usdc.
     /// @param self The market storage pointer.
     /// @param settledAsset The credit deposit asset that has just been settled for usdc.
-    /// @param allTimeVaultsUsdcCreditX18 The net amount of usdc bought from onchain markets as UD60x18.
+    /// @param usdcCreditPerVaultShareX18 The net amount of usdc bought from onchain markets as UD60x18.
     function settleCreditDeposit(
         Data storage self,
         address settledAsset,
-        UD60x18 allTimeVaultsUsdcCreditX18
+        UD60x18 usdcCreditPerVaultShareX18
     )
         internal
     {
@@ -428,8 +424,8 @@ library Market {
         self.creditDeposits.remove(settledAsset);
 
         // add the usdc acquired to the accumulated usdc credit variable
-        self.allTimeVaultsUsdcCredit =
-            ud60x18(self.allTimeVaultsUsdcCredit).add(allTimeVaultsUsdcCreditX18).intoUint128();
+        self.usdcCreditPerVaultShare =
+            ud60x18(self.usdcCreditPerVaultShare).add(usdcCreditPerVaultShareX18).intoUint128();
     }
 
     /// @notice Accumulates a vault's share of the market's unrealized and realized debt since the last distribution,
@@ -475,7 +471,7 @@ library Market {
             // before calculating the accumulated weth reward value
             if (!lastVaultDistributedWethRewardPerShareX18.isZero()) {
                 wethRewardChangeX18 = vaultCreditRatioX18.mul(
-                    lastVaultDistributedWethRewardPerShareX18.sub(ud60x18(self.allTimeVaultsWethReward))
+                    lastVaultDistributedWethRewardPerShareX18.sub(ud60x18(self.wethRewardPerVaultShare))
                 );
             }
 
@@ -566,10 +562,10 @@ library Market {
         self.receivedFees.remove(asset);
 
         // increment the amount o pending weth reward to be distributed to fee recipients
-        self.pendingProtocolWethReward =
-            ud60x18(self.pendingProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();
+        self.availableProtocolWethReward =
+            ud60x18(self.availableProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();
         // increment the all time weth reward storage
-        self.allTimeVaultsWethReward =
-            ud60x18(self.allTimeVaultsWethReward).add(receivedVaultsWethRewardX18).intoUint128();
+        self.wethRewardPerVaultShare =
+            ud60x18(self.wethRewardPerVaultShare).add(receivedVaultsWethRewardX18).intoUint128();
     }
 }
