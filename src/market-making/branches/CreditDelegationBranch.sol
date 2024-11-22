@@ -205,27 +205,28 @@ contract CreditDelegationBranch is EngineAccessControl {
     function withdrawUsdTokenFromMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine {
         // loads the market's data storage pointer
         Market.Data storage market = Market.loadLive(marketId);
-        // caches the market's unrealized debt
-        SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
-        // caches the market's realized debt
-        SD59x18 realizedUsdTokenDebtX18 =
-            market.isRealizedDebtUpdateRequired() ? market.updateRealizedDebt() : market.getRealizedDebtUsd();
 
         // load the market's connected vaults ids and `mstore` them
         uint256[] memory connectedVaults = market.getConnectedVaultsIds();
 
-        // distributes the up to date unrealized and realized debt values to the market's connected vaults
-        market.distributeDebtToVaults(unrealizedDebtUsdX18, realizedUsdTokenDebtX18);
-
         // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
         // market
         Vault.recalculateVaultsCreditCapacity(connectedVaults);
+
+        // caches the market's unrealized debt
+        SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
+        // caches the market's realized debt
+        // note: we'll never need to rehydrate the market's credit deposits value cache here as its connected vauls'
+        // credit capacities have just been updated above, performing all required debt state transitions of this
+        // market as a side effect
+        SD59x18 realizedUsdTokenDebtX18 = market.getRealizedDebtUsd();
 
         // cache the market's total debt
         SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedUsdTokenDebtX18);
 
         // cache the market's delegated credit
         UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
+
         // cache the market's credit capacity
         SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(delegatedCreditUsdX18, marketTotalDebtUsdX18);
 

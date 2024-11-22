@@ -366,31 +366,18 @@ library Market {
     )
         internal
     {
-        // int128 -> SD59x18
-        SD59x18 lastDistributedUnrealizedDebtUsdX18 = sd59x18(self.lastDistributedUnrealizedDebtUsd);
-        // int128 -> SD59x18
-        SD59x18 lastDistributedRealizedDebtUsdX18 = sd59x18(self.lastDistributedRealizedDebtUsd);
+        // cache the total vault's shares as SD59x18
+        SD59x18 totalVaultSharesX18 = ud60x18(self.totalDelegatedCreditUsd).intoSD59x18();
+
+        // if there is zero delegated credit and we're trying to distribute debt to vaults, we should revert and the
+        // market is considered to be in a panic state
+        if (totalVaultSharesX18.isZero()) {
+            revert Errors.NoDelegatedCredit(self.id);
+        }
 
         // update storage values
-        self.lastDistributedRealizedDebtUsd = newRealizedDebtUsdX18.intoInt256().toInt128();
-        self.lastDistributedUnrealizedDebtUsd = newUnrealizedDebtUsdX18.intoInt256().toInt128();
-
-        // loads the vaults unrealized and realized debt distributions storage pointers
-        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
-
-        // stores the return values representing the unrealized and realized debt fluctuations
-        SD59x18 unrealizedDebtChangeUsdX18 = newUnrealizedDebtUsdX18.sub(lastDistributedUnrealizedDebtUsdX18);
-        SD59x18 realizedDebtChangeUsdX18 = newRealizedDebtUsdX18.sub(lastDistributedRealizedDebtUsdX18);
-        SD59x18 totalDebtUsdX18 = unrealizedDebtChangeUsdX18.add(realizedDebtChangeUsdX18);
-
-        // distributes the unrealized and realized debt as value to each vaults debt distribution
-        // NOTE: Each vault will need to call `Distribution::accumulateActor` through
-        // `Market::accumulateVaultDebtAndReward`, and use the return values from that function to update its owned
-        // unrealized and realized debt storage values.
-
-        if (!ud60x18(vaultsDebtDistribution.totalShares).isZero()) {
-            vaultsDebtDistribution.distributeValue(totalDebtUsdX18);
-        }
+        self.realizedDebtUsdPerVaultShare = newRealizedDebtUsdX18.div(totalVaultSharesX18).intoInt256().toInt128();
+        self.unrealizedDebtUsdPerVaultShare = newUnrealizedDebtUsdX18.div(totalVaultSharesX18).intoInt256().toInt128();
     }
 
     /// @notice Updates the amount of usdc available to be distributed to vaults delegating credit to this market.
