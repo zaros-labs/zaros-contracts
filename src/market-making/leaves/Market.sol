@@ -178,14 +178,10 @@ library Market {
         autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleveragePowerScaleX18);
     }
 
-    /// @notice Returns a memory array containing the vaults delegating credit to the market.
+    /// @notice Builds and returns a memory array containing the vaults delegating credit to the market.
     /// @param self The market storage pointer.
     /// @return connectedVaults The vaults ids delegating credit to the market.
     function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaults) {
-        if (self.connectedVaults.length == 0) {
-            return connectedVaults;
-        }
-
         connectedVaults = self.connectedVaults[self.connectedVaults.length].values();
     }
 

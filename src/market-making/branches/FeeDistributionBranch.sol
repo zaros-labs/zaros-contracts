@@ -208,7 +208,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         }
 
         // get the total fee recipients shares
-        UD60x18 feeRecipientsSharesX18 = MarketMakingEngineConfiguration.load().getTotalFeeRecipientsShares();
+        UD60x18 feeRecipientsSharesX18 = ud60x18(MarketMakingEngineConfiguration.load().totalFeeRecipientsShares);
 
         // calculate the weth rewards for protocol and vaults
         UD60x18 receivedProtocolWethRewardX18 = receivedWethX18.mul(feeRecipientsSharesX18);

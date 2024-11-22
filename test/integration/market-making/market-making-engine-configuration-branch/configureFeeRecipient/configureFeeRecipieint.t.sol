@@ -70,7 +70,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureFeeRecipient_Integration
         }
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.FeeRecipientShareExceedsOne.selector) });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.FeeRecipientShareExceedsLimit.selector) });
         marketMakingEngine.configureFeeRecipient(users.naruto.account, maxOfSharesX18.intoUint256());
     }
 

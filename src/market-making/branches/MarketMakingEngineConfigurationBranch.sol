@@ -397,6 +397,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @dev Only owner can call this function
     /// @dev The share is in 1e18 precision, example: 0.5e18 (50%), the sum of all shares must not exceed 1e18 (100%),
     /// if pass it will revert.
+    /// @dev The protocol must never be configured with 100% of fees being sent to protocol fee recipients, otherwise
+    /// it's expected to produce weird behaviors.
     /// @param feeRecipient The address of the fee recipient.
     /// @param share The share of the fee recipient, example: 0.5e18 (50%).
     function configureFeeRecipient(address feeRecipient, uint256 share) external onlyOwner {
@@ -409,15 +411,22 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // check if share is greater than zero to verify the total will not exceed the maximum shares
         if (share > 0) {
-            UD60x18 totalFeeRecipientsSharesX18 = marketMakingEngineConfiguration.getTotalFeeRecipientsShares();
+            UD60x18 totalFeeRecipientsSharesX18 = ud60x18(marketMakingEngineConfiguration.totalFeeRecipientsShares);
 
-            if (totalFeeRecipientsSharesX18.add(ud60x18(share)).gt(ud60x18(Constants.MAX_SHARES))) {
-                revert Errors.FeeRecipientShareExceedsOne();
+            if (
+                totalFeeRecipientsSharesX18.add(ud60x18(share)).gt(
+                    ud60x18(Constants.MAX_CONFIGURABLE_PROTOCOL_FEE_SHARES)
+                )
+            ) {
+                revert Errors.FeeRecipientShareExceedsLimit();
             }
         }
 
         // update protocol fee recipient
         marketMakingEngineConfiguration.protocolFeeRecipients.set(feeRecipient, share);
+
+        // update protocol total fee recipients shares value
+        marketMakingEngineConfiguration.totalFeeRecipientsShares += share;
 
         // emit event LogConfigureFeeRecipient
         emit LogConfigureFeeRecipient(feeRecipient, share);

@@ -175,7 +175,7 @@ library Errors {
     /// @notice MarketMakingEngine.MarketMakingEngineBranch errors.
 
     /// @notice Thrown when the total of protocol fee recipient share exceeds 1e18
-    error FeeRecipientShareExceedsOne();
+    error FeeRecipientShareExceedsLimit();
 
     /// @notice MarketMakingEngine.CreditDelegationBranch errors.
 
