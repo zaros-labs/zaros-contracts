@@ -84,7 +84,7 @@ library Market {
         uint128 lastRealizedUsdTokenDebtUpdateTime;
         int128 lastDistributedRealizedDebtUsd;
         int128 lastDistributedUnrealizedDebtUsd;
-        uint128 allTimeVaultsUsdcCreditCredit;
+        uint128 allTimeVaultsUsdcCredit;
         uint128 allTimeVaultsWethReward;
         uint128 pendingProtocolWethReward;
         address engine;
@@ -427,8 +427,8 @@ library Market {
         self.creditDeposits.remove(settledAsset);
 
         // add the usdc acquired to the accumulated usdc credit variable
-        self.allTimeVaultsUsdcCreditCredit =
-            ud60x18(self.allTimeVaultsUsdcCreditCredit).add(allTimeVaultsUsdcCreditX18).intoUint128();
+        self.allTimeVaultsUsdcCredit =
+            ud60x18(self.allTimeVaultsUsdcCredit).add(allTimeVaultsUsdcCreditX18).intoUint128();
     }
 
     /// @notice Accumulates a vault's share of the market's unrealized and realized debt since the last distribution,
