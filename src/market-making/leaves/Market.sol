@@ -215,19 +215,30 @@ library Market {
         totalDelegatedCreditUsdX18 = ud60x18(self.totalDelegatedCreditUsd);
     }
 
-    // todo: see if this function will be actually needed
-    function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
+    /// @notice Loops over each credit deposit made by the market's engine and calculates the net usd value of all
+    /// underlying assets summed.
+    /// @param self The market storage pointer.
+    /// @return creditDepositsValueUsdX18 The 18 decimals, USD value of all credit deposits summed.
+    function getCreditDepositsValueUsd(Data storage self) internal view returns (UD60x18 creditDepositsValueUsdX18) {
+        // load the map of credit deposits' pointer
+        EnumerableMap.AddressToUintMap storage creditDeposits = self.creditDeposits;
+
+        for (uint256 i; i < creditDeposits.length(); i++) {
+            // load the credit deposit data
+            (address asset, uint256 value) = creditDeposits.at(i);
+            // load the configured collateral type storage pointer
+            Collateral.Data storage collateral = Collateral.load(asset);
+
+            // update the total credit deposits value
+            creditDepositsValueUsdX18 =
+                creditDepositsValueUsdX18.add((collateral.getAdjustedPrice().mul(ud60x18(value))).intoSD59x18());
+        }
+    }
 
     /// @notice Returns the market's net realized debt in USD.
-    /// @dev `updateRealizedDebt` uses this method to rehydrate the credit deposits usd value cache.
     /// @param self The market storage pointer.
     /// @return realizedDebtUsdX18 The market's net realized debt in USD as SD59x18.
     function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) {
-        // if the credit deposits usd value cache is up to date, return the stored value
-        if (block.timestamp <= self.lastCreditDepositsValueRehydration) {
-            return sd59x18(self.creditDepositsValueUsd);
-        }
-
         // prepare the credit deposits usd value variable;
         UD60x18 creditDepositsValueUsdX18;
 
@@ -236,20 +247,7 @@ library Market {
             creditDepositsValueUsdX18 = ud60x18(self.creditDepositsValueCacheUsd);
         } else {
             // otherwise, we'll need to loop over credit deposits to calculate it
-
-            // load the map of credit deposits' pointer
-            EnumerableMap.AddressToUintMap storage creditDeposits = self.creditDeposits;
-
-            for (uint256 i; i < creditDeposits.length(); i++) {
-                // load the credit deposit data
-                (address asset, uint256 value) = creditDeposits.at(i);
-                // load the configured collateral type storage pointer
-                Collateral.Data storage collateral = Collateral.load(asset);
-
-                // update the total credit deposits value
-                creditDepositsValueUsdX18 =
-                    creditDepositsValueUsdX18.add((collateral.getAdjustedPrice().mul(ud60x18(value))).intoSD59x18());
-            }
+            creditDepositsValueUsdX18 = getCreditDepositsValueUsd(self);
         }
 
         // finally after determining the market's latest credit deposits usd value, sum it with the stored net usd
@@ -467,12 +465,11 @@ library Market {
         }
     }
 
-    /// @notice Realizes the minted or burned usdToken debt updating the market's realized debt value.
+    /// @notice Updates the net amount of usd tokens minted and burned by this market.
     /// @param self The market storage pointer.
-    /// @param debtToRealizeUsdX18 The amount of debt to realize in USD.
-    function realizeUsdTokenDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
-        self.realizedUsdTokenDebt =
-            sd59x18(self.realizedUsdTokenDebt).add(debtToRealizeUsdX18).intoInt256().toInt128();
+    /// @param usdTokensIssued The amount of usd tokens being issued in the parent context.
+    function updateNetUsdTokenIssuance(Data storage self, SD59x18 usdTokensIssued) internal {
+        self.netUsdTokenIssuance = sd59x18(self.netUsdTokenIssuance).add(usdTokensIssued).intoInt256().toInt128();
     }
 
     /// @notice Updates the market's realized debt usd value by taking into account the market's credit deposits.
@@ -481,7 +478,10 @@ library Market {
     /// gas.
     /// @param self The market storage pointer.
     /// @return marketRealizedDebtUsdX18 The market's total realized debt in USD.
-    function updateRealizedDebt(Data storage self) internal returns (SD59x18 marketRealizedDebtUsdX18) {
+    function rehydrateCreditDepositsValueCache(Data storage self)
+        internal
+        returns (SD59x18 marketRealizedDebtUsdX18)
+    {
         marketRealizedDebtUsdX18 = getRealizedDebtUsd(self);
         self.realizedUsdTokenDebt = marketRealizedDebtUsdX18.intoInt256().toInt128();
         self.lastRealizedUsdTokenDebtUpdateTime = block.timestamp.toUint128();

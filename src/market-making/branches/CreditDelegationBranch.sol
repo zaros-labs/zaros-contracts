@@ -176,7 +176,7 @@ contract CreditDelegationBranch is EngineAccessControl {
 
         if (collateralType == usdToken) {
             // if the deposited collateral is USD Token, it reduces the market's realized debt
-            market.realizeUsdTokenDebt(unary(amountX18.intoSD59x18()));
+            market.updateNetUsdTokenIssuance(unary(amountX18.intoSD59x18()));
         } else {
             // deposits the received collateral to the market to be distributed to vaults, and then settled in the
             // future
@@ -258,11 +258,11 @@ contract CreditDelegationBranch is EngineAccessControl {
             UD60x18 adjustedUsdTokenToMintX18 =
                 market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(amountX18);
             amountToMint = adjustedUsdTokenToMintX18.intoUint256();
-            market.realizeUsdTokenDebt(adjustedUsdTokenToMintX18.intoSD59x18());
+            market.updateNetUsdTokenIssuance(adjustedUsdTokenToMintX18.intoSD59x18());
         } else {
             // if the market is not in the ADL state, it realizes the full requested USD Token amount
             amountToMint = amountX18.intoUint256();
-            market.realizeUsdTokenDebt(amountX18.intoSD59x18());
+            market.updateNetUsdTokenIssuance(amountX18.intoSD59x18());
         }
 
         // loads the market making engine configuration storage pointer
