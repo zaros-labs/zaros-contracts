@@ -20,9 +20,6 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 /// @dev NOTE: unrealized debt (from market) -> realized debt (market) -> unsettled debt (vaults) -> settled
 /// debt (vaults)'
-/// todo: create and update functions
-// todo: next, review market's and vault's updated natspec and finish removing old flow functions to wrap up the new
-// flow.
 library Market {
     using Collateral for Collateral.Data;
     using Distribution for Distribution.Data;
