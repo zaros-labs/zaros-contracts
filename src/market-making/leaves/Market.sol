@@ -51,7 +51,7 @@ library Market {
     /// that have been directly minted or burned by the market's engine, and the net sum of all credit deposits.
     /// @param creditDepositsValueCacheUsd The last USD value that accounts for the sum of all credit deposited by the
     /// engine to this market in form of `n` assets.
-    /// @param lastCreditDepositsValueCacheTime The last timestamp where `creditDepositsValueCacheUsd` has been
+    /// @param lastCreditDepositsValueRehydration The last timestamp where `creditDepositsValueCacheUsd` has been
     /// updated, avoids wasting gas.
     /// @param realizedDebtUsdPerVaultShare The market's latest net realized debt per vault delegated credit (share)
     /// in USD.
@@ -78,7 +78,7 @@ library Market {
         uint128 autoDeleveragePowerScale;
         int128 netUsdTokenIssuance;
         uint128 creditDepositsValueCacheUsd;
-        uint128 lastCreditDepositsValueCacheTime;
+        uint128 lastCreditDepositsValueRehydration;
         int128 realizedDebtUsdPerVaultShare;
         int128 unrealizedDebtUsdPerVaultShare;
         uint128 usdcCreditPerVaultShare;
@@ -224,7 +224,7 @@ library Market {
     /// @return realizedDebtUsdX18 The market's net realized debt in USD as SD59x18.
     function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) {
         // if the credit deposits usd value cache is up to date, return the stored value
-        if (block.timestamp <= self.lastCreditDepositsValueCacheTime) {
+        if (block.timestamp <= self.lastCreditDepositsValueRehydration) {
             return sd59x18(self.creditDepositsValueUsd);
         }
 
@@ -232,7 +232,7 @@ library Market {
         UD60x18 creditDepositsValueUsdX18;
 
         // if the credit deposits usd value cache is up to date, return the stored value
-        if (block.timestamp <= self.lastCreditDepositsValueCacheTime) {
+        if (block.timestamp <= self.lastCreditDepositsValueRehydration) {
             creditDepositsValueUsdX18 = ud60x18(self.creditDepositsValueCacheUsd);
         } else {
             // otherwise, we'll need to loop over credit deposits to calculate it
@@ -255,29 +255,6 @@ library Market {
         // finally after determining the market's latest credit deposits usd value, sum it with the stored net usd
         // token issuance to return the net realized debt usd value
         realizedDebtUsdX18 = realizedDebtUsdX18.add(sd59x18(self.netUsdTokenIssuance));
-    }
-
-    /// @notice Returns the credit delegated by a vault to the market in USD.
-    /// @dev A vault's usd credit delegated to the market is represented by its shares in the
-    /// `Market.Data.vaultsDebtDistribution`.
-    /// @param self The market storage pointer.
-    /// @param vaultId The id of the vault to get the delegated credit from.
-    /// @return vaultDelegatedCreditUsdX18 The vault's delegated credit in USD.
-    function getVaultDelegatedCreditUsd(
-        Data storage self,
-        uint128 vaultId
-    )
-        internal
-        view
-        returns (UD60x18 vaultDelegatedCreditUsdX18)
-    {
-        // loads the vaults unrealized debt distribution storage pointer
-        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
-        // uint128 -> bytes32
-        bytes32 actorId = bytes32(uint256(vaultId));
-
-        // gets the vault's delegated credit in USD as its distribution shares
-        vaultDelegatedCreditUsdX18 = vaultsDebtDistribution.getActorShares(actorId);
     }
 
     /// @notice Returns the market's total unrealized debt in USD.
@@ -316,11 +293,12 @@ library Market {
         return marketDebtRatio.gte(autoDeleverageStartThresholdX18);
     }
 
-    /// @notice Returns whether the market's realized debt value is outdated or not.
-    /// @dev Functions that require the updated market realized debt value must use this method to understand whether
-    /// they should call `getRealizedDebtUsd`, which is an expensive operation, o
-    function isRealizedDebtUpdateRequired(Data storage self) internal view returns (bool) {
-        return block.timestamp > self.lastRealizedUsdTokenDebtUpdateTime;
+    /// @notice Returns whether the market's credit deposits value cache needs to be rehydrated.
+    /// @dev Caching the credit deposits value will save gas in some cases by avoiding looping multiple times over the
+    /// credit deposits map, as assets backing those deposits are volatile.
+    /// @dev It's assumed that assets' oracle prices are always equal in a same `block.timestamp`.
+    function shouldRehydrateCreditDepositsValueCache(Data storage self) internal view returns (bool) {
+        return block.timestamp > self.lastCreditDepositsValueRehydration;
     }
 
     /// @notice Updates the market's configuration parameters.
