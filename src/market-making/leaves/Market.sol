@@ -472,19 +472,16 @@ library Market {
         self.netUsdTokenIssuance = sd59x18(self.netUsdTokenIssuance).add(usdTokensIssued).intoInt256().toInt128();
     }
 
-    /// @notice Updates the market's realized debt usd value by taking into account the market's credit deposits.
-    /// @dev If this function is called when a market doesn't need to update its realized debt, it will still work as
-    /// `getRealizedDebtUsd` will simply return the stored value, but we want to avoid this scenario to avoid wasting
-    /// gas.
+    /// @notice Rehydrates the credit deposits usd value cache and returns its latest value to the caller.
     /// @param self The market storage pointer.
     /// @return marketRealizedDebtUsdX18 The market's total realized debt in USD.
     function rehydrateCreditDepositsValueCache(Data storage self)
         internal
-        returns (SD59x18 marketRealizedDebtUsdX18)
+        returns (SD59x18 creditDepositsValueUsdX18)
     {
-        marketRealizedDebtUsdX18 = getRealizedDebtUsd(self);
-        self.realizedUsdTokenDebt = marketRealizedDebtUsdX18.intoInt256().toInt128();
-        self.lastRealizedUsdTokenDebtUpdateTime = block.timestamp.toUint128();
+        creditDepositsValueUsdX18 = getCreditDepositsValueUsd(self);
+        self.creditDepositsValueCacheUsd = creditDepositsValueUsdX18.intoUint128();
+        self.lastCreditDepositsValueRehydration = block.timestamp.toUint128();
     }
 
     /// @notice Updates a vault's credit delegation to a market, updating each vault's unrealized and realized debt
