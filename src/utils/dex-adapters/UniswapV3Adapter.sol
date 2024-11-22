@@ -224,7 +224,7 @@ contract UniswapV3Adapter is UUPSUpgradeable, OwnableUpgradeable, IDexAdapter {
     /// @notice Sets deadline
     /// @param _deadline The new deadline
     function setDeadline(uint256 _deadline) public onlyOwner {
-        // revert if the new fee is not 500, 3000 or 10_000
+        // revert if the deadline is 0
         if (deadline == 0) revert Errors.ZeroInput("deadline");
 
         // set the new fee

@@ -114,6 +114,7 @@ contract StabilityBranch is EngineAccessControl {
         UD60x18 priceX18
     )
         public
+        view
         returns (UD60x18 baseFeeX18, UD60x18 swapFeeX18)
     {
         // load swap data
@@ -138,6 +139,7 @@ contract StabilityBranch is EngineAccessControl {
     /// @return swapFeeUsdX18 The dynamic swap fee charged from the usd token amount in UD60x18.
     function getFeesForUsdTokenAmountIn(UD60x18 usdAmountInX18)
         public
+        view
         returns (UD60x18 baseFeeUsdX18, UD60x18 swapFeeUsdX18)
     {
         // load swap data

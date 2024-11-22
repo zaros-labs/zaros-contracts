@@ -44,8 +44,7 @@ struct SwapAssetConfig {
 /// @notice The interface for the DEX adapter.
 interface IDexAdapter {
     /// @notice Executes a swap using the exact input single amount, coming from the swap payload passed by the Market
-    /// Making
-    /// Engine.
+    /// Making Engine.
     /// @return amountOut The amount out returned.
     function executeSwapExactInputSingle(
         SwapExactInputSinglePayload memory swapCallData

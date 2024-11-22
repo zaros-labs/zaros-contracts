@@ -59,4 +59,25 @@ library Path {
     function skipToken(bytes memory path) internal pure returns (bytes memory) {
         return path.slice(NEXT_OFFSET, path.length - NEXT_OFFSET);
     }
+
+    /// @notice Decodes a swap path into its constituent tokens and fees
+    /// @param path The encoded swap path containing token addresses and fees
+    /// @return tokens The list of token addresses in the path
+    /// @return fees The list of fee tiers (in basis points) for each hop in the path
+    function decodePath(bytes memory path) public pure returns (address[] memory tokens, uint24[] memory fees) {
+        uint256 amount = numPools(path); // Each pool has 23 bytes: 20 for token + 3 for fee
+        tokens = new address[](amount + 1);
+        fees = new uint24[](amount);
+
+        uint256 offset;
+        for (uint256 i = 0; i < amount; i++) {
+            tokens[i] = path.toAddress(offset);
+            offset += 20;
+
+            fees[i] = path.toUint24(offset);
+            offset += 3;
+        }
+        tokens[amount] = path.toAddress(offset); // Last token
+    }
+
 }
