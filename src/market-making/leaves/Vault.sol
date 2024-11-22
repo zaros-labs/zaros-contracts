@@ -264,9 +264,9 @@ library Vault {
             (UD60x18 wethRewardChangeX18, SD59x18 unrealizedDebtChangeUsdX18, SD59x18 realizedDebtChangeUsdX18) =
             market.accumulateVaultDebtAndReward(
                 vaultId,
-                ud60x18(creditDelegation.lastVaultDistributedWethReward),
-                sd59x18(creditDelegation.lastVaultDistributedUnrealizedDebtUsd),
-                sd59x18(creditDelegation.lastVaultDistributedRealizedDebtUsd)
+                ud60x18(creditDelegation.lastVaultDistributedWethRewardPerShare),
+                sd59x18(creditDelegation.lastVaultDistributedUnrealizedDebtUsdPerShare),
+                sd59x18(creditDelegation.lastVaultDistributedRealizedDebtUsdPerShare)
             );
 
             // if there's been no change in neither the unrealized nor the realized debt, we can iterate to the next

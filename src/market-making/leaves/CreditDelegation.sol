@@ -17,14 +17,16 @@ library CreditDelegation {
 
     // TODO: apply max debt per share to market debt calculation
     // TODO: natspec
+    // todo: move vault debt distribution logic to here
     struct Data {
         uint128 vaultId;
         uint128 marketId;
         uint128 weight;
+        uint128 valueUsd;
         uint128 maxDebtPerShare;
-        uint128 lastVaultDistributedWethReward;
-        int128 lastVaultDistributedUnrealizedDebtUsd;
-        int128 lastVaultDistributedRealizedDebtUsd;
+        uint128 lastVaultDistributedWethRewardPerShare;
+        int128 lastVaultDistributedUnrealizedDebtUsdPerShare;
+        int128 lastVaultDistributedRealizedDebtUsdPerShare;
     }
 
     /// @notice Loads a {CreditDelegation}.
@@ -53,8 +55,9 @@ library CreditDelegation {
     )
         internal
     {
-        self.lastVaultDistributedWethReward = vaultDistributedWethRewardX18.intoUint128();
-        self.lastVaultDistributedUnrealizedDebtUsd = vaultDistributedUnrealizedDebtUsdX18.intoInt256().toInt128();
-        self.lastVaultDistributedRealizedDebtUsd = vaultDistributedRealizedDebtUsdX18.intoInt256().toInt128();
+        self.lastVaultDistributedWethRewardPerShare = vaultDistributedWethRewardX18.intoUint128();
+        self.lastVaultDistributedUnrealizedDebtUsdPerShare =
+            vaultDistributedUnrealizedDebtUsdX18.intoInt256().toInt128();
+        self.lastVaultDistributedRealizedDebtUsdPerShare = vaultDistributedRealizedDebtUsdX18.intoInt256().toInt128();
     }
 }

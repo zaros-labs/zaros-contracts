@@ -37,6 +37,7 @@ library Market {
     bytes32 internal constant MARKET_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Market")) - 1));
 
+    // todo: work with and store values per share, not total values. simulate Distribution struct
     /// @notice {Market} namespace storage structure.
     /// @param id The market identifier, must be the same one stored in the Market Making Engine and in its connected
     /// engine.
@@ -435,18 +436,21 @@ library Market {
     /// and calculates the vault's debt changes in USD.
     /// @param self The market storage pointer.
     /// @param vaultId The vault id to accumulate the debt for.
-    /// @param lastVaultDistributedWethRewardX18 The last distributed WETH reward for the given credit delegation (by
+    /// @param lastVaultDistributedWethRewardPerShareX18 The last distributed WETH reward for the given credit
+    /// delegation (by
     /// the vault).
-    /// @param lastVaultDistributedUnrealizedDebtUsdX18 The last distributed unrealized debt in USD for the given
+    /// @param lastVaultDistributedUnrealizedDebtUsdPerShareX18 The last distributed unrealized debt in USD for the
+    /// given
     /// credit delegation (by the vault).
-    /// @param lastVaultDistributedRealizedDebtUsdX18 The last distributed realized debt in USD for the given credit
+    /// @param lastVaultDistributedRealizedDebtUsdPerShareX18 The last distributed realized debt in USD for the given
+    /// credit
     /// delegation (by the vault).
     function accumulateVaultDebtAndReward(
         Data storage self,
         uint128 vaultId,
-        UD60x18 lastVaultDistributedWethRewardX18,
-        SD59x18 lastVaultDistributedUnrealizedDebtUsdX18,
-        SD59x18 lastVaultDistributedRealizedDebtUsdX18
+        UD60x18 lastVaultDistributedWethRewardPerShareX18,
+        SD59x18 lastVaultDistributedUnrealizedDebtUsdPerShareX18,
+        SD59x18 lastVaultDistributedRealizedDebtUsdPerShareX18
     )
         internal
         returns (UD60x18 wethRewardChangeX18, SD59x18 unrealizedDebtChangeUsdX18, SD59x18 realizedDebtChangeUsdX18)
@@ -467,17 +471,16 @@ library Market {
             UD60x18 vaultCreditRatioX18 =
                 vaultsDebtDistribution.getActorShares(actorId).div(ud60x18(vaultsDebtDistribution.totalShares));
 
-            // accumulates the vault's share of the market's total weth reward since the last interaction
-            if (lastVaultDistributedWethRewardX18.isZero()) {
-                wethRewardChangeX18 = vaultCreditRatioX18.mul(ud60x18(self.allTimeVaultsWethReward));
-            } else {
+            // ensure this isn't the first vault debt & reward accumulation, i.e the following value is not zero,
+            // before calculating the accumulated weth reward value
+            if (!lastVaultDistributedWethRewardPerShareX18.isZero()) {
                 wethRewardChangeX18 = vaultCreditRatioX18.mul(
-                    lastVaultDistributedWethRewardX18.sub(ud60x18(self.allTimeVaultsWethReward))
+                    lastVaultDistributedWethRewardPerShareX18.sub(ud60x18(self.allTimeVaultsWethReward))
                 );
             }
 
             // cache UD60x18 -> SD59x18 for gas savings
-            SD59x18 vaultCreditRatioSdX18 = vaultCreditRatioX18.intoSD59x18();
+            SD59x18 vaultCreditRatioSd59x18 = vaultCreditRatioX18.intoSD59x18();
 
             // accumulates the vault's share of the debt since the last distribution, ignoring the return value as
             // it's
@@ -485,13 +488,13 @@ library Market {
             vaultsDebtDistribution.accumulateActor(actorId);
             // multiplies the vault's credit ratio by the change of the market's unrealized debt since the last
             // distribution to determine its share of the unrealized debt change
-            unrealizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
-                lastVaultDistributedUnrealizedDebtUsdX18.sub(sd59x18(self.lastDistributedUnrealizedDebtUsd))
+            unrealizedDebtChangeUsdX18 = vaultCreditRatioSd59x18.mul(
+                lastVaultDistributedUnrealizedDebtUsdPerShareX18.sub(sd59x18(self.lastDistributedUnrealizedDebtUsd))
             );
             // multiplies the vault's credit ratio by the change of the market's realized debt since the last
             // distribution to determine its share of the realized debt change
-            realizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
-                lastVaultDistributedRealizedDebtUsdX18.sub(sd59x18(self.lastDistributedRealizedDebtUsd))
+            realizedDebtChangeUsdX18 = vaultCreditRatioSd59x18.mul(
+                lastVaultDistributedRealizedDebtUsdPerShareX18.sub(sd59x18(self.lastDistributedRealizedDebtUsd))
             );
         }
     }
