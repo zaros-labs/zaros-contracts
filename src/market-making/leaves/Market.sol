@@ -484,31 +484,14 @@ library Market {
         self.lastCreditDepositsValueRehydration = block.timestamp.toUint128();
     }
 
-    /// @notice Updates a vault's credit delegation to a market, updating each vault's unrealized and realized debt
-    /// distributions.
-    /// @dev These functions interacting with `Distribution` pointers serve as helpers to avoid external contracts or
-    /// libraries to incorrectly handle state updates, as there are insensitive invariants involved, mainly having to
-    /// enforce that the vault's shares and the distribution's total shares are always equal.
+    /// @notice Updates the market's total credit value delegated by its connected vaults.
+    /// @dev This function must be called whenever a vault's credit delegation is updated.
     /// @param self The market storage pointer.
-    /// @param vaultId The vault id to update have its credit delegation shares updated.
-    /// @param creditDelegationChangeUsdX18 The USD change of the vault's credit delegation to the market.
-    function updateVaultCreditDelegation(
-        Data storage self,
-        uint128 vaultId,
-        UD60x18 newCreditDelegationUsdX18
-    )
-        internal
-        returns (SD59x18 creditDelegationChangeUsdX18)
-    {
-        // loads the vaults debt distribution storage pointers
-        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
-
-        // uint128 -> bytes32
-        bytes32 actorId = bytes32(uint256(vaultId));
-
-        // updates the vault's credit delegation in USD in both distributions as its shares MUST always be equal,
-        // otherwise the system will produce unexpected outputs.
-        creditDelegationChangeUsdX18 = vaultsDebtDistribution.setActorShares(actorId, newCreditDelegationUsdX18);
+    /// @param creditDeltaUsdX18 The credit value update that is happening in the parent context, to be applied to
+    /// the market.
+    function updateTotalDelegatedCredit(Data storage self, SD59x18 creditDeltaUsdX18) internal {
+        self.totalDelegatedCreditUsd =
+            ud60x18(self.totalDelegatedCreditUsd).intoSD59x18().add(creditDeltaUsdX18).intoUD60x18().intoUint128();
     }
 
     /// @notice Adds the received weth rewards to the stored values of pending protocol weth rewards and vaults' total
