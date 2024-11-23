@@ -33,14 +33,6 @@ struct SwapExactInputPayload {
     uint256 amountIn;
 }
 
-/// @notice Swap asset configuration
-/// @param decimals The asset decimals
-/// @param priceAdapter The asset price adapter
-struct SwapAssetConfig {
-    uint8 decimals;
-    address priceAdapter;
-}
-
 /// @notice The interface for the DEX adapter.
 interface IDexAdapter {
     /// @notice Executes a swap using the exact input single amount, coming from the swap payload passed by the Market

@@ -2,8 +2,8 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
+import { SwapAssetConfigData } from "@zaros/utils/dex-adapters/BaseAdapter.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 
@@ -30,7 +30,7 @@ library DexAdapterUtils {
         uint256 slippageToleranceBps,
         uint24 fee,
         address[] memory assets,
-        SwapAssetConfig[] memory swapAssetConfigData
+        SwapAssetConfigData[] memory swapAssetConfigData
     )
         internal
         returns (UniswapV3Adapter uniswapV3Adapter)
