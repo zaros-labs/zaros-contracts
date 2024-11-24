@@ -50,7 +50,7 @@ contract UniswapV2Adapter is BaseAdapter {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Uniswap V2 Swap Strategy ID
-    uint128 public constant UNISWAP_V2_SWAP_STRATEGY_ID = 2;
+    uint128 public constant STRATEGY_ID = 2;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     INITIALIZE FUNCTIONS
@@ -99,7 +99,7 @@ contract UniswapV2Adapter is BaseAdapter {
         uint256 amountOutMinimum =
             (expectedAmountOut * (Constants.BPS_DENOMINATOR - slippageToleranceBps)) / Constants.BPS_DENOMINATOR;
 
-        address[] memory path;
+        address[] memory path = new address[](2);
         path[0] = swapPayload.tokenIn;
         path[1] = swapPayload.tokenOut;
 
@@ -143,7 +143,7 @@ contract UniswapV2Adapter is BaseAdapter {
         });
 
         // return the amount out of the last trade
-        return amountsOut[tokens.length];
+        return amountsOut[tokens.length - 1];
      }
 
     /// @notice Sets the Uniswap V2 Swap Strategy Router

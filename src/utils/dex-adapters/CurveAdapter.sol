@@ -5,7 +5,6 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { ICurveSwapRouter } from "@zaros/utils/interfaces/ICurveSwapRouter.sol";
-import { ICurveRegistry } from "@zaros/utils/interfaces/ICurveRegistry.sol";
 import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { BaseAdapter } from "@zaros/utils/dex-adapters/BaseAdapter.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
@@ -38,10 +37,6 @@ contract CurveAdapter is BaseAdapter {
     /// @param curveSwapRouter The Uniswap V2 Swap Strategy Router address
     event LogSetCurveStrategyRouter(address indexed curveSwapRouter);
 
-    /// @notice Event emitted when the Curve Strategy Router is set
-    /// @param curveRegistry The Curve Strategy Router address
-    event LogSetCurveRegistry(address indexed curveRegistry);
-
     /*//////////////////////////////////////////////////////////////////////////
                                     PUBLIC VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
@@ -49,15 +44,12 @@ contract CurveAdapter is BaseAdapter {
     /// @notice Curve Strategy Router address
     address public curveStrategyRouter;
 
-    /// @notice The curve registry address
-    ICurveRegistry public curveRegistry;
-
     /*//////////////////////////////////////////////////////////////////////////
                                     CONSTANTS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Curve Swap Strategy ID
-    uint128 public constant CURVE_SWAP_STRATEGY_ID = 3;
+    uint128 public constant STRATEGY_ID = 3;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     INITIALIZE FUNCTIONS
@@ -70,7 +62,6 @@ contract CurveAdapter is BaseAdapter {
     function initialize(
         address owner,
         address _curveStrategyRouter,
-        address _curveRegistry,
         uint256 _slippageToleranceBps
     )
         external
@@ -81,9 +72,6 @@ contract CurveAdapter is BaseAdapter {
 
         // set the Curve Swap Strategy Router
         setCurveStrategyRouter(_curveStrategyRouter);
-
-        // set the curve registry
-        setCurveRegistry(_curveRegistry);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -171,18 +159,5 @@ contract CurveAdapter is BaseAdapter {
 
         // emit the event
         emit LogSetCurveStrategyRouter(_curveStrategyRouter);
-    }
-
-    /// @notice Sets the Curve Registry
-    /// @dev Only the owner can set the Curve Strategy Router
-    /// @param _curveRegistry The Curve Strategy Router address
-    function setCurveRegistry(address _curveRegistry) public onlyOwner {
-        if (_curveRegistry == address(0)) revert Errors.ZeroInput("_curveRegistry");
-
-        // set the curve swap strategy router
-        curveRegistry = ICurveRegistry(_curveRegistry);
-
-        // emit the event
-        emit LogSetCurveRegistry(_curveRegistry);
     }
 }

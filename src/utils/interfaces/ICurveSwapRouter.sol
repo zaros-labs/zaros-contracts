@@ -18,22 +18,4 @@ interface ICurveSwapRouter {
         uint256 _expected,
         address _receiver
     ) external payable returns (uint256 amountOut);
-
-    /// https://docs.curve.fi/router/CurveRegistryExchange/?h=#exchange_multiple
-    /// @notice Perform a multi-hop exchange across Curve pools
-    /// @param _route An array of up to 9 addresses (tokens and pools) defining the swap path
-    /// @param _swap_params An array of 4 sets of 3 parameters (indexIn, indexOut, swapType) for each step in the route
-    /// @param _amount The amount of the input token to swap
-    /// @param _expected The minimum amount of the output token expected
-    /// @param _pools An optional array of up to 4 pool addresses used in the swap
-    /// @param _receiver The address to receive the output tokens (defaults to msg.sender)
-    /// @return amountOut The amount of the output token received
-    function exchange_multiple(
-        address[9] calldata _route,
-        uint256[3][4] calldata _swap_params,
-        uint256 _amount,
-        uint256 _expected,
-        address[4] calldata _pools,
-        address _receiver
-    ) external payable returns (uint256 amountOut);
 }

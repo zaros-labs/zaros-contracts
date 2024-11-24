@@ -22,6 +22,8 @@ import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
+import { console2 } from "forge-std/console2.sol";
+
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
 contract FeeDistributionBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
@@ -125,6 +127,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         external
         onlyRegisteredSystemKeepers
     {
+        console2.log("hereeeeee");
         // loads the collateral data storage pointer
         Collateral.Data storage collateral = Collateral.load(asset);
 
@@ -164,6 +167,8 @@ contract FeeDistributionBranch is EngineAccessControl {
             if (dexSwapStrategy.dexAdapter == address(0)) {
                 revert Errors.DexSwapStrategyHasAnInvalidDexAdapter(dexSwapStrategyId);
             }
+
+            console2.log("dexSwapStrategy.dexAdapter: ", dexSwapStrategy.dexAdapter);
 
             // load the weth collateral data storage pointer
             Collateral.Data storage wethCollateral = Collateral.load(weth);
@@ -218,6 +223,8 @@ contract FeeDistributionBranch is EngineAccessControl {
         // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine as
         // fees, and remove its balance from the market's `receivedMarketFees` map
         market.receiveWethReward(asset, receivedProtocolWethRewardX18, receivedVaultsWethRewardX18);
+
+        console2.log("LogConvertAccumulatedFeesToWeth: ", receivedWethX18.intoUint256());
 
         // emit event to log the conversion of fees to weth
         emit LogConvertAccumulatedFeesToWeth(receivedWethX18.intoUint256());

@@ -52,7 +52,7 @@ contract UniswapV3Adapter is BaseAdapter {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Uniswap V3 Swap Strategy ID
-    uint128 public constant UNISWAP_V3_SWAP_STRATEGY_ID = 1;
+    uint128 public constant STRATEGY_ID = 1;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     INITIALIZE FUNCTIONS

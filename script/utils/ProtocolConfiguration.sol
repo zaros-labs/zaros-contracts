@@ -8,6 +8,7 @@ import { Vaults } from "script/vaults/Vaults.sol";
 import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.sol";
 import { SequencerUptimeFeeds } from "script/sequencer-uptime-feeds/SequencerUptimeFeeds.sol";
 import { PerpMarketsCreditConfig } from "script/perp-markets-credit-config/PerpMarketsCreditConfig.sol";
+import { DexAdapterUtils } from "script/utils/DexAdapterUtils.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
@@ -18,7 +19,8 @@ abstract contract ProtocolConfiguration is
     MarginCollaterals,
     Vaults,
     SequencerUptimeFeeds,
-    PerpMarketsCreditConfig
+    PerpMarketsCreditConfig,
+    DexAdapterUtils
 {
     /// @notice Admin addresses.
 
@@ -65,4 +67,8 @@ abstract contract ProtocolConfiguration is
 
     /// @notice The maximum delay allowed for the off chain price verification.
     uint256 internal constant MAX_VERIFICATION_DELAY = 60 seconds;
+
+    /// @notice Dex adapter related constants
+    uint256 internal constant SLIPPAGE_TOLERANCE_BPS = 100;
+    uint24 internal constant UNI_V3_FEE = 3000;
 }

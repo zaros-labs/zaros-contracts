@@ -7,6 +7,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
+import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -75,14 +76,15 @@ contract ClaimFees_Integration_Test is Base_Test {
         uint256 vaultId,
         uint256 marketId,
         uint256 amountToDepositMarketFee,
-        uint256 assetsToDepositVault
+        uint256 assetsToDepositVault,
+        uint256 adapterIndex
     )
         external
         whenTheUserDoesHaveAvailableShares
     {
         changePrank({ msgSender: address(perpsEngine) });
 
-        uint128 uniswapV3StrategyId = 1;
+        IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
 
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
@@ -99,7 +101,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         );
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId, bytes("")
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), bytes("")
         );
 
         changePrank({ msgSender: users.naruto.account });
@@ -130,8 +132,8 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // it should transfer the fees to the sender
         uint256 expectedTokenAmount =
-            uniswapV3Adapter.getExpectedOutput(address(usdc), address(wEth), amountToDepositMarketFee);
-        uint256 amountOutMin = uniswapV3Adapter.calculateAmountOutMin(expectedTokenAmount);
+            adapter.getExpectedOutput(address(usdc), address(wEth), amountToDepositMarketFee);
+        uint256 amountOutMin = adapter.calculateAmountOutMin(expectedTokenAmount);
         UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
         UD60x18 expectedWethRewardX18 = amountOutMinX18.mul(
             ud60x18(Constants.MAX_SHARES).sub(marketMakingEngine.exposed_getTotalFeeRecipientsShares())

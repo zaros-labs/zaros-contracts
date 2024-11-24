@@ -11,4 +11,5 @@ interface ISwapAssetConfig {
         external
         view
         returns (uint256 expectedAmountOut);
+    function calculateAmountOutMin(uint256 amountOutMinExpected) external view returns (uint256 amountOutMin);
 }
