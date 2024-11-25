@@ -8,6 +8,7 @@ import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { CreditDeposit } from "@zaros/market-making/leaves/CreditDeposit.sol";
 import { Distribution } from "./Distribution.sol";
+import { LiveMarkets } from "@zaros/market-making/leaves/LiveMarkets.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -27,6 +28,7 @@ library Market {
     using Collateral for Collateral.Data;
     using CreditDeposit for CreditDeposit.Data;
     using Distribution for Distribution.Data;
+    using LiveMarkets for LiveMarkets.Data;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -61,7 +63,6 @@ library Market {
     /// decimals.
     /// @param engine The address of the market's connected engine, used to fetch the market's unrealized debt and
     /// system validations.
-    /// @param isLive Whether the market is currently live or paused.
     /// @param depositedCollateralTypes Stores the set of addresses of collateral assets used for credit deposits to a
     /// market.
     /// @param connectedVaults The list of vaults ids delegating credit to this market. Whenever there's an update,
@@ -82,7 +83,6 @@ library Market {
         uint128 vaultsWethReward;
         uint128 pendingProtocolWethReward;
         address engine;
-        bool isLive;
         EnumerableMap.AddressToUintMap receivedMarketFees;
         EnumerableSet.AddressSet depositedCollateralTypes;
         EnumerableSet.UintSet[] connectedVaults;
@@ -121,7 +121,7 @@ library Market {
     function loadLive(uint128 marketId) internal view returns (Data storage market) {
         market = loadExisting(marketId);
 
-        if (!market.isLive) {
+        if (!LiveMarkets.load().containsMarket(marketId)) {
             revert Errors.MarketIsDisabled(marketId);
         }
     }
@@ -558,6 +558,7 @@ library Market {
 
         self.pendingProtocolWethReward =
             ud60x18(self.pendingProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();
+
         // increment the all time weth reward storage
         self.vaultsWethReward = ud60x18(self.vaultsWethReward).add(receivedVaultsWethRewardX18).intoUint128();
     }
