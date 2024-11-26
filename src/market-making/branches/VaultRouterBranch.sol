@@ -320,6 +320,8 @@ contract VaultRouterBranch {
         // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
+        // todo: validate the vault.lockedCreditRatio invariant
+
         // increment withdrawal request counter and set withdrawal request id
         uint128 withdrawalRequestId = ++vault.withdrawalRequestIdCounter[msg.sender];
 
@@ -373,6 +375,8 @@ contract VaultRouterBranch {
 
         // updates the vault's credit capacity before redeeming
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
+
+        // todo: validate the vault.lockedCreditRatio invariant
 
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
         uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, address(this));
