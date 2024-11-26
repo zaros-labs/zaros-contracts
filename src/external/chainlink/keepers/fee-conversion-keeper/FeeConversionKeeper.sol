@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
-import { Market } from "src/market-making/leaves/Market.sol";
 import { IAutomationCompatible } from "@zaros/external/chainlink/interfaces/IAutomationCompatible.sol";
 import { BaseKeeper } from "../BaseKeeper.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
@@ -86,15 +85,12 @@ contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
         for (uint128 i; i < liveMarketIds.length; i++) {
             marketId = liveMarketIds[i];
 
-            Market.Data storage market = Market.loadExisting(marketId);
-
-            EnumerableMap.AddressToUintMap storage receivedMarketFees = market.receivedMarketFees;
+            (address[] memory marketAssets, uint256[] memory feesCollected) =
+                self.marketMakingEngine.getReceivedMarketFees(marketId);
 
             // Iterate over receivedMarketFees
-            for (uint128 j; j < receivedMarketFees.length(); j++) {
-                (address asset, uint256 collectedFee) = receivedMarketFees.at(j);
-
-                distributionNeeded = checkFeeDistributionNeeded(asset, collectedFee);
+            for (uint128 j; j < assets.length; j++) {
+                distributionNeeded = checkFeeDistributionNeeded(marketAssets[i], feesCollected[i]);
 
                 if (distributionNeeded) {
                     // set upkeepNeeded = true
@@ -102,7 +98,7 @@ contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
 
                     // set marketId, asset
                     marketIds[index] = (marketId);
-                    assets[index] = asset;
+                    assets[index] = marketAssets[i];
 
                     index++;
                 }

@@ -320,4 +320,23 @@ contract FeeDistributionBranch is EngineAccessControl {
         // ud60x18 -> uint256
         value = collateral.convertUd60x18ToTokenAmount(valueX18);
     }
+
+    /// @notice Retrieves the assets and corresponding fees collected for a specific market.
+    /// @param marketId The ID of the market whose received fees are being queried.
+    /// @return assets An array of asset addresses for which fees were collected.
+    /// @return feesCollected An array of fee amounts corresponding to the assets.
+    function getReceivedMarketFees(uint128 marketId)
+        external
+        view
+        returns (address[] memory assets, uint256[] memory feesCollected)
+    {
+        Market.Data storage market = Market.loadExisting(marketId);
+
+        EnumerableMap.AddressToUintMap storage receivedMarketFees = market.receivedMarketFees;
+        uint256 length = receivedMarketFees.length();
+
+        for (uint256 i = 0; i < length; i++) {
+            (assets[i], feesCollected[i]) = receivedMarketFees.at(i);
+        }
+    }
 }
