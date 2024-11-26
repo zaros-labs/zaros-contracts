@@ -257,6 +257,16 @@ library Market {
         unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.id));
     }
 
+    /// @notice Calculates the latest debt, usdc credit and weth reward values a vault is entitled to receive from the
+    /// market since its last accumulation event.
+    /// @param self The market storage pointer.
+    /// @param vaultDelegatedCreditUsdX18 The vault's delegated credit in USD.
+    /// @param lastVaultDistributedRealizedDebtUsdPerShareX18 The vault's last distributed realized debt per credit
+    /// share.
+    /// @param lastVaultDistributedUnrealizedDebtUsdPerShareX18 The vault's last distributed unrealized debt per
+    /// credit share.
+    /// @param lastVaultDistributedUsdcCreditPerShareX18 The vault's last distributed USDC credit per credit share.
+    /// @param lastVaultDistributedWethRewardPerShareX18 The vault's last distributed WETH reward per credit share.
     function getVaultAccumulatedValues(
         Data storage self,
         UD60x18 vaultDelegatedCreditUsdX18,
