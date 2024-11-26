@@ -25,9 +25,10 @@ library CreditDelegation {
         uint128 weight;
         uint128 valueUsd;
         uint128 maxDebtPerShare;
-        uint128 lastVaultDistributedWethRewardPerShare;
-        int128 lastVaultDistributedUnrealizedDebtUsdPerShare;
         int128 lastVaultDistributedRealizedDebtUsdPerShare;
+        int128 lastVaultDistributedUnrealizedDebtUsdPerShare;
+        uint128 lastVaultDistributedUsdcCreditPerShare;
+        uint128 lastVaultDistributedWethRewardPerShare;
     }
 
     /// @notice Loads a {CreditDelegation}.
