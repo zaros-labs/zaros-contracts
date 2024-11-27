@@ -108,7 +108,7 @@ contract UniswapV2Adapter is BaseAdapter {
             amountOutMin: amountOutMinimum,
             path: path,
             to: swapPayload.recipient,
-            deadline: block.timestamp + 30
+            deadline: deadline
         });
 
         return amountsOut[1];
@@ -139,7 +139,7 @@ contract UniswapV2Adapter is BaseAdapter {
             amountOutMin: amountOutMinimum,
             path: tokens,
             to: swapPayload.recipient,
-            deadline: block.timestamp + 30
+            deadline: deadline
         });
 
         // return the amount out of the last trade

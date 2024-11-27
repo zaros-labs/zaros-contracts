@@ -116,7 +116,7 @@ contract UniswapV3Adapter is BaseAdapter {
                 tokenOut: swapPayload.tokenOut,
                 fee: feeBps,
                 recipient: swapPayload.recipient,
-                deadline: block.timestamp + 30,
+                deadline: deadline,
                 amountIn: swapPayload.amountIn,
                 amountOutMinimum: amountOutMin,
                 sqrtPriceLimitX96: 0
@@ -151,7 +151,7 @@ contract UniswapV3Adapter is BaseAdapter {
             IUniswapV3RouterInterface.ExactInputParams({
                 path: swapPayload.path,
                 recipient: swapPayload.recipient,
-                deadline: block.timestamp + 30,
+                deadline: deadline,
                 amountIn: swapPayload.amountIn,
                 amountOutMinimum: amountOutMinimum
             })

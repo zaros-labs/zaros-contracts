@@ -28,6 +28,10 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
                                     EVENTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @notice Event emitted when the deadline is set
+    /// @param deadline The new deadline
+    event LogSetDeadline(uint256 deadline);
+
     /// @notice Event emitted when the new swap asset config data is set
     /// @param asset The asset address
     /// @param decimals The asset decimals
@@ -48,6 +52,9 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
     /// @notice the slippage tolerance
     /// @dev the minimum is 100 (e.g. 1%)
     uint256 public slippageToleranceBps;
+
+    /// @notice The deadline
+    uint256 deadline;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     INITIALIZE FUNCTIONS
@@ -125,6 +132,19 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
 
         // emit the event LogSetSlippageTolerance
         emit LogSetSlippageTolerance(newSlippageTolerance);
+    }
+
+    /// @notice Sets deadline
+    /// @param _deadline The new deadline
+    function setDeadline(uint256 _deadline) public onlyOwner {
+        // revert if the deadline is 0
+        if (deadline == 0) revert Errors.ZeroInput("deadline");
+
+        // set the new fee
+        deadline = _deadline;
+
+        // emit the event
+        emit LogSetDeadline(deadline);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
