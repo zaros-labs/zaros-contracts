@@ -24,7 +24,6 @@ library CreditDelegation {
         uint128 marketId;
         uint128 weight;
         uint128 valueUsd;
-        uint128 maxDebtPerShare;
         int128 lastVaultDistributedRealizedDebtUsdPerShare;
         int128 lastVaultDistributedUnrealizedDebtUsdPerShare;
         uint128 lastVaultDistributedUsdcCreditPerShare;
