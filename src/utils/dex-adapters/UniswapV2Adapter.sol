@@ -9,14 +9,10 @@ import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { BaseAdapter } from "@zaros/utils/dex-adapters/BaseAdapter.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Math } from "@zaros/utils/Math.sol";
 import { Path } from "@zaros/utils/libraries/Path.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
-
-// PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 /// @notice Uniswap V2 adapter contract
 contract UniswapV2Adapter is BaseAdapter {
@@ -25,10 +21,6 @@ contract UniswapV2Adapter is BaseAdapter {
     /*//////////////////////////////////////////////////////////////////////////
                                     EVENTS
     //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Event emitted when the deadline is set
-    /// @param deadline The new deadline
-    event LogSetDeadline(uint256 deadline);
 
     /// @notice Event emitted when the pool fee is set
     /// @param newFee The new pool fee
@@ -91,9 +83,7 @@ contract UniswapV2Adapter is BaseAdapter {
         IERC20(swapPayload.tokenIn).approve(uniswapV2SwapStrategyRouter, swapPayload.amountIn);
 
         // get the expected output amount
-        uint256 expectedAmountOut = getExpectedOutput(
-            swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn
-        );
+        uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
 
         // Calculate the minimum acceptable output based on the slippage tolerance
         uint256 amountOutMinimum =
@@ -123,9 +113,7 @@ contract UniswapV2Adapter is BaseAdapter {
         IERC20(swapPayload.tokenIn).approve(uniswapV2SwapStrategyRouter, swapPayload.amountIn);
 
         // get the expected output amount
-        uint256 expectedAmountOut = getExpectedOutput(
-            swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn
-        );
+        uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
 
         // Calculate the minimum acceptable output based on the slippage tolerance
         uint256 amountOutMinimum = calculateAmountOutMin(expectedAmountOut);
@@ -144,7 +132,7 @@ contract UniswapV2Adapter is BaseAdapter {
 
         // return the amount out of the last trade
         return amountsOut[tokens.length - 1];
-     }
+    }
 
     /// @notice Sets the Uniswap V2 Swap Strategy Router
     /// @dev Only the owner can set the Uniswap V2 Swap Strategy Router

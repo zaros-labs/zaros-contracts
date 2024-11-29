@@ -41,9 +41,7 @@ interface IDexAdapter is ISwapAssetConfig {
     /// @notice Executes a swap using the exact input single amount, coming from the swap payload passed by the Market
     /// Making Engine.
     /// @return amountOut The amount out returned.
-    function executeSwapExactInputSingle(
-        SwapExactInputSinglePayload memory swapCallData
-    )
+    function executeSwapExactInputSingle(SwapExactInputSinglePayload memory swapCallData)
         external
         returns (uint256 amountOut);
 

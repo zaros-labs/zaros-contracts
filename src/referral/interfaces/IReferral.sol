@@ -12,9 +12,7 @@ interface IReferral {
     /// @notice Gets the custom referral code address.
     /// @param customReferralCode The custom referral code.
     /// @return referrer The referrer address.
-    function getCustomReferralCodeReferrer(
-        string memory customReferralCode
-    )
+    function getCustomReferralCodeReferrer(string memory customReferralCode)
         external
         view
         returns (address referrer);
@@ -33,9 +31,7 @@ interface IReferral {
     /// @param referrer The referrer identifier.
     /// @return referralCode The referral code used by the referrer.
     /// @return isCustomReferralCode True if the referral code is a custom referral code.
-    function getUserReferralData(
-        bytes memory referrer
-    )
+    function getUserReferralData(bytes memory referrer)
         external
         view
         returns (bytes memory referralCode, bool isCustomReferralCode);

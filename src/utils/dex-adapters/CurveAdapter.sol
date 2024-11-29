@@ -5,17 +5,12 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { ICurveSwapRouter } from "@zaros/utils/interfaces/ICurveSwapRouter.sol";
-import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { BaseAdapter } from "@zaros/utils/dex-adapters/BaseAdapter.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Math } from "@zaros/utils/Math.sol";
 import { Path } from "@zaros/utils/libraries/Path.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
-
-// PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 /// @notice Curve Finance adapter contract
 contract CurveAdapter is BaseAdapter {
@@ -24,10 +19,6 @@ contract CurveAdapter is BaseAdapter {
     /*//////////////////////////////////////////////////////////////////////////
                                     EVENTS
     //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Event emitted when the deadline is set
-    /// @param deadline The new deadline
-    event LogSetDeadline(uint256 deadline);
 
     /// @notice Event emitted when the pool fee is set
     /// @param newFee The new pool fee
@@ -92,9 +83,7 @@ contract CurveAdapter is BaseAdapter {
         IERC20(swapPayload.tokenIn).approve(curveStrategyRouter, swapPayload.amountIn);
 
         // get the expected output amount
-        uint256 expectedAmountOut = getExpectedOutput(
-            swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn
-        );
+        uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
 
         // Calculate the minimum acceptable output based on the slippage tolerance
         uint256 amountOutMinimum = calculateAmountOutMin(expectedAmountOut);

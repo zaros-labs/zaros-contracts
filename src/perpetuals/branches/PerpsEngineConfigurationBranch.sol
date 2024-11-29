@@ -160,9 +160,7 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// collateral type.
     /// @param collateralType The address of the collateral type.
     /// @return marginCollateralConfiguration The configuration parameters of the given collateral type.
-    function getMarginCollateralConfiguration(
-        address collateralType
-    )
+    function getMarginCollateralConfiguration(address collateralType)
         external
         pure
         returns (MarginCollateralConfiguration.Data memory)

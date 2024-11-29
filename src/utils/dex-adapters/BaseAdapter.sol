@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
 import { ISwapAssetConfig } from "@zaros/utils/interfaces/ISwapAssetConfig.sol";
 import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 

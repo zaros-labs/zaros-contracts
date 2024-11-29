@@ -18,7 +18,6 @@ import { console } from "forge-std/console.sol";
 
 /// @notice Dex Adapter Utils
 contract DexAdapterUtils {
-
     // adapter ID => adapter address
     mapping(uint256 id => IDexAdapter adapter) adapters;
 
@@ -84,9 +83,7 @@ contract DexAdapterUtils {
         }
 
         // configure the Dex Swap Strategy in the Market Making Engine
-        marketMakingEngine.configureDexSwapStrategy(
-            uniswapV3Adapter.STRATEGY_ID(), address(uniswapV3Adapter)
-        );
+        marketMakingEngine.configureDexSwapStrategy(uniswapV3Adapter.STRATEGY_ID(), address(uniswapV3Adapter));
 
         adapters[uniswapV3Adapter.STRATEGY_ID()] = IDexAdapter(uniswapV3Adapter);
         dexAdapterIds.push(uniswapV3Adapter.STRATEGY_ID());
@@ -154,9 +151,7 @@ contract DexAdapterUtils {
         }
 
         // configure the Dex Swap Strategy in the Market Making Engine
-        marketMakingEngine.configureDexSwapStrategy(
-            uniswapV2Adapter.STRATEGY_ID(), address(uniswapV2Adapter)
-        );
+        marketMakingEngine.configureDexSwapStrategy(uniswapV2Adapter.STRATEGY_ID(), address(uniswapV2Adapter));
 
         adapters[uniswapV2Adapter.STRATEGY_ID()] = IDexAdapter(uniswapV2Adapter);
         dexAdapterIds.push(uniswapV2Adapter.STRATEGY_ID());
@@ -196,16 +191,12 @@ contract DexAdapterUtils {
 
         // create bytes of the initialize function of Uniswap V2 Adapter Implementation
         bytes memory initializeCurveAdapter = abi.encodeWithSelector(
-            curveAdapterImplementation.initialize.selector,
-            owner,
-            curveStrategyRouter,
-            slippageToleranceBps
+            curveAdapterImplementation.initialize.selector, owner, curveStrategyRouter, slippageToleranceBps
         );
 
         // deploy the Uniswap V2 Adapter Proxy
-        curveAdapter = CurveAdapter(
-            address(new ERC1967Proxy(address(curveAdapterImplementation), initializeCurveAdapter))
-        );
+        curveAdapter =
+            CurveAdapter(address(new ERC1967Proxy(address(curveAdapterImplementation), initializeCurveAdapter)));
 
         console.log("curveStrategyRouter deployed at: %s", address(curveStrategyRouter));
 
@@ -224,9 +215,7 @@ contract DexAdapterUtils {
         }
 
         // configure the Dex Swap Strategy in the Market Making Engine
-        marketMakingEngine.configureDexSwapStrategy(
-            curveAdapter.STRATEGY_ID(), address(curveAdapter)
-        );
+        marketMakingEngine.configureDexSwapStrategy(curveAdapter.STRATEGY_ID(), address(curveAdapter));
 
         adapters[curveAdapter.STRATEGY_ID()] = IDexAdapter(curveAdapter);
         dexAdapterIds.push(curveAdapter.STRATEGY_ID());

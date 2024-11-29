@@ -56,9 +56,7 @@ contract CreateTradingAccountAndMulticall_Integration_Test is Base_Test {
         assertEq(tradingAccountTokenReturned, address(tradingAccountToken), "createTradingAccountAndMulticall");
     }
 
-    function testFuzz_CreateTradingAccountAndDepositMargin(
-        uint256 amountToDeposit
-    )
+    function testFuzz_CreateTradingAccountAndDepositMargin(uint256 amountToDeposit)
         external
         whenTheDataArrayDoesNotProvideARevertingCall
     {

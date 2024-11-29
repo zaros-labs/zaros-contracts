@@ -83,16 +83,20 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
         bytes memory performData = abi.encode(mockSignedReport, abi.encode(users.naruto.account, 1));
 
         ctx.requestId = 1;
-        UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, ctx.requestId);
+        UsdTokenSwap.SwapRequest memory request =
+            marketMakingEngine.getSwapRequest(users.naruto.account, ctx.requestId);
 
         ctx.amountOut = marketMakingEngine.getAmountOfAssetOut(ud60x18(ctx.amountInUsd), ud60x18(ctx.mockPrice));
 
-        (ctx.baseFeeX18, ctx.swapFeeX18) = marketMakingEngine.getFeesForAssetsAmountOut(ctx.amountOut, ud60x18(ctx.mockPrice));
+        (ctx.baseFeeX18, ctx.swapFeeX18) =
+            marketMakingEngine.getFeesForAssetsAmountOut(ctx.amountOut, ud60x18(ctx.mockPrice));
 
-        ctx.amountOutAfterFee = convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, ctx.amountOut.sub(ctx.baseFeeX18.add(ctx.swapFeeX18)));
+        ctx.amountOutAfterFee =
+            convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, ctx.amountOut.sub(ctx.baseFeeX18.add(ctx.swapFeeX18)));
 
         ctx.protocolSwapFee = ctx.swapFeeX18.mul(marketMakingEngine.exposed_getTotalFeeRecipientsShares());
-        ctx.protocolReward = convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, ctx.baseFeeX18.add(ctx.protocolSwapFee));
+        ctx.protocolReward =
+            convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, ctx.baseFeeX18.add(ctx.protocolSwapFee));
 
         // it should emit {LogFulfillSwap} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });

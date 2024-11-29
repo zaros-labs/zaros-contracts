@@ -15,9 +15,7 @@ library CustomReferralConfiguration {
 
     /// @notice Loads a {CustomReferralConfiguration}.
     /// @param customReferralCode The custom referral code string.
-    function load(
-        string memory customReferralCode
-    )
+    function load(string memory customReferralCode)
         internal
         pure
         returns (Data storage customReferralConfiguration)

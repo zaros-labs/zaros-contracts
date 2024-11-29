@@ -2,7 +2,6 @@
 pragma solidity 0.8.25;
 
 interface ICurveSwapRouter {
-
     /// https://docs.curve.fi/router/CurveRegistryExchange/?h=#exchange_with_best_rate
     /// @notice Finds the best rate and performs a swap between two tokens
     /// @param _from The address of the token to swap from
@@ -17,5 +16,8 @@ interface ICurveSwapRouter {
         uint256 _amount,
         uint256 _expected,
         address _receiver
-    ) external payable returns (uint256 amountOut);
+    )
+        external
+        payable
+        returns (uint256 amountOut);
 }

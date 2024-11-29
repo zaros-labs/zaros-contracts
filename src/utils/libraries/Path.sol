@@ -79,5 +79,4 @@ library Path {
         }
         tokens[amount] = path.toAddress(offset); // Last token
     }
-
 }

@@ -8,23 +8,15 @@ import { IUniswapV3RouterInterface } from "@zaros/utils/interfaces/IUniswapV3Rou
 import { BaseAdapter } from "@zaros/utils/dex-adapters/BaseAdapter.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Math } from "@zaros/utils/Math.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
-
-// PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 /// @notice Uniswap V3 adapter contract
 contract UniswapV3Adapter is BaseAdapter {
     /*//////////////////////////////////////////////////////////////////////////
                                     EVENTS
     //////////////////////////////////////////////////////////////////////////*/
-
-    /// @notice Event emitted when the deadline is set
-    /// @param deadline The new deadline
-    event LogSetDeadline(uint256 deadline);
 
     /// @notice Event emitted when the pool fee is set
     /// @param newFee The new pool fee
@@ -103,9 +95,7 @@ contract UniswapV3Adapter is BaseAdapter {
         IERC20(swapPayload.tokenIn).approve(address(swapRouter), swapPayload.amountIn);
 
         // get the expected output amount
-        uint256 expectedAmountOut = getExpectedOutput(
-            swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn
-        );
+        uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
 
         // Calculate the minimum acceptable output based on the slippage tolerance
         uint256 amountOutMin = calculateAmountOutMin(expectedAmountOut);
@@ -139,9 +129,7 @@ contract UniswapV3Adapter is BaseAdapter {
         IERC20(swapPayload.tokenIn).approve(address(swapRouter), swapPayload.amountIn);
 
         // get the expected output amount
-        uint256 expectedAmountOut = getExpectedOutput(
-            swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn
-        );
+        uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
 
         // Calculate the minimum acceptable output based on the slippage tolerance
         uint256 amountOutMinimum =
