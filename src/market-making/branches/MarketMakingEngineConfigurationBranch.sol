@@ -26,13 +26,15 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // TODO: add initializer at upgrade branch or auth branch
 contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
+    using DexSwapStrategy for DexSwapStrategy.Data;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
-    using DexSwapStrategy for DexSwapStrategy.Data;
+    using SafeCast for uint256;
 
     constructor() {
         _disableInitializers();
@@ -426,7 +428,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         marketMakingEngineConfiguration.protocolFeeRecipients.set(feeRecipient, share);
 
         // update protocol total fee recipients shares value
-        marketMakingEngineConfiguration.totalFeeRecipientsShares += share;
+        marketMakingEngineConfiguration.totalFeeRecipientsShares += share.toUint128();
 
         // emit event LogConfigureFeeRecipient
         emit LogConfigureFeeRecipient(feeRecipient, share);

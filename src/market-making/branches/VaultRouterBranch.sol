@@ -275,7 +275,8 @@ contract VaultRouterBranch {
         bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
 
         // update actor shares of connected markets
-        vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, true);
+        // todo: rework unstake on a separate pr, we need to handle credit updates at deposit
+        // vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, true);
 
         // prepare the `Vault::recalculateVaultsCreditCapacity` call
         uint256[] memory vaultsIds = new uint256[](1);
@@ -427,7 +428,8 @@ contract VaultRouterBranch {
         bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
 
         // update actor shares of connected markets
-        vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, false);
+        // todo: rework unstake on a separate pr, we need to handle credit updates at redeem
+        // vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, false);
 
         // transfer shares to user
         IERC20(vault.indexToken).safeTransfer(msg.sender, shares);

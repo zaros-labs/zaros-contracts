@@ -196,6 +196,8 @@ library Vault {
         unsettledDebtUsdX18 = sd59x18(self.unsettledRealizedDebtUsd).add(sd59x18(self.marketsUnrealizedDebtUsd));
     }
 
+    struct RecalculateConnectedMarketsState_Context { }
+
     // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
     // testability / visibility
     /// @notice Recalculates the latest debt of each market connected to a vault, distributing its total debt to it.
@@ -251,10 +253,8 @@ library Vault {
                 continue;
             }
 
-            // get the latest realized debt of the market while potentially saving gas
-            SD59x18 marketRealizedDebtUsdX18 =
-                market.isRealizedDebtUpdateRequired() ? market.updateRealizedDebt() : market.getRealizedDebtUsd();
-
+            // get the latest realized debt of the market
+            SD59x18 marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
             // distribute the market's debt to its connected vaults
             market.distributeDebtToVaults(marketUnrealizedDebtUsdX18, marketRealizedDebtUsdX18);
 
@@ -288,13 +288,13 @@ library Vault {
             vaultTotalRealizedDebtChangeUsdX18 = vaultTotalRealizedDebtChangeUsdX18.add(realizedDebtChangeUsdX18);
             vaultTotalUnrealizedDebtChangeUsdX18 =
                 vaultTotalUnrealizedDebtChangeUsdX18.add(unrealizedDebtChangeUsdX18);
-            vaultTotalUsdcCreditChangeX18 = vaultTotalUsdcCredotChangeX18.add(usdcCreditChangeX18);
+            vaultTotalUsdcCreditChangeX18 = vaultTotalUsdcCreditChangeX18.add(usdcCreditChangeX18);
             vaultTotalWethRewardChangeX18 = vaultTotalWethRewardChangeX18.add(wethRewardChangeX18);
 
             // update the last distributed debt, credit and reward values to the vault's credit delegation to the
             // given market
             // id, in order to keep next calculations consistent
-            creditDelegation.updateVaultLastDistributedDebtAndReward(
+            creditDelegation.updateVaultLastDistributedValues(
                 marketRealizedDebtUsdX18,
                 marketUnrealizedDebtUsdX18,
                 ud60x18(market.usdcCreditPerVaultShare),
@@ -330,10 +330,16 @@ library Vault {
             // delegation of the vault id being iterated to the provided `marketId`
             (
                 uint128[] memory updatedConnectedMarketsIdsCache,
-                UD60x18 vaultTotalWethRewardChangeX18,
+                SD59x18 vaultTotalRealizedDebtChangeUsdX18,
                 SD59x18 vaultTotalUnrealizedDebtChangeUsdX18,
-                SD59x18 vaultTotalRealizedDebtChangeUsdX18
+                UD60x18 vaultTotalUsdcCreditChangeX18,
+                UD60x18 vaultTotalWethRewardChangeX18
             ) = recalculateConnectedMarketsState(self, connectedMarketsIdsCache, true);
+
+            // adds the vault's total USDC credit change, earned from its connected markets, to the
+            // `marketDepositedUsdc` variable
+            self.marketDepositedUsdc =
+                ud60x18(self.marketDepositedUsdc).add(vaultTotalUsdcCreditChangeX18).intoUint128();
 
             // distributes the vault's total WETH reward change, earned from its connected markets
 
@@ -466,48 +472,49 @@ library Vault {
             Market.Data storage market = Market.load(connectedMarketId);
             // updates the market's vaults debt distributions with this vault's new credit delegation, i.e updates
             // its shares of the market's vaults debt distributions
-            market.updateVaultCreditDelegation(vaultId, newCreditDelegationUsdX18);
+            // market.updateVaultCreditDelegation(vaultId, newCreditDelegationUsdX18);
         }
     }
 
-    /// @notice Updates the vault shares of the connected markets
-    /// @param self The vault storage pointer.
-    /// @param actorId The actor id (vault id) to update the shares.
-    /// @param updatedActorShares The updated actor shares.
-    /// @param shouldIncrement Whether the shares should be incremented or decremented.
-    function updateSharesOfConnectedMarkets(
-        Data storage self,
-        bytes32 actorId,
-        UD60x18 updatedActorShares,
-        bool shouldIncrement
-    )
-        internal
-    {
-        // loads the connected markets storage pointer by taking the last configured market ids uint set
-        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
+    // todo: rework this on a separate PR
+    // /// @notice Updates the vault shares of the connected markets
+    // /// @param self The vault storage pointer.
+    // /// @param actorId The actor id (vault id) to update the shares.
+    // /// @param updatedActorShares The updated actor shares.
+    // /// @param shouldIncrement Whether the shares should be incremented or decremented.
+    // function updateSharesOfConnectedMarkets(
+    //     Data storage self,
+    //     bytes32 actorId,
+    //     UD60x18 updatedActorShares,
+    //     bool shouldIncrement
+    // )
+    //     internal
+    // {
+    //     // loads the connected markets storage pointer by taking the last configured market ids uint set
+    //     EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
-        // cache the connected markets ids
-        uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
+    //     // cache the connected markets ids
+    //     uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
 
-        // iterate over each connected market id
-        for (uint256 i; i < connectedMarketsIdsCache.length; i++) {
-            // loads the memory cached market id
-            uint128 connectedMarketId = connectedMarkets.at(i).toUint128();
+    //     // iterate over each connected market id
+    //     for (uint256 i; i < connectedMarketsIdsCache.length; i++) {
+    //         // loads the memory cached market id
+    //         uint128 connectedMarketId = connectedMarkets.at(i).toUint128();
 
-            // loads the market storage pointer
-            Market.Data storage market = Market.load(connectedMarketId);
+    //         // loads the market storage pointer
+    //         Market.Data storage market = Market.load(connectedMarketId);
 
-            // update the market's shares of the actor
-            UD60x18 totalSharesX18 = ud60x18(market.vaultsDebtDistribution.totalShares);
-            UD60x18 updatedSharesX18;
+    //         // update the market's shares of the actor
+    //         UD60x18 totalSharesX18 = ud60x18(market.vaultsDebtDistribution.totalShares);
+    //         UD60x18 updatedSharesX18;
 
-            if (shouldIncrement) {
-                updatedSharesX18 = totalSharesX18.add(updatedActorShares);
-            } else {
-                updatedSharesX18 = totalSharesX18.sub(updatedActorShares);
-            }
+    //         if (shouldIncrement) {
+    //             updatedSharesX18 = totalSharesX18.add(updatedActorShares);
+    //         } else {
+    //             updatedSharesX18 = totalSharesX18.sub(updatedActorShares);
+    //         }
 
-            market.vaultsDebtDistribution.setActorShares(actorId, updatedSharesX18);
-        }
-    }
+    //         market.vaultsDebtDistribution.setActorShares(actorId, updatedSharesX18);
+    //     }
+    // }
 }

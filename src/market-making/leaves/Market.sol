@@ -224,7 +224,7 @@ library Market {
 
             // update the total credit deposits value
             creditDepositsValueUsdX18 =
-                creditDepositsValueUsdX18.add((collateral.getAdjustedPrice().mul(ud60x18(value))).intoSD59x18());
+                creditDepositsValueUsdX18.add((collateral.getAdjustedPrice().mul(ud60x18(value))));
         }
     }
 
@@ -245,7 +245,8 @@ library Market {
 
         // finally after determining the market's latest credit deposits usd value, sum it with the stored net usd
         // token issuance to return the net realized debt usd value
-        realizedDebtUsdX18 = realizedDebtUsdX18.add(sd59x18(self.netUsdTokenIssuance));
+        realizedDebtUsdX18 =
+            realizedDebtUsdX18.add(creditDepositsValueUsdX18.intoSD59x18()).add(sd59x18(self.netUsdTokenIssuance));
     }
 
     /// @notice Returns the market's total unrealized debt in USD.
@@ -270,8 +271,8 @@ library Market {
     function getVaultAccumulatedValues(
         Data storage self,
         UD60x18 vaultDelegatedCreditUsdX18,
-        UD60x18 lastVaultDistributedRealizedDebtUsdPerShareX18,
-        UD60x18 lastVaultDistributedUnrealizedDebtUsdPerShareX18,
+        SD59x18 lastVaultDistributedRealizedDebtUsdPerShareX18,
+        SD59x18 lastVaultDistributedUnrealizedDebtUsdPerShareX18,
         UD60x18 lastVaultDistributedUsdcCreditPerShareX18,
         UD60x18 lastVaultDistributedWethRewardPerShareX18
     )
@@ -292,11 +293,11 @@ library Market {
         // calculate the vault's value changes since its last accumulation
 
         realizedDebtChangeUsdX18 = sd59x18(self.realizedDebtUsdPerVaultShare).sub(
-            sd59x18(lastVaultDistributedRealizedDebtUsdPerShareX18)
-        ).mul(vaultCreditShareX18);
+            lastVaultDistributedRealizedDebtUsdPerShareX18
+        ).mul(vaultCreditShareX18.intoSD59x18());
         unrealizedDebtChangeUsdX18 = sd59x18(self.unrealizedDebtUsdPerVaultShare).sub(
-            sd59x18(lastVaultDistributedUnrealizedDebtUsdPerShareX18)
-        ).mul(vaultCreditShareX18);
+            lastVaultDistributedUnrealizedDebtUsdPerShareX18
+        ).mul(vaultCreditShareX18.intoSD59x18());
         usdcCreditChangeX18 = ud60x18(self.usdcCreditPerVaultShare).sub(lastVaultDistributedUsdcCreditPerShareX18).mul(
             vaultCreditShareX18
         );
@@ -449,10 +450,10 @@ library Market {
 
     /// @notice Rehydrates the credit deposits usd value cache and returns its latest value to the caller.
     /// @param self The market storage pointer.
-    /// @return marketRealizedDebtUsdX18 The market's total realized debt in USD.
+    /// @return creditDepositsValueUsdX18 The market's credit deposits value in USD.
     function rehydrateCreditDepositsValueCache(Data storage self)
         internal
-        returns (SD59x18 creditDepositsValueUsdX18)
+        returns (UD60x18 creditDepositsValueUsdX18)
     {
         creditDepositsValueUsdX18 = getCreditDepositsValueUsd(self);
         self.creditDepositsValueCacheUsd = creditDepositsValueUsdX18.intoUint128();

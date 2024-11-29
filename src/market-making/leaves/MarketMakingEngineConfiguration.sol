@@ -60,7 +60,7 @@ library MarketMakingEngineConfiguration {
 
             // Calculate the fee recipient reward
             uint256 feeRecipientReward =
-                ud60x18(amount).mul(ud60x18(shares).div(totalFeeRecipientsShares)).intoUint256();
+                ud60x18(amount).mul(ud60x18(shares).div(ud60x18(self.totalFeeRecipientsShares))).intoUint256();
 
             // Transfer the fee recipient reward
             IERC20(asset).safeTransfer(feeRecipient, feeRecipientReward);
