@@ -105,6 +105,8 @@ abstract contract PerpMarketsCreditConfig is
                 perpMarketsCreditConfig[i].autoDeleverageEndThreshold,
                 perpMarketsCreditConfig[i].autoDeleveragePowerScale
             );
+
+            params.marketMakingEngine.unpauseMarket(perpMarketsCreditConfig[i].marketId);
         }
     }
 }

@@ -11,7 +11,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 
-// TODO: Make it a custom trigger, automation keeper
 contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
@@ -48,7 +47,8 @@ contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
             revert Errors.ZeroInput("marketMakingEngine");
         }
 
-        DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
+        DexSwapStrategy.Data memory dexSwapStrategy =
+            IMarketMakingEngine(marketMakingEngine).getDexSwapStrategy(dexSwapStrategyId);
 
         // reverts if the dex swap strategy has an invalid dex adapter
         if (dexSwapStrategy.dexAdapter == address(0)) {
@@ -66,19 +66,15 @@ contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
         self.minFeeDistributionValueUsd = minFeeDistributionValueUsd;
     }
 
-    function checkUpkeep(bytes calldata checkData)
-        external
-        view
-        returns (bool upkeepNeeded, bytes memory performData)
-    {
+    function checkUpkeep(bytes calldata /**/ ) external view returns (bool upkeepNeeded, bytes memory performData) {
         FeeConversionKeeperStorage memory self = _getFeeConversionKeeperStorage();
 
         uint128[] memory liveMarketIds = self.marketMakingEngine.getLiveMarketIds();
 
         bool distributionNeeded;
-        uint128[] memory marketIds;
-        address[] memory assets;
-        uint256 index;
+        uint128[] memory marketIds = new uint128[](liveMarketIds.length * 10);
+        address[] memory assets = new address[](liveMarketIds.length * 10);
+        uint256 index = 0;
         uint128 marketId;
 
         // Iterate over markets by id
@@ -89,16 +85,16 @@ contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
                 self.marketMakingEngine.getReceivedMarketFees(marketId);
 
             // Iterate over receivedMarketFees
-            for (uint128 j; j < assets.length; j++) {
-                distributionNeeded = checkFeeDistributionNeeded(marketAssets[i], feesCollected[i]);
+            for (uint128 j; j < marketAssets.length; j++) {
+                distributionNeeded = checkFeeDistributionNeeded(marketAssets[j], feesCollected[j]);
 
                 if (distributionNeeded) {
                     // set upkeepNeeded = true
                     upkeepNeeded = true;
 
                     // set marketId, asset
-                    marketIds[index] = (marketId);
-                    assets[index] = marketAssets[i];
+                    marketIds[index] = marketId;
+                    assets[index] = marketAssets[j];
 
                     index++;
                 }
@@ -119,21 +115,34 @@ contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
         // decode performData
         (uint128[] memory marketIds, address[] memory assets) = abi.decode(performData, (uint128[], address[]));
 
+        // convert accumulated fees to weth for decoded markets and assets
         for (uint256 i = 0; i < marketIds.length; i++) {
             marketMakingEngine.convertAccumulatedFeesToWeth(marketIds[i], assets[i], self.dexSwapStrategyId, "");
         }
     }
 
-    function getConfig() external view returns (address keeperOwner, address marketMakingEngine) {
+    /// @notice Retrieves the current configuration of the fee conversion keeper.
+    /// @return keeperOwner The address of the owner of the fee conversion keeper.
+    /// @return marketMakingEngine The address of the market-making engine.
+    /// @param minFeeDistributionValueUsd The minimum fee distribution value in USD.
+    function getConfig()
+        external
+        view
+        returns (address keeperOwner, address marketMakingEngine, uint128 minFeeDistributionValueUsd)
+    {
         FeeConversionKeeperStorage storage self = _getFeeConversionKeeperStorage();
 
         keeperOwner = owner();
         marketMakingEngine = address(self.marketMakingEngine);
+        minFeeDistributionValueUsd = self.minFeeDistributionValueUsd;
     }
 
-    function setConfig(address marketMakingEngine, uint128 minFeeDistributionValueUsd) external onlyOwner {
+    /// @notice Sets the configuration for the fee conversion keeper.
+    /// @param marketMakingEngine The address of the market-making engine.
+    /// @param minFeeDistributionValueUsd The minimum fee distribution value in USD.
+    function updateConfig(address marketMakingEngine, uint128 minFeeDistributionValueUsd) external onlyOwner {
         if (marketMakingEngine == address(0)) {
-            revert Errors.ZeroInput("perpsEmarketMakingEnginengine");
+            revert Errors.ZeroInput("marketMakingEngine");
         }
 
         if (minFeeDistributionValueUsd == 0) {
@@ -146,6 +155,8 @@ contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
         self.minFeeDistributionValueUsd = minFeeDistributionValueUsd;
     }
 
+    /// @notice Loads the fee conversion keeper storage.
+    /// @return self The loaded FeeConversionKeeperStorage pointer.
     function _getFeeConversionKeeperStorage() internal pure returns (FeeConversionKeeperStorage storage self) {
         bytes32 slot = FEE_CONVERSION_KEEPER_LOCATION;
 
@@ -154,18 +165,25 @@ contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
         }
     }
 
+    /// @notice Checks if fee distribution is needed based on the asset and the collected fee amount.
+    /// @param asset The address of the asset being evaluated.
+    /// @param collectedFee The amount of fee collected for the asset.
+    /// @return distributionNeeded A boolean indicating whether fee distribution is required.
     function checkFeeDistributionNeeded(
         address asset,
         uint256 collectedFee
     )
-        internal
+        public
         view
         returns (bool distributionNeeded)
     {
+        // load keeper data from storage
         FeeConversionKeeperStorage storage self = _getFeeConversionKeeperStorage();
 
+        /// get asset value in USD
         uint256 assetValue = self.marketMakingEngine.getAssetValue(asset, collectedFee);
 
+        // if asset value GT min distribution value return true
         distributionNeeded = assetValue > self.minFeeDistributionValueUsd;
     }
 }

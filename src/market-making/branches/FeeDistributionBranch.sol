@@ -335,8 +335,18 @@ contract FeeDistributionBranch is EngineAccessControl {
         EnumerableMap.AddressToUintMap storage receivedMarketFees = market.receivedMarketFees;
         uint256 length = receivedMarketFees.length();
 
+        assets = new address[](length);
+        feesCollected = new uint256[](length);
+
         for (uint256 i = 0; i < length; i++) {
             (assets[i], feesCollected[i]) = receivedMarketFees.at(i);
         }
+    }
+
+    /// @notice Retrieves the details of a specific DEX swap strategy.
+    /// @param dexSwapStrategyId The unique identifier of the DEX swap strategy.
+    /// @return The data of the specified DEX swap strategy.
+    function getDexSwapStrategy(uint128 dexSwapStrategyId) external pure returns (DexSwapStrategy.Data memory) {
+        return DexSwapStrategy.load(dexSwapStrategyId);
     }
 }
