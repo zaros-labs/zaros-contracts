@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { LiquidationKeeper } from "@zaros/external/chainlink/keepers/liquidation/LiquidationKeeper.sol";
+import { FeeConversionKeeper } from "@zaros/external/chainlink/keepers/fee-conversion-keeper/FeeConversionKeeper.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -89,5 +90,32 @@ library ChainlinkAutomationUtils {
         );
 
         return liquidationKeeper;
+    }
+
+    function deployFeeConversionKeeper(
+        address owner,
+        address marketMakingEngine,
+        uint128 dexSwapStrategyId,
+        uint128 minFeeDistributionValueUsd
+    )
+        internal
+        returns (address)
+    {
+        address feeConversionKeeperImplementation = address(new FeeConversionKeeper());
+
+        address feeConversionKeeper = address(
+            new ERC1967Proxy(
+                feeConversionKeeperImplementation,
+                abi.encodeWithSelector(
+                    FeeConversionKeeper.initialize.selector,
+                    owner,
+                    marketMakingEngine,
+                    dexSwapStrategyId,
+                    minFeeDistributionValueUsd
+                )
+            )
+        );
+
+        return feeConversionKeeper;
     }
 }
