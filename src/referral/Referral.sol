@@ -105,9 +105,7 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @inheritdoc IReferral
-    function getCustomReferralCodeReferrer(
-        string memory customReferralCode
-    )
+    function getCustomReferralCodeReferrer(string memory customReferralCode)
         external
         view
         returns (address referrer)
@@ -129,9 +127,7 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @inheritdoc IReferral
-    function getUserReferralData(
-        bytes memory referrer
-    )
+    function getUserReferralData(bytes memory referrer)
         external
         view
         returns (bytes memory referralCode, bool isCustomReferralCode)

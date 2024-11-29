@@ -25,8 +25,11 @@ import { IMarketMakingEngine as IMarketMakingEngineBranches } from "@zaros/marke
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
-import { SwapAssetConfig } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { UniswapV2Adapter } from "@zaros/utils/dex-adapters/UniswapV2Adapter.sol";
+import { CurveAdapter } from "@zaros/utils/dex-adapters/CurveAdapter.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
+import { SwapAssetConfigData } from "@zaros/utils/dex-adapters/BaseAdapter.sol";
+import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -57,7 +60,8 @@ import { MarketMakingEngineConfigurationHarness } from
 import { DexSwapStrategyHarness } from "test/harnesses/market-making/leaves/DexSwapStrategyHarness.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
-import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStrategyRouter.sol";
+import { MockUniswapV2SwapStrategyRouter } from "test/mocks/MockUniswapV2SwapStrategyRouter.sol";
+import { MockCurveStrategyRouter } from "test/mocks/MockCurveStrategyRouter.sol";
 import { StabilityConfigurationHarness } from "test/harnesses/market-making/leaves/StabilityConfigurationHarness.sol";
 
 // Zaros dependencies script
@@ -158,6 +162,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     IMarketMakingEngine internal marketMakingEngineImplementation;
 
     UniswapV3Adapter internal uniswapV3Adapter;
+    UniswapV2Adapter internal uniswapV2Adapter;
+    CurveAdapter internal curveAdapter;
 
     /*//////////////////////////////////////////////////////////////////////////
                                   SET-UP FUNCTION
@@ -298,45 +304,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         marketMakingEngine.setWeth(address(wEth));
 
-        uint256 slippageToleranceBps = 100;
-        uint24 fee = 3000;
+        // Dex Adapters Set Up
+        setUpDexAdapters();
 
-        address[] memory collaterals = new address[](3);
-        collaterals[0] = address(usdc);
-        collaterals[1] = address(wEth);
-        collaterals[2] = address(wBtc);
-
-        SwapAssetConfig[] memory collateralData = new SwapAssetConfig[](3);
-
-        collateralData[0] = SwapAssetConfig({
-            decimals: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals,
-            priceAdapter: address(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter)
-        });
-
-        collateralData[1] = SwapAssetConfig({
-            decimals: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals,
-            priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
-        });
-
-        collateralData[2] = SwapAssetConfig({
-            decimals: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].tokenDecimals,
-            priceAdapter: address(marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter)
-        });
-
-        MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter = new MockUniswapV3SwapStrategyRouter();
-
-        uniswapV3Adapter = DexAdapterUtils.deployUniswapV3Adapter(
-            marketMakingEngine,
-            users.owner.account,
-            address(mockUniswapV3SwapStrategyRouter),
-            slippageToleranceBps,
-            fee,
-            collaterals,
-            collateralData
-        );
-
-        deal({ token: address(wEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
-
+        // Vault and markets setup
         uint256[2] memory vaultsIdsRange;
         vaultsIdsRange[0] = INITIAL_VAULT_ID;
         vaultsIdsRange[1] = FINAL_VAULT_ID;
@@ -524,6 +495,68 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         );
     }
 
+    function setUpDexAdapters() internal {
+        address[] memory collaterals = new address[](3);
+        collaterals[0] = address(usdc);
+        collaterals[1] = address(wEth);
+        collaterals[2] = address(wBtc);
+
+        SwapAssetConfigData[] memory collateralData = new SwapAssetConfigData[](3);
+
+        collateralData[0] = SwapAssetConfigData({
+            decimals: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        collateralData[1] = SwapAssetConfigData({
+            decimals: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        collateralData[2] = SwapAssetConfigData({
+            decimals: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter = new MockUniswapV3SwapStrategyRouter();
+
+        uniswapV3Adapter = deployUniswapV3Adapter(
+            marketMakingEngine,
+            users.owner.account,
+            address(mockUniswapV3SwapStrategyRouter),
+            SLIPPAGE_TOLERANCE_BPS,
+            UNI_V3_FEE,
+            collaterals,
+            collateralData
+        );
+
+        MockUniswapV2SwapStrategyRouter mockUniswapV2SwapStrategyRouter = new MockUniswapV2SwapStrategyRouter();
+
+        uniswapV2Adapter = deployUniswapV2Adapter(
+            marketMakingEngine,
+            users.owner.account,
+            address(mockUniswapV2SwapStrategyRouter),
+            SLIPPAGE_TOLERANCE_BPS,
+            collaterals,
+            collateralData
+        );
+
+        MockCurveStrategyRouter mockCurveSwapStrategyRouter = new MockCurveStrategyRouter();
+
+        curveAdapter = deployCurveAdapter(
+            marketMakingEngine,
+            users.owner.account,
+            address(mockCurveSwapStrategyRouter),
+            SLIPPAGE_TOLERANCE_BPS,
+            collaterals,
+            collateralData
+        );
+
+        deal({ token: address(wEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(wEth), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(wEth), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
+    }
+
     function depositInVault(uint128 vaultId, uint128 assetsToDeposit) internal {
         address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
         deal(vaultAsset, users.naruto.account, assetsToDeposit);
@@ -576,6 +609,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 
         return filteredMarketsConfig[0];
+    }
+
+    function getFuzzDexAdapter(uint256 adapterIndex) internal view returns (IDexAdapter) {
+        adapterIndex = bound({ x: adapterIndex, min: 0, max: dexAdapterIds.length - 1 });
+
+        uint256 adapterId = dexAdapterIds[adapterIndex];
+
+        return adapters[adapterId];
     }
 
     function getFuzzPerpMarketCreditConfig(uint256 marketId) internal view returns (PerpMarketCreditConfig memory) {

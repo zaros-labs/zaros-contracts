@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Math } from "@zaros/utils/Math.sol";
+import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -25,13 +26,13 @@ contract GetEarnedFees_Integration_Test is Base_Test {
         uint256 vaultId,
         uint256 marketId,
         uint256 amountToDepositMarketFee,
-        uint256 assetsToDepositVault
+        uint256 assetsToDepositVault,
+        uint256 adapterIndex
     )
         external
     {
         changePrank({ msgSender: address(perpsEngine) });
-
-        uint128 uniswapV3StrategyId = 1;
+        IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
 
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
@@ -48,7 +49,7 @@ contract GetEarnedFees_Integration_Test is Base_Test {
         );
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId, bytes("")
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), bytes("")
         );
 
         changePrank({ msgSender: users.naruto.account });
@@ -68,8 +69,8 @@ contract GetEarnedFees_Integration_Test is Base_Test {
         assertEq(IERC20(wEth).balanceOf(users.naruto.account), 0);
 
         uint256 expectedTokenAmount =
-            uniswapV3Adapter.getExpectedOutput(address(usdc), address(wEth), amountToDepositMarketFee);
-        uint256 amountOutMin = uniswapV3Adapter.calculateAmountOutMin(expectedTokenAmount);
+            adapter.getExpectedOutput(address(usdc), address(wEth), amountToDepositMarketFee);
+        uint256 amountOutMin = adapter.calculateAmountOutMin(expectedTokenAmount);
         UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
         UD60x18 expectedWethRewardX18 = amountOutMinX18.mul(
             ud60x18(Constants.MAX_SHARES).sub(marketMakingEngine.exposed_getTotalFeeRecipientsShares())

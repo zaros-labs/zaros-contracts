@@ -153,9 +153,11 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         UD60x18 amountOut = marketMakingEngine.getAmountOfAssetOut(ud60x18(swapAmount), ud60x18(price));
 
-        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) = marketMakingEngine.getFeesForAssetsAmountOut(amountOut, ud60x18(price));
+        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) =
+            marketMakingEngine.getFeesForAssetsAmountOut(amountOut, ud60x18(price));
 
-        uint256 amountOutAfterFee = convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, amountOut.sub(baseFeeX18.add(swapFeeX18)));
+        uint256 amountOutAfterFee =
+            convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, amountOut.sub(baseFeeX18.add(swapFeeX18)));
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minAmountOut, amountOutAfterFee));
@@ -196,9 +198,11 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         UD60x18 amountOut = marketMakingEngine.getAmountOfAssetOut(ud60x18(swapAmount), ud60x18(1e10));
 
-        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) = marketMakingEngine.getFeesForAssetsAmountOut(amountOut, ud60x18(1e10));
+        (UD60x18 baseFeeX18, UD60x18 swapFeeX18) =
+            marketMakingEngine.getFeesForAssetsAmountOut(amountOut, ud60x18(1e10));
 
-        uint256 amountOutAfterFee = convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, amountOut.sub(baseFeeX18.add(swapFeeX18)));
+        uint256 amountOutAfterFee =
+            convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, amountOut.sub(baseFeeX18.add(swapFeeX18)));
 
         changePrank({ msgSender: usdTokenSwapKeeper });
 

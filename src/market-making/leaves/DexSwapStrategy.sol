@@ -59,6 +59,9 @@ library DexSwapStrategy {
         returns (uint256 amountOut)
     {
         IDexAdapter dexAdapter = IDexAdapter(self.dexAdapter);
+        // TODO set deadline or the swap may execute hours, days even weeks after the tx was send when the market
+        // conditions are not as good
+        // WOuld recommend block.timestamp + 30
         return dexAdapter.executeSwapExactInput(swapCallData);
     }
 }

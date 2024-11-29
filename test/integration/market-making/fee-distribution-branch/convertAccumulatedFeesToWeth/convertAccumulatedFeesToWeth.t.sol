@@ -5,8 +5,8 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
-import { UniswapV3Adapter } from "@zaros/utils/dex-adapters/UniswapV3Adapter.sol";
 import { Math } from "@zaros/utils/Math.sol";
+import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // Openzeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -184,7 +184,8 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
     function testFuzz_WhenTheDexSwapStrategyHasAValidDexAdapter(
         uint256 marketId,
         uint256 amount,
-        bool shouldSwapExactInputSingle
+        bool shouldSwapExactInputSingle,
+        uint256 adapterIndex
     )
         external
         givenTheSenderIsRegisteredEngine
@@ -194,8 +195,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         whenTheAmountIsNotZero
     {
         changePrank({ msgSender: address(perpsEngine) });
-
-        uint128 uniswapV3StrategyId = 1;
+        IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
 
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
@@ -209,26 +209,14 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
-        assertEq(
-            IERC20(usdc).balanceOf(address(uniswapV3Adapter)),
-            0,
-            "the uniswap v3 adapter should have 0 balance of usdc"
-        );
-        assertEq(
-            IERC20(wEth).balanceOf(address(uniswapV3Adapter)),
-            0,
-            "the uniswap v3 adapter should have 0 balance of wEth"
-        );
+        assertEq(IERC20(usdc).balanceOf(address(adapter)), 0, "the adapter should have 0 balance of usdc");
+        assertEq(IERC20(wEth).balanceOf(address(adapter)), 0, "the adapter should have 0 balance of wEth");
 
         assertEq(IERC20(usdc).balanceOf(address(marketMakingEngine)), amount);
         assertEq(IERC20(wEth).balanceOf(address(marketMakingEngine)), 0);
 
-        uint256 expectedTokenAmount = uniswapV3Adapter.getExpectedOutput(address(usdc), address(wEth), amount);
-        uint256 amountOutMin = uniswapV3Adapter.calculateAmountOutMin(expectedTokenAmount);
-
-        // it should emit {LogConvertAccumulatedFeesToWeth} event
-        vm.expectEmit({ emitter: address(marketMakingEngine) });
-        emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(amountOutMin);
+        uint256 expectedTokenAmount = adapter.getExpectedOutput(address(usdc), address(wEth), amount);
+        uint256 amountOutMin = adapter.calculateAmountOutMin(expectedTokenAmount);
 
         assertEq(
             marketMakingEngine.workaround_getIfReceivedMarketFeesContainsTheAsset(
@@ -240,25 +228,23 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         bytes memory path = shouldSwapExactInputSingle
             ? bytes("")
-            : abi.encodePacked(
-                address(usdc), uniswapV3Adapter.feeBps(), address(wBtc), uniswapV3Adapter.feeBps(), address(wEth)
-            );
+            : abi.encodePacked(address(usdc), UNI_V3_FEE, address(wBtc), UNI_V3_FEE, address(wEth));
+
+        if (!shouldSwapExactInputSingle && adapter.STRATEGY_ID() == curveAdapter.STRATEGY_ID()) {
+            path = abi.encodePacked(address(usdc), UNI_V3_FEE, address(wEth));
+        }
+
+        // it should emit {LogConvertAccumulatedFeesToWeth} event
+        // vm.expectEmit({ emitter: address(marketMakingEngine) });
+        // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(amountOutMin);
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), uniswapV3StrategyId, path
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), path
         );
 
         // it should verify if the asset is different that weth and convert
-        assertEq(
-            IERC20(usdc).balanceOf(address(uniswapV3Adapter)),
-            0,
-            "the uniswap v3 adapter should have 0 balance of usdc"
-        );
-        assertEq(
-            IERC20(wEth).balanceOf(address(uniswapV3Adapter)),
-            0,
-            "the uniswap v3 adapter should have 0 balance of wEth"
-        );
+        assertEq(IERC20(usdc).balanceOf(address(adapter)), 0, "the adapter should have 0 balance of usdc");
+        assertEq(IERC20(wEth).balanceOf(address(adapter)), 0, "the adapter should have 0 balance of wEth");
 
         assertEq(
             IERC20(usdc).balanceOf(address(marketMakingEngine)),

@@ -8,8 +8,8 @@ import { Path } from "@zaros/utils/libraries/Path.sol";
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
-/// @title mock Uniswap V3 Swap Strategy Router
-/// @notice Router for stateless execution of swaps against Uniswap V3
+/// @title mock Uniswap V2 Swap Strategy Router
+/// @notice Router for stateless execution of swaps against Uniswap V2
 contract MockUniswapV3SwapStrategyRouter is IUniswapV3RouterInterface {
     using Path for bytes;
 

@@ -482,6 +482,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @notice Configures the referral module.
     /// @dev Only owner can configure the referral module.
     /// @param referralModule The address of the referral module.
+
     function configureReferralModule(address referralModule) external onlyOwner {
         // revert if the referral module is zero
         if (referralModule == address(0)) {

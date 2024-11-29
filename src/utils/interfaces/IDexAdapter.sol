@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// Zaros dependencies
+import { ISwapAssetConfig } from "@zaros/utils/interfaces/ISwapAssetConfig.sol";
+
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
@@ -33,23 +36,12 @@ struct SwapExactInputPayload {
     uint256 amountIn;
 }
 
-/// @notice Swap asset configuration
-/// @param decimals The asset decimals
-/// @param priceAdapter The asset price adapter
-struct SwapAssetConfig {
-    uint8 decimals;
-    address priceAdapter;
-}
-
 /// @notice The interface for the DEX adapter.
-interface IDexAdapter {
+interface IDexAdapter is ISwapAssetConfig {
     /// @notice Executes a swap using the exact input single amount, coming from the swap payload passed by the Market
-    /// Making
-    /// Engine.
+    /// Making Engine.
     /// @return amountOut The amount out returned.
-    function executeSwapExactInputSingle(
-        SwapExactInputSinglePayload memory swapCallData
-    )
+    function executeSwapExactInputSingle(SwapExactInputSinglePayload memory swapCallData)
         external
         returns (uint256 amountOut);
 
@@ -57,4 +49,6 @@ interface IDexAdapter {
     /// Engine.
     /// @return amountOut The amount out returned.
     function executeSwapExactInput(SwapExactInputPayload calldata swapPayload) external returns (uint256 amountOut);
+
+    function STRATEGY_ID() external returns (uint128 strategyId);
 }
