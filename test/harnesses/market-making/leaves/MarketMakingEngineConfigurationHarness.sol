@@ -29,7 +29,7 @@ contract MarketMakingEngineConfigurationHarness {
 
     function exposed_getTotalFeeRecipientsShares() external view returns (uint256) {
         MarketMakingEngineConfiguration.Data storage self = MarketMakingEngineConfiguration.load();
-        return self.totalFeeRecipientsShares;
+        return uint256(self.totalFeeRecipientsShares);
     }
 
     function workaround_getIfSystemKeeperIsEnabled(address systemKeeper) external view returns (bool) {
