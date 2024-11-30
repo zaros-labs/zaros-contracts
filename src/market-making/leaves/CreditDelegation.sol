@@ -8,7 +8,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-// todo: come back here, update vault and credit delegation flows following latest market updates
 library CreditDelegation {
     using SafeCast for int256;
 

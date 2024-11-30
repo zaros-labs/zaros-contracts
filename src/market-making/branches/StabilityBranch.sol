@@ -338,6 +338,8 @@ contract StabilityBranch is EngineAccessControl {
         ctx.usdToken.burn(request.amountIn);
 
         // transfer the required assets from the vault to the mm engine contract before distributions
+        // note: as the swap fee stays in the ZLP Vault, it is technically a net gain to share holders, i.e it is auto
+        // accumulated to the contract
         IERC20(ctx.asset).safeTransferFrom(vault.indexToken, address(this), ctx.amountOut + ctx.protocolReward);
 
         // distribute protocol reward value

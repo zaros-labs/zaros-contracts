@@ -18,20 +18,11 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
-/// @dev Vault's debt for ADL determination purposes:
-///  unrealized debt + realized debt + unsettled debt + settled debt
-/// This means if the engine fails to report the unrealized debt properly, its users will unexpectedly and unfairly be
-/// deleveraged, and lps of vaults providing liquidity to that engine may be exploited by that bad implementation.
-/// @dev Vault's debt for credit delegation purposes = unrealized debt of each market (Market::getTotalDebt or
-/// market unrealized debt) +
-/// unsettledRealizedDebtUsd (comes from each market's realized debt).
 /// @dev NOTE: each market's realized debt must always be distributed as unsettledRealizedDebt to vaults following the
 /// Debt Distribution System.
 /// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd
 /// @dev A swap adds `settledRealizedDebt` but subtracts `unsettledRealizedDebt`. The Vault earns a swap fee for the
-/// inconvenience, allocated as additional WETH staking rewards.2
-/// TODO: we need to update the system's global debt during vault debt distribution triggers, will do so in a next PR
-/// handling debt / credit settlement.
+/// inconvenience, allocated as additional WETH staking rewards.
 library Vault {
     using Collateral for Collateral.Data;
     using CreditDelegation for CreditDelegation.Data;
