@@ -174,7 +174,7 @@ library Vault {
         UD60x18 totalAssetsUsdX18 = collateral.getAdjustedPrice().mul(totalAssetsX18);
 
         // calculate the vault's credit capacity in usd terms
-        creditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledRealizedDebtUsd));
+        creditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(getTotalDebt(self));
     }
 
     function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) {
@@ -404,9 +404,6 @@ library Vault {
         self.isLive = true;
     }
 
-    // todo: see if the `shouldRehydrateCache` parameter will be needed or not
-    // todo: see if this function will be used elsewhere or if we can turn it into a private function for better
-    // testability / visibility
     // todo: we may need to remove the return value to save gas / remove if not needed
     /// @notice Updates the vault's credit delegations to its connected markets, using the provided cache of connected
     /// markets ids.
