@@ -430,7 +430,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](20);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](21);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -456,11 +456,11 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.updateVaultAssetAllowance.selector;
     marketMakingEngineConfigBranchSelectors[15] =
         MarketMakingEngineConfigurationBranch.updateStabilityConfiguration.selector;
-    marketMakingEngineConfigBranchSelectors[15] = MarketMakingEngineConfigurationBranch.getCollateralData.selector;
-    marketMakingEngineConfigBranchSelectors[16] = MarketMakingEngineConfigurationBranch.configureUsdTokenSwap.selector;
-    marketMakingEngineConfigBranchSelectors[17] = MarketMakingEngineConfigurationBranch.unpauseMarket.selector;
-    marketMakingEngineConfigBranchSelectors[18] = MarketMakingEngineConfigurationBranch.pauseMarket.selector;
-    marketMakingEngineConfigBranchSelectors[19] = MarketMakingEngineConfigurationBranch.getLiveMarketIds.selector;
+    marketMakingEngineConfigBranchSelectors[16] = MarketMakingEngineConfigurationBranch.getCollateralData.selector;
+    marketMakingEngineConfigBranchSelectors[17] = MarketMakingEngineConfigurationBranch.configureUsdTokenSwap.selector;
+    marketMakingEngineConfigBranchSelectors[18] = MarketMakingEngineConfigurationBranch.unpauseMarket.selector;
+    marketMakingEngineConfigBranchSelectors[19] = MarketMakingEngineConfigurationBranch.pauseMarket.selector;
+    marketMakingEngineConfigBranchSelectors[20] = MarketMakingEngineConfigurationBranch.getLiveMarketIds.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
