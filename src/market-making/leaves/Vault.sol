@@ -177,6 +177,10 @@ library Vault {
         creditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(getTotalDebt(self));
     }
 
+    /// @notice Returns the vault's total debt distributed from conneted markets.
+    /// @dev Takes into account the unrealized debt, the unsettled (yet to be settled) realized debt and the usdc
+    /// credit deposited by markets.
+    /// @param self The vault storage pointer.
     function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) {
         totalDebtUsdX18 = sd59x18(self.marketsUnrealizedDebtUsd).add(sd59x18(self.unsettledRealizedDebtUsd)).add(
             ud60x18(self.marketsDepositedUsdc).intoSD59x18()
