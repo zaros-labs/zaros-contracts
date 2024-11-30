@@ -114,6 +114,13 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param referralModule The address of the referral module.
     event LogConfigureReferralModule(address sender, address referralModule);
 
+    /// @notice Emitted when the dex swap path for an asset is configured.
+    /// @param asset the asset for which to update the swap path
+    /// @param assets The assets in the swap path
+    /// @param dexSwapStrategyIds The strategy ids to use for each consecutive pair of assets
+    /// @param enabled Bool indicating whether the swap path is enabled
+    event LogConfiguredSwapPath(address asset, address[] assets, uint128[] dexSwapStrategyIds, bool enabled);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -539,6 +546,23 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         AssetSwapPath.Data storage swapPath = AssetSwapPath.load(asset);
 
         swapPath.configure(enabled, assets, dexSwapStrategyIds);
+
+        emit LogConfiguredSwapPath(asset, assets, dexSwapStrategyIds, enabled);
+    }
+
+    /// @notice Retrieves the custom swap path configuration for a given asset.
+    /// @param asset The address of the asset for which the swap path is being queried.
+    /// @return assets An array of asset addresses representing the swap path.
+    /// @return dexSwapStrategyIds An array of DEX swap strategy IDs corresponding to each step in the swap path.
+    function getAssetSwapPath(address asset)
+        external
+        view
+        returns (address[] memory assets, uint128[] memory dexSwapStrategyIds)
+    {
+        AssetSwapPath.Data storage swapPath = AssetSwapPath.load(asset);
+
+        assets = swapPath.assets;
+        dexSwapStrategyIds = swapPath.dexSwapStrategyIds;
     }
 
     /// @notice Retrieves the IDs of all live markets.

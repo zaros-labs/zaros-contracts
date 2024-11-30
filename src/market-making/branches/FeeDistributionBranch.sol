@@ -177,7 +177,7 @@ contract FeeDistributionBranch is EngineAccessControl {
 
             // verify if the swap should be input multi-dex/custom swap path, single or multihop
             if (swapPath.enabled) {
-                ctx.tokensSwapped = _performCustomSwap(swapPath, ctx.assetAmount);
+                ctx.tokensSwapped = _performMultiDexSwap(swapPath, ctx.assetAmount);
             } else if (path.length == 0) {
                 // loads the dex swap strategy data storage pointer
                 DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
@@ -369,7 +369,7 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @param swapPath The structured data defining the assets and DEX swap strategies to use for the swap.
     /// @param assetAmount The initial amount of the input asset to swap.
     /// @return The amount of the final output asset obtained after completing the swap path.
-    function _performCustomSwap(AssetSwapPath.Data memory swapPath, uint256 assetAmount) internal returns (uint256) {
+    function _performMultiDexSwap(AssetSwapPath.Data memory swapPath, uint256 assetAmount) internal returns (uint256) {
         // load assets array
         address[] memory assets = swapPath.assets;
 
