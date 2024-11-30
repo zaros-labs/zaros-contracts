@@ -60,7 +60,7 @@ library Vault {
     /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
     /// @param marketsUnrealizedDebtUsd The total amount of unrealized debt coming from markets in USD.
     /// @param unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
-    /// @param marketDepositedUsdc The total amount of credit deposits from markets that have been converted and
+    /// @param marketsDepositedUsdc The total amount of credit deposits from markets that have been converted and
     /// distributed as USDC to vaults.
     /// @param indexToken The index token address.
     /// @param collateral The collateral asset data.
@@ -79,7 +79,7 @@ library Vault {
         uint128 lockedCreditRatio;
         int128 marketsUnrealizedDebtUsd;
         int128 unsettledRealizedDebtUsd;
-        uint128 marketDepositedUsdc;
+        uint128 marketsDepositedUsdc;
         address indexToken;
         bool isLive;
         Collateral.Data collateral;
@@ -163,8 +163,8 @@ library Vault {
     /// @notice Returns the vault's total credit capacity allocated to the connected markets.
     /// @dev The vault's total credit capacity is adjusted by its the credit ratio of its underlying collateral asset.
     /// @param self The vault storage pointer.
-    /// @return vaultCreditCapacityUsdX18 The vault's total credit capacity in USD.
-    function getTotalCreditCapacityUsd(Data storage self) internal view returns (SD59x18 vaultCreditCapacityUsdX18) {
+    /// @return creditCapacityUsdX18 The vault's total credit capacity in USD.
+    function getTotalCreditCapacityUsd(Data storage self) internal view returns (SD59x18 creditCapacityUsdX18) {
         // load the collateral configuration storage pointer
         Collateral.Data storage collateral = self.collateral;
 
@@ -174,7 +174,13 @@ library Vault {
         UD60x18 totalAssetsUsdX18 = collateral.getAdjustedPrice().mul(totalAssetsX18);
 
         // calculate the vault's credit capacity in usd terms
-        vaultCreditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledRealizedDebtUsd));
+        creditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(sd59x18(self.unsettledRealizedDebtUsd));
+    }
+
+    function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) {
+        totalDebtUsdX18 = sd59x18(self.marketsUnrealizedDebtUsd).add(sd59x18(self.unsettledRealizedDebtUsd)).add(
+            ud60x18(self.marketsDepositedUsdc).intoSD59x18()
+        );
     }
 
     /// @notice Returns the vault's total unsettled debt in USD, taking into account both the markets' unrealized
@@ -334,9 +340,9 @@ library Vault {
             ) = recalculateConnectedMarketsState(self, connectedMarketsIdsCache, true);
 
             // adds the vault's total USDC credit change, earned from its connected markets, to the
-            // `marketDepositedUsdc` variable
-            self.marketDepositedUsdc =
-                ud60x18(self.marketDepositedUsdc).add(vaultTotalUsdcCreditChangeX18).intoUint128();
+            // `marketsDepositedUsdc` variable
+            self.marketsDepositedUsdc =
+                ud60x18(self.marketsDepositedUsdc).add(vaultTotalUsdcCreditChangeX18).intoUint128();
 
             // distributes the vault's total WETH reward change, earned from its connected markets
 
