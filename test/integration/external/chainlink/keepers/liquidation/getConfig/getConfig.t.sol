@@ -32,6 +32,6 @@ contract LiquidationKeeper_GetConfig_Integration_Test is Base_Test {
         assertEq(keeperOwner, users.owner.account, "owner is not correct");
 
         // it should return perpsEngine
-        assertEq(perpsEngineOfLiquidationKeeper, address(perpsEngine), "owner is not correct");
+        assertEq(perpsEngineOfLiquidationKeeper, address(perpsEngine), "perps engine is not correct");
     }
 }

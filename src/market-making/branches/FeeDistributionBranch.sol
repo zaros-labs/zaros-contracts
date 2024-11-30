@@ -105,7 +105,7 @@ contract FeeDistributionBranch is EngineAccessControl {
     }
 
     /// @notice Converts collected collateral amount to WETH
-    /// @dev Only registered engines can call this function.
+    /// @dev Only registered system keepers can call this function.
     /// @dev Net WETH rewards are split among fee recipients and vaults delegating credit to the market, according to
     /// the configured share values.
     /// @param marketId The id of the market to have its fees converted to WETH.
@@ -201,10 +201,7 @@ contract FeeDistributionBranch is EngineAccessControl {
             }
 
             // uint256 -> ud60x18
-            UD60x18 tokensSwappedX18 = wethCollateral.convertTokenAmountToUd60x18(tokensSwapped);
-
-            // store the amount of weth received from swap
-            receivedWethX18 = tokensSwappedX18;
+            receivedWethX18 = wethCollateral.convertTokenAmountToUd60x18(tokensSwapped);
         }
 
         // get the total fee recipients shares
@@ -300,5 +297,56 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         // emit event to log the amount claimed
         emit LogClaimFees(msg.sender, vaultId, amountToClaim);
+    }
+
+    /// @notice Calculates the value of a specified asset in terms of its collateral.
+    /// @dev Uses the asset's price and amount to compute its value.
+    /// @param asset The address of the asset.
+    /// @param amount The amount of the asset to calculate the value for.
+    /// @return value The calculated value of the asset in its native units.
+    function getAssetValue(address asset, uint256 amount) public view returns (uint256 value) {
+        // load collateral
+        Collateral.Data storage collateral = Collateral.load(asset);
+
+        // get asset price in 18 dec
+        UD60x18 priceX18 = collateral.getPrice();
+
+        // convert token amount to 18 dec
+        UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
+
+        // calculate token value based on price
+        UD60x18 valueX18 = priceX18.mul(amountX18);
+
+        // ud60x18 -> uint256
+        value = collateral.convertUd60x18ToTokenAmount(valueX18);
+    }
+
+    /// @notice Retrieves the assets and corresponding fees collected for a specific market.
+    /// @param marketId The ID of the market whose received fees are being queried.
+    /// @return assets An array of asset addresses for which fees were collected.
+    /// @return feesCollected An array of fee amounts corresponding to the assets.
+    function getReceivedMarketFees(uint128 marketId)
+        external
+        view
+        returns (address[] memory assets, uint256[] memory feesCollected)
+    {
+        Market.Data storage market = Market.loadExisting(marketId);
+
+        EnumerableMap.AddressToUintMap storage receivedMarketFees = market.receivedFees;
+        uint256 length = receivedMarketFees.length();
+
+        assets = new address[](length);
+        feesCollected = new uint256[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            (assets[i], feesCollected[i]) = receivedMarketFees.at(i);
+        }
+    }
+
+    /// @notice Retrieves the details of a specific DEX swap strategy.
+    /// @param dexSwapStrategyId The unique identifier of the DEX swap strategy.
+    /// @return The data of the specified DEX swap strategy.
+    function getDexSwapStrategy(uint128 dexSwapStrategyId) external pure returns (DexSwapStrategy.Data memory) {
+        return DexSwapStrategy.load(dexSwapStrategyId);
     }
 }

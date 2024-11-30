@@ -137,6 +137,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal mockSequencerUptimeFeed;
     FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
+    address internal feeConversionKeeper;
     uint256 internal constant MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO = 1e18;
     uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
 
@@ -450,6 +451,16 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
         changePrank({ msgSender: users.naruto.account });
+    }
+
+    function configureFeeConversionKeeper(uint128 dexSwapStrategyId, uint128 minFeeDistributionValueUsd) internal {
+        changePrank({ msgSender: users.owner.account });
+
+        feeConversionKeeper = ChainlinkAutomationUtils.deployFeeConversionKeeper(
+            users.owner.account, address(marketMakingEngine), dexSwapStrategyId, minFeeDistributionValueUsd
+        );
+
+        marketMakingEngine.configureSystemKeeper(feeConversionKeeper, true);
     }
 
     function configureSystemParameters() internal {

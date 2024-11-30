@@ -8,6 +8,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Distribution } from "./Distribution.sol";
+import { LiveMarkets } from "@zaros/market-making/leaves/LiveMarkets.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -23,6 +24,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 library Market {
     using Collateral for Collateral.Data;
     using Distribution for Distribution.Data;
+    using LiveMarkets for LiveMarkets.Data;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -62,7 +64,6 @@ library Market {
     /// @param availableProtocolWethReward The amount of weth available to be sent to the protocol fee recipients.
     /// @param totalDelegatedCreditUsd The total credit delegated by connected vaults in USD, using 18 decimals.
     /// @param engine The address of the market's connected engine.
-    /// @param isLive Whether the market is currently live or paused.
     /// @param creditDeposits The map that stores the amount of collateral assets deposited in the market as credit.
     /// @param receivedFees An enumerable map that stores the amount of fees received from the engine per asset,
     /// available to be converted to weth.
@@ -83,7 +84,6 @@ library Market {
         uint128 availableProtocolWethReward;
         uint128 totalDelegatedCreditUsd;
         address engine;
-        bool isLive;
         EnumerableMap.AddressToUintMap receivedFees;
         EnumerableMap.AddressToUintMap creditDeposits;
         EnumerableSet.UintSet[] connectedVaults;
@@ -121,7 +121,7 @@ library Market {
     function loadLive(uint128 marketId) internal view returns (Data storage market) {
         market = loadExisting(marketId);
 
-        if (!market.isLive) {
+        if (!LiveMarkets.load().containsMarket(marketId)) {
             revert Errors.MarketIsDisabled(marketId);
         }
     }

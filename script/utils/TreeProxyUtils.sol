@@ -435,7 +435,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](18);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](21);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -463,6 +463,9 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.updateStabilityConfiguration.selector;
     marketMakingEngineConfigBranchSelectors[16] = MarketMakingEngineConfigurationBranch.getCollateralData.selector;
     marketMakingEngineConfigBranchSelectors[17] = MarketMakingEngineConfigurationBranch.configureUsdTokenSwap.selector;
+    marketMakingEngineConfigBranchSelectors[18] = MarketMakingEngineConfigurationBranch.unpauseMarket.selector;
+    marketMakingEngineConfigBranchSelectors[19] = MarketMakingEngineConfigurationBranch.pauseMarket.selector;
+    marketMakingEngineConfigBranchSelectors[20] = MarketMakingEngineConfigurationBranch.getLiveMarketIds.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -474,12 +477,15 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     vaultRouterBranchSelectors[6] = VaultRouterBranch.unstake.selector;
     vaultRouterBranchSelectors[7] = VaultRouterBranch.getVaultAssetSwapRate.selector;
 
-    bytes4[] memory feeDistributionBranchSelectors = new bytes4[](5);
+    bytes4[] memory feeDistributionBranchSelectors = new bytes4[](8);
     feeDistributionBranchSelectors[0] = FeeDistributionBranch.getEarnedFees.selector;
     feeDistributionBranchSelectors[1] = FeeDistributionBranch.receiveMarketFee.selector;
     feeDistributionBranchSelectors[2] = FeeDistributionBranch.convertAccumulatedFeesToWeth.selector;
     feeDistributionBranchSelectors[3] = FeeDistributionBranch.sendWethToFeeRecipients.selector;
     feeDistributionBranchSelectors[4] = FeeDistributionBranch.claimFees.selector;
+    feeDistributionBranchSelectors[5] = FeeDistributionBranch.getAssetValue.selector;
+    feeDistributionBranchSelectors[6] = FeeDistributionBranch.getReceivedMarketFees.selector;
+    feeDistributionBranchSelectors[7] = FeeDistributionBranch.getDexSwapStrategy.selector;
 
     bytes4[] memory stabilityBranchSelectors = new bytes4[](7);
 

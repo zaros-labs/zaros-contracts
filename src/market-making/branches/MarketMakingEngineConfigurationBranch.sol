@@ -11,11 +11,11 @@ import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
+import { LiveMarkets } from "@zaros/market-making/leaves/LiveMarkets.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -35,6 +35,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeCast for uint256;
+    using DexSwapStrategy for DexSwapStrategy.Data;
+    using LiveMarkets for LiveMarkets.Data;
 
     constructor() {
         _disableInitializers();
@@ -373,6 +375,20 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         );
     }
 
+    /// @notice Unpauses a specific market by adding its ID from the list of live markets.
+    /// @param marketId The ID of the market to be unpaused.
+    /// @return A boolean indicating whether the operation was successful.
+    function unpauseMarket(uint128 marketId) external onlyOwner returns (bool) {
+        return LiveMarkets.load().addMarket(marketId);
+    }
+
+    /// @notice Pauses a specific market by removing its ID from the list of live markets.
+    /// @param marketId The ID of the market to be paused.
+    /// @return A boolean indicating whether the operation was successful.
+    function pauseMarket(uint128 marketId) external onlyOwner returns (bool) {
+        return LiveMarkets.load().removeMarket(marketId);
+    }
+
     /// @notice Configure dex swap strategy on Market Making Engine
     /// @dev Only owner can call this function
     /// @param dexSwapStrategyId The dex swap strategy id.
@@ -509,5 +525,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit the LogConfigureReferralModule event
         emit LogConfigureReferralModule(msg.sender, referralModule);
+    }
+
+    /// @notice Retrieves the IDs of all live markets.
+    /// @return An array of `uint128` values representing the IDs of the live markets.
+    function getLiveMarketIds() external view returns (uint128[] memory) {
+        return LiveMarkets.load().getLiveMarketsIds();
     }
 }
