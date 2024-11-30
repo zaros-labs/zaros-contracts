@@ -16,6 +16,7 @@ import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { LiveMarkets } from "@zaros/market-making/leaves/LiveMarkets.sol";
+import { AssetSwapPath } from "@zaros/market-making/leaves/AssetSwapPath.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -34,6 +35,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using DexSwapStrategy for DexSwapStrategy.Data;
     using LiveMarkets for LiveMarkets.Data;
+    using AssetSwapPath for AssetSwapPath.Data;
 
     constructor() {
         _disableInitializers();
@@ -513,6 +515,30 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit the LogConfigureReferralModule event
         emit LogConfigureReferralModule(msg.sender, referralModule);
+    }
+
+    /// @notice Configures a custom swap path for a specific asset.
+    /// @param asset The address of the asset to configure the custom swap path for.
+    /// @param enabled A boolean indicating whether the custom swap path is enabled or disabled.
+    /// @param assets An array of asset addresses defining the swap path.
+    /// @param dexSwapStrategyIds An array of DEX swap strategy IDs corresponding to each swap step.
+    function configureAssetCustomSwapPath(
+        address asset,
+        bool enabled,
+        address[] memory assets,
+        uint128[] memory dexSwapStrategyIds
+    )
+        external
+        onlyOwner
+    {
+        // each consecutive pair must have a swap strategy
+        if (assets.length != dexSwapStrategyIds.length + 1) {
+            revert Errors.InvalidSwapPathParamsLength();
+        }
+
+        AssetSwapPath.Data storage swapPath = AssetSwapPath.load(asset);
+
+        swapPath.configure(enabled, assets, dexSwapStrategyIds);
     }
 
     /// @notice Retrieves the IDs of all live markets.

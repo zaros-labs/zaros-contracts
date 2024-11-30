@@ -5,6 +5,7 @@ pragma solidity 0.8.25;
 import {
     IDexAdapter, SwapExactInputSinglePayload, SwapExactInputPayload
 } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -29,6 +30,17 @@ library DexSwapStrategy {
         bytes32 slot = keccak256(abi.encode(DEX_SWAP_STRATEGY_LOCATION, dexSwapStrategyId));
         assembly {
             dexSwapStrategy.slot := slot
+        }
+    }
+
+    /// @notice Loads a {DexSwapStrategy}.
+    /// @return dexSwapStrategy The loaded dex swap strategy storage pointer.
+    function loadExisting(uint128 dexSwapStrategyId) internal view returns (Data storage dexSwapStrategy) {
+        dexSwapStrategy = load(dexSwapStrategyId);
+
+        // reverts if the dex swap strategy has an invalid dex adapter
+        if (dexSwapStrategy.dexAdapter == address(0)) {
+            revert Errors.DexSwapStrategyHasAnInvalidDexAdapter(dexSwapStrategyId);
         }
     }
 

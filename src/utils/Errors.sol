@@ -295,4 +295,7 @@ library Errors {
     /// @param requestId The id of the request
     /// @param expiration The request expiration time
     error SwapRequestExpired(address user, uint128 requestId, uint256 expiration);
+
+    /// Thrown when swap path is invalid - assets and swap strategy ids mismatch
+    error InvalidSwapPathParamsLength();
 }
