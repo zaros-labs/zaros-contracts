@@ -6,6 +6,12 @@ library UsdTokenSwap {
     bytes32 internal constant SWAP_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Swap")) - 1));
 
+    /// @notice Emitted when the USD token swap configuration is updated.
+    /// @param baseFeeUsd The updated base fee in USD.
+    /// @param swapSettlementFeeBps The updated swap settlement fee in basis points.
+    /// @param maxExecutionTime The updated maximum execution time in seconds.
+    event LogUpdateUsdTokenSwap(uint128 baseFeeUsd, uint128 swapSettlementFeeBps, uint128 maxExecutionTime);
+
     /// @notice Represents a swap request for a user.
     /// @param processed Indicates whether the swap has been processed.
     /// @param amountIn The amount of the input asset provided for the swap.
@@ -59,6 +65,8 @@ library UsdTokenSwap {
         self.baseFeeUsd = baseFeeUsd;
         self.swapSettlementFeeBps = swapSettlementFeeBps;
         self.maxExecutionTime = maxExecutionTime;
+
+        emit LogUpdateUsdTokenSwap(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
 
     /// @notice Increments and returns the next swap request ID for a given user.

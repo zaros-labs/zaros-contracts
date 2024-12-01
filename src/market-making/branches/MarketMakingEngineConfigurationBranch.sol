@@ -497,12 +497,24 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         UsdTokenSwap.update(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
 
+
+    /// @notice Returns the fees associated with the USD token swap.
+    /// @return swapSettlementFeeBps The swap settlement fee in basis points.
+    /// @return baseFeeUsd The base fee in USD.
+    function getUsdTokenSwapFees() external view returns (uint128 swapSettlementFeeBps, uint128 baseFeeUsd) {
+        UsdTokenSwap.Data storage data = UsdTokenSwap.load();
+
+        swapSettlementFeeBps = data.swapSettlementFeeBps;
+        baseFeeUsd = data.baseFeeUsd;
+    }
+
     /// @notice Retrieves the collateral data for a given asset.
     /// @param asset The address of the asset for which the collateral data is being retrieved.
     /// @return The collateral data associated with the specified asset.
     function getCollateralData(address asset) external pure returns (Collateral.Data memory) {
         return Collateral.load(asset);
     }
+
     /// @notice Configures the referral module.
     /// @dev Only owner can configure the referral module.
     /// @param referralModule The address of the referral module.
