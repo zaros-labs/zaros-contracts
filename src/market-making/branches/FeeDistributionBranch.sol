@@ -369,7 +369,13 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @param swapPath The structured data defining the assets and DEX swap strategies to use for the swap.
     /// @param assetAmount The initial amount of the input asset to swap.
     /// @return The amount of the final output asset obtained after completing the swap path.
-    function _performMultiDexSwap(AssetSwapPath.Data memory swapPath, uint256 assetAmount) internal returns (uint256) {
+    function _performMultiDexSwap(
+        AssetSwapPath.Data memory swapPath,
+        uint256 assetAmount
+    )
+        internal
+        returns (uint256)
+    {
         // load assets array
         address[] memory assets = swapPath.assets;
 

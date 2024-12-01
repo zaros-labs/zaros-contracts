@@ -461,7 +461,8 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigBranchSelectors[18] = MarketMakingEngineConfigurationBranch.unpauseMarket.selector;
     marketMakingEngineConfigBranchSelectors[19] = MarketMakingEngineConfigurationBranch.pauseMarket.selector;
     marketMakingEngineConfigBranchSelectors[20] = MarketMakingEngineConfigurationBranch.getLiveMarketIds.selector;
-    marketMakingEngineConfigBranchSelectors[21] = MarketMakingEngineConfigurationBranch.configureAssetCustomSwapPath.selector;
+    marketMakingEngineConfigBranchSelectors[21] =
+        MarketMakingEngineConfigurationBranch.configureAssetCustomSwapPath.selector;
     marketMakingEngineConfigBranchSelectors[22] = MarketMakingEngineConfigurationBranch.getAssetSwapPath.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);

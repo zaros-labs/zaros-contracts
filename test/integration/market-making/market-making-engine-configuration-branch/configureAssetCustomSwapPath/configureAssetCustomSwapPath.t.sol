@@ -77,9 +77,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureAssetCustomSwapPath_Inte
         assets[3] = address(4);
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.InvalidSwapPathParamsLength.selector)
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.InvalidSwapPathParamsLength.selector) });
 
         marketMakingEngine.configureAssetCustomSwapPath(fuzzVaultConfig.asset, isEnabled, assets, dewSwapStrategyIds);
     }
@@ -115,7 +113,8 @@ contract MarketMakingEngineConfigurationBranch_ConfigureAssetCustomSwapPath_Inte
         marketMakingEngine.configureAssetCustomSwapPath(fuzzVaultConfig.asset, isEnabled, assets, dewSwapStrategyIds);
 
         // it should update the dex swap strategy storage
-        (address[] memory actualAssets, uint128[] memory actualStrategyIds) = marketMakingEngine.getAssetSwapPath(fuzzVaultConfig.asset);
+        (address[] memory actualAssets, uint128[] memory actualStrategyIds) =
+            marketMakingEngine.getAssetSwapPath(fuzzVaultConfig.asset);
 
         assertEq(assets, actualAssets);
         assertEq(abi.encode(dewSwapStrategyIds), abi.encode(actualStrategyIds));
