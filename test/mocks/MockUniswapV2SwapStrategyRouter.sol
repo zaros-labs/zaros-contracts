@@ -111,7 +111,7 @@ contract MockUniswapV2SwapStrategyRouter is IUniswapV2Router02 {
         uint256 amountOutMin,
         address[] calldata path,
         address to,
-        uint256 deadline
+        uint256 /**/
     )
         external
         override
