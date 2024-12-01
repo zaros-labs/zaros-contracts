@@ -183,9 +183,7 @@ library Vault {
     /// credit deposited by markets.
     /// @param self The vault storage pointer.
     function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) {
-        totalDebtUsdX18 = sd59x18(self.marketsUnrealizedDebtUsd).add(sd59x18(self.unsettledRealizedDebtUsd)).add(
-            ud60x18(self.marketsDepositedUsdc).intoSD59x18()
-        );
+        totalDebtUsdX18 = getUnsettledDebt(self).add(ud60x18(self.marketsDepositedUsdc).intoSD59x18());
     }
 
     /// @notice Returns the vault's total unsettled debt in USD, taking into account both the markets' unrealized
