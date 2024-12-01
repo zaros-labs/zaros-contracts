@@ -433,13 +433,13 @@ library Market {
     /// @dev This function must be called whenever a credit deposit asset is fully swapped for usdc.
     /// @param self The market storage pointer.
     /// @param settledAsset The credit deposit asset that has just been settled for usdc.
-    /// @param netUsdcAccumulatedX18 The net amount of usdc bought from onchain markets as UD60x18.
-    function settleCreditDeposit(Data storage self, address settledAsset, UD60x18 netUsdcAccumulatedX18) internal {
+    /// @param netUsdcReceivedX18 The net amount of usdc bought from onchain markets as UD60x18.
+    function settleCreditDeposit(Data storage self, address settledAsset, UD60x18 netUsdcReceivedX18) internal {
         // removes the credit deposit asset that has just been settled for usdc
         self.creditDeposits.remove(settledAsset);
 
         // calculate the usdc that has been accumulated per usd of credit delegated to the market
-        UD60x18 addedUsdcPerCreditShareX18 = netUsdcAccumulatedX18.div(ud60x18(self.totalDelegatedCreditUsd));
+        UD60x18 addedUsdcPerCreditShareX18 = netUsdcReceivedX18.div(ud60x18(self.totalDelegatedCreditUsd));
 
         // add the usdc acquired to the accumulated usdc credit variable
         self.usdcCreditPerVaultShare =
