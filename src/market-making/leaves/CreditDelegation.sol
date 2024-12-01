@@ -15,9 +15,17 @@ library CreditDelegation {
     bytes32 internal constant CREDIT_DELEGATION_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.CreditDelegation")) - 1));
 
-    // TODO: apply max debt per share to market debt calculation
-    // TODO: natspec
-    // todo: move vault debt distribution logic to here
+    /// @notice Credit delegation storage structure.
+    /// @param vaultId The vault providing a share of its credit to the market.
+    /// @param marketId The market receiving the delegated credit.
+    /// @param weight Used to calculate the delegation's share of the vault's available credit capacity.
+    /// @param valueUsd The latest value of the credit delegation in USD.
+    /// @param lastVaultDistributedRealizedDebtUsdPerShare The last realized debt per share value distributed to the
+    /// vault.
+    /// @param lastVaultDistributedUnrealizedDebtUsdPerShare The last unrealized debt per share value distributed to
+    /// the vault.
+    /// @param lastVaultDistributedUsdcCreditPerShare The last usdc credit per share value distributed to the vault.
+    /// @param lastVaultDistributedWethRewardPerShare The last weth reward per share value distributed to the vault.
     struct Data {
         uint128 vaultId;
         uint128 marketId;

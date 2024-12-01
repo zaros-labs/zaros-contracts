@@ -445,6 +445,14 @@ library Market {
         self.netUsdTokenIssuance = sd59x18(self.netUsdTokenIssuance).add(usdTokensIssued).intoInt256().toInt128();
     }
 
+    /// @notice Updates the total credit value delegated by the market's connected vaults.
+    /// @param self The market storage pointer.
+    /// @param creditDeltaUsdX18 The credit value update that is happening in the parent context, to be applied to
+    /// the market.
+    function updateTotalDelegatedCredit(Data storage self, UD60x18 creditDeltaUsdX18) internal {
+        self.totalDelegatedCreditUsd = ud60x18(self.totalDelegatedCreditUsd).add(creditDeltaUsdX18).intoUint128();
+    }
+
     /// @notice Rehydrates the credit deposits usd value cache and returns its latest value to the caller.
     /// @param self The market storage pointer.
     /// @return creditDepositsValueUsdX18 The market's credit deposits value in USD.
