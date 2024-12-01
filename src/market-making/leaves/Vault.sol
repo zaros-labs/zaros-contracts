@@ -61,8 +61,7 @@ library Vault {
     /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
     /// @param marketsUnrealizedDebtUsd The total amount of unrealized debt coming from markets in USD.
     /// @param unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
-    /// @param marketsDepositedUsdc The total amount of credit deposits from markets that have been converted and
-    /// distributed as USDC to vaults.
+    /// @param depositedUsdc The total amount of USDC deposits coming from markets or other vaults to this vault.
     /// @param indexToken The index token address.
     /// @param engine The engine implementation that this vault delegates credit to. Used to validate markets that can
     /// be connected to this vault.
@@ -80,8 +79,7 @@ library Vault {
         uint128 lockedCreditRatio;
         int128 marketsUnrealizedDebtUsd;
         int128 unsettledRealizedDebtUsd;
-        uint128 marketsDepositedUsdc;
-        int128 netUsdTokenIssuance;
+        uint128 depositedUsdc;
         address indexToken;
         address engine;
         bool isLive;
@@ -184,7 +182,7 @@ library Vault {
     /// credit deposited by markets.
     /// @param self The vault storage pointer.
     function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) {
-        totalDebtUsdX18 = getUnsettledDebt(self).add(ud60x18(self.marketsDepositedUsdc).intoSD59x18());
+        totalDebtUsdX18 = getUnsettledDebt(self).add(ud60x18(self.depositedUsdc).intoSD59x18());
     }
 
     /// @notice Returns the vault's total unsettled debt in USD, taking into account both the markets' unrealized
@@ -351,9 +349,8 @@ library Vault {
             ).intoInt256().toInt128();
 
             // adds the vault's total USDC credit change, earned from its connected markets, to the
-            // `marketsDepositedUsdc` variable
-            self.marketsDepositedUsdc =
-                ud60x18(self.marketsDepositedUsdc).add(vaultTotalUsdcCreditChangeX18).intoUint128();
+            // `depositedUsdc` variable
+            self.depositedUsdc = ud60x18(self.depositedUsdc).add(vaultTotalUsdcCreditChangeX18).intoUint128();
 
             // distributes the vault's total WETH reward change, earned from its connected markets
             SD59x18 vaultTotalWethRewardChangeSD59X18 = sd59x18(int256(vaultTotalWethRewardChangeX18.intoUint256()));

@@ -189,7 +189,11 @@ library Errors {
     /// NOTE: This error must be unreachable as the system enforces market to have a minimum delegated credit through
     /// Vault.Data.lockedCreditRatio.
     error NoDelegatedCredit(uint128 marketId);
+    /// @notice Thrown when there aren't enough assets to cover the settlement base fee.
     error FailedToPaySettlementBaseFee();
+    /// @notice Thrown when trying to settle vaults debt using a usd token but one of the vaults involved are in an
+    /// unexpected credit / debt state.
+    error InvalidVaultDebtSettlementRequest();
 
     /// @notice MarketMakingEngine.Collateral errors.
     error CollateralDisabled(address collateralType);

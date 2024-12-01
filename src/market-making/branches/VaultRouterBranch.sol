@@ -70,7 +70,7 @@ contract VaultRouterBranch {
     /// @return depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @return withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @return unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
-    /// @return marketsDepositedUsdc The total amount of credit deposits from markets that have been converted and
+    /// @return depositedUsdc The total amount of credit deposits from markets that have been converted and
     /// distributed as USDC to vaults.
     /// @return indexToken The index token address.
     /// @return collateral The collateral asset data.
@@ -81,7 +81,7 @@ contract VaultRouterBranch {
             uint128 depositCap,
             uint128 withdrawalDelay,
             int128 unsettledRealizedDebtUsd,
-            uint128 marketsDepositedUsdc,
+            uint128 depositedUsdc,
             address indexToken,
             Collateral.Data memory collateral
         )
@@ -92,7 +92,7 @@ contract VaultRouterBranch {
         depositCap = vault.depositCap;
         withdrawalDelay = vault.withdrawalDelay;
         unsettledRealizedDebtUsd = vault.unsettledRealizedDebtUsd;
-        marketsDepositedUsdc = vault.marketsDepositedUsdc;
+        depositedUsdc = vault.depositedUsdc;
         indexToken = vault.indexToken;
         collateral = vault.collateral;
     }

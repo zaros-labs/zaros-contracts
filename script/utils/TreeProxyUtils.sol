@@ -497,16 +497,17 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     stabilityBranchSelectors[5] = StabilityBranch.fulfillSwap.selector;
     stabilityBranchSelectors[6] = StabilityBranch.refundSwap.selector;
 
-    bytes4[] memory creditDelegationBranchSelectors = new bytes4[](5);
+    bytes4[] memory creditDelegationBranchSelectors = new bytes4[](9);
     creditDelegationBranchSelectors[0] = CreditDelegationBranch.getCreditCapacityForMarketId.selector;
     creditDelegationBranchSelectors[1] = CreditDelegationBranch.getAdjustedProfitForMarketId.selector;
     creditDelegationBranchSelectors[2] = CreditDelegationBranch.depositCreditForMarket.selector;
     creditDelegationBranchSelectors[3] = CreditDelegationBranch.withdrawUsdTokenFromMarket.selector;
     creditDelegationBranchSelectors[4] = CreditDelegationBranch.settleVaultsDebt.selector;
-    creditDelegationBranchSelectors[4] = CreditDelegationBranch.updateMarketCreditDelegations.selector;
-    creditDelegationBranchSelectors[4] =
+    creditDelegationBranchSelectors[5] = CreditDelegationBranch.rebalanceVaultsAssets.selector;
+    creditDelegationBranchSelectors[6] = CreditDelegationBranch.updateMarketCreditDelegations.selector;
+    creditDelegationBranchSelectors[7] =
         CreditDelegationBranch.updateMarketCreditDelegationsAndReturnCapacity.selector;
-    creditDelegationBranchSelectors[4] = CreditDelegationBranch.updateVaultCreditCapacity.selector;
+    creditDelegationBranchSelectors[8] = CreditDelegationBranch.updateVaultCreditCapacity.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = marketMakingEngineConfigBranchSelectors;

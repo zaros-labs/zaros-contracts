@@ -15,6 +15,7 @@ import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -27,6 +28,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+    using SafeCast for uint256;
     using SafeERC20 for IERC20;
     using Vault for Vault.Data;
 
@@ -366,17 +368,32 @@ contract CreditDelegationBranch is EngineAccessControl {
         }
     }
 
+    /// @notice Settles the given vaults' debt or credit by swapping assets to USDC or vice versa.
     /// @dev Converts ZLP Vaults unsettled debt to settled debt by:
-    ///     - Swapping the balance of collected margin collateral to USDC, if available.
-    ///     - Swapping the ZLP Vaults assets to USDC.
-    /// @dev USDC acquired from onchain markets is stored and used to cover future USD Token swaps.
-    function settleVaultsDebt(uint128[] calldata vaultsIds) external onlyRegisteredSystemKeepers {
+    ///     - If in debt, swapping the vault's assets to USDC.
+    ///     - If in credit, swapping the vault's available USDC to its underlying assets.
+    /// exchange for their assets.
+    /// @dev USDC acquired from onchain markets is deposited to vaults and used to cover future USD Token swaps, in
+    /// case the vault is in debt.
+    /// @dev If the vault is in net credit and doesn't own enough USDC to fully settle the due amount, it may have its
+    /// assets rebalanced with other vaults through `CreditDelegation::rebalanceVaultsAssets`.
+    /// @param vaultsIds The vaults' identifiers to settle.
+    function settleVaultsDebt(uint256[] calldata vaultsIds) external onlyRegisteredSystemKeepers {
+        // first, we need to update the credit capacity of the vaults
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
+
         for (uint256 i; i < vaultsIds.length; i++) {
             // load the vault storage pointer
-            Vault.Data storage vault = Vault.loadExisting(vaultsIds[i]);
+            Vault.Data storage vault = Vault.loadExisting(vaultsIds[i].toUint128());
 
             // cache the vault's unsettled debt
             SD59x18 vaultUnsettledDebtUsdX18 = vault.getUnsettledDebt();
+
+            // cache the vault asset
+            address asset = vault.collateral.asset;
+
+            // cache the usdc address
+            address usdc = MarketMakingEngineConfiguration.load().usdc;
 
             if (vaultUnsettledDebtUsdX18.isZero()) {
                 // proceed to the next vault if the vault has no debt that needs to be settled
@@ -384,18 +401,60 @@ contract CreditDelegationBranch is EngineAccessControl {
             } else if (vaultUnsettledDebtUsdX18.lt(SD59x18_ZERO)) {
                 // if the vault is in debt, it will swap its assets to USDC
 
-                // prepare the asset, dex swap strategy id and path
-                // address asset = vault.collateral.asset;
+                if (asset == usdc) { }
+
+                // otherwise, cache the dex swap strategy id and path
                 // uint128 dexSwapStrategyId = vault.usdcDexSwapStrategyId;
                 // bytes memory path = vault.usdcDexSwapPath;
             } else {
-                // if the vault is in credit, it will swap its USDC previously accumulated from markets' deposits to
-                // its underlying assets
+                // if the vault is in credit, it will swap its USDC previously accumulated from markets' and vaults'
+                // deposits to its underlying assets
 
-                // if vault is in credit and has a negative usd token issuance, we should mint
-                // usd tokens and swap for assets of the most in debt vaults
+                if (asset == usdc) { }
+
+                // otherwise, cache the dex swap strategy id and path
+                // uint128 dexSwapStrategyId = vault.assetDexSwapStrategyId;
+                // bytes memory path = vault.assetDexSwapPath;
             }
         }
+    }
+
+    /// @notice Rebalances credit and debt between two vaults.
+    /// @dev Since the protocol supports usdToken holders to redeem a ZLP Vault's underlying assets, it may enter a
+    /// state where the relation between vaults' credit and debt is unbalanced. This function allows the system to fix
+    /// this correlation by swapping assets of a vault in net debt for USDC and depositing the USDC to the vault in
+    /// net credit, rebalancing the system. Accumulated USDC is later swapped back to the in credit vault's underlying
+    /// assets at `CreditDelegationBranch::settleVaultsDebt`.
+    /// @param vaultsIds The vaults' identifiers to rebalance.
+    function rebalanceVaultsAssets(uint128[2] calldata vaultsIds) external onlyRegisteredSystemKeepers {
+        // load the storage pointer of the vault in net credit
+        Vault.Data storage inCreditVault = Vault.loadExisting(vaultsIds[0]);
+        // load the storage pointer of the vault in net debt
+        Vault.Data storage inDebtVault = Vault.loadExisting(vaultsIds[1]);
+
+        // create an in-memory dynamic array in order to call `Vault::recalculateVaultsCreditCapacity`
+        uint256[] memory vaultsIdsForRecalculation = new uint256[](2);
+
+        vaultsIdsForRecalculation[0] = vaultsIds[0];
+        vaultsIdsForRecalculation[1] = vaultsIds[1];
+
+        // recalculate the credit capacity of both vaults
+        Vault.recalculateVaultsCreditCapacity(vaultsIdsForRecalculation);
+
+        // cache the in credit vault unsettled debt
+        SD59x18 inCreditVaultUnsettledDebtUsdX18 = inCreditVault.getUnsettledDebt();
+        // cache the in debt vault unsettled debt
+        SD59x18 inDebtVaultUnsettledDebtUsdX18 = inDebtVault.getUnsettledDebt();
+
+        // if the vault that is supposed to be in credit is not, or the vault that is supposed to be in debt is not,
+        // revert
+        if (inCreditVaultUnsettledDebtUsdX18.lte(SD59x18_ZERO) || inDebtVaultUnsettledDebtUsdX18.gte(SD59x18_ZERO)) {
+            revert Errors.InvalidVaultDebtSettlementRequest();
+        }
+
+        // take assets from the in debt vault and swap for usdc
+
+        // deposit the usdc to the in credit vault
     }
 
     /*//////////////////////////////////////////////////////////////////////////
