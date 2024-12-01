@@ -404,6 +404,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 if (asset == usdc) { }
 
                 // otherwise, cache the dex swap strategy id and path
+                // todo: store those swap strategies and paths at the vault data struct
                 // uint128 dexSwapStrategyId = vault.usdcDexSwapStrategyId;
                 // bytes memory path = vault.usdcDexSwapPath;
             } else {
