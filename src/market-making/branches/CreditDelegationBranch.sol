@@ -453,7 +453,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             revert Errors.InvalidVaultDebtSettlementRequest();
         }
 
-        // take assets from the in debt vault and swap for usdc
+        // todo take assets from the in debt vault and swap for usdc
 
         // deposit the usdc to the in credit vault
     }
