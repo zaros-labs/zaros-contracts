@@ -16,8 +16,8 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, UNIT as UD60x18_UNIT } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, UNIT as UD60x18_UNIT, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @dev NOTE: unrealized debt (from market) -> realized debt (market) -> unsettled debt (vaults) -> settled
 /// debt (vaults)'
@@ -285,25 +285,33 @@ library Market {
             UD60x18 wethRewardChangeX18
         )
     {
-        // cache the total credit delegated by all vaults
-        UD60x18 totalDelegatedCreditUsdX18 = getTotalDelegatedCreditUsd(self);
         // calculate the vault's share of the total delegated credit, from 0 to 1
-        UD60x18 vaultCreditShareX18 = vaultDelegatedCreditUsdX18.div(totalDelegatedCreditUsdX18);
+        UD60x18 vaultCreditShareX18 = vaultDelegatedCreditUsdX18.div(getTotalDelegatedCreditUsd(self));
 
         // calculate the vault's value changes since its last accumulation
+        // note: if the last distributed value is zero, we assume it's the first time the vault is accumulating
+        // values, thus, it needs to return zero changes
 
-        realizedDebtChangeUsdX18 = sd59x18(self.realizedDebtUsdPerVaultShare).sub(
-            lastVaultDistributedRealizedDebtUsdPerShareX18
-        ).mul(vaultCreditShareX18.intoSD59x18());
-        unrealizedDebtChangeUsdX18 = sd59x18(self.unrealizedDebtUsdPerVaultShare).sub(
-            lastVaultDistributedUnrealizedDebtUsdPerShareX18
-        ).mul(vaultCreditShareX18.intoSD59x18());
-        usdcCreditChangeX18 = ud60x18(self.usdcCreditPerVaultShare).sub(lastVaultDistributedUsdcCreditPerShareX18).mul(
-            vaultCreditShareX18
-        );
-        wethRewardChangeX18 = ud60x18(self.wethRewardPerVaultShare).sub(lastVaultDistributedWethRewardPerShareX18).mul(
-            vaultCreditShareX18
-        );
+        realizedDebtChangeUsdX18 = !lastVaultDistributedRealizedDebtUsdPerShareX18.isZero()
+            ? sd59x18(self.realizedDebtUsdPerVaultShare).sub(lastVaultDistributedRealizedDebtUsdPerShareX18).mul(
+                vaultCreditShareX18.intoSD59x18()
+            )
+            : SD59x18_ZERO;
+        unrealizedDebtChangeUsdX18 = !lastVaultDistributedUnrealizedDebtUsdPerShareX18.isZero()
+            ? sd59x18(self.unrealizedDebtUsdPerVaultShare).sub(lastVaultDistributedUnrealizedDebtUsdPerShareX18).mul(
+                vaultCreditShareX18.intoSD59x18()
+            )
+            : SD59x18_ZERO;
+        usdcCreditChangeX18 = !lastVaultDistributedUsdcCreditPerShareX18.isZero()
+            ? ud60x18(self.usdcCreditPerVaultShare).sub(lastVaultDistributedUsdcCreditPerShareX18).mul(
+                vaultCreditShareX18
+            )
+            : UD60x18_ZERO;
+        wethRewardChangeX18 = !lastVaultDistributedWethRewardPerShareX18.isZero()
+            ? ud60x18(self.wethRewardPerVaultShare).sub(lastVaultDistributedWethRewardPerShareX18).mul(
+                vaultCreditShareX18
+            )
+            : UD60x18_ZERO;
     }
 
     /// @notice Returns whether the market has reached the auto deleverage start threshold, i.e, if the ADL system

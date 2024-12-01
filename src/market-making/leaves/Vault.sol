@@ -300,11 +300,10 @@ library Vault {
             vaultTotalWethRewardChangeX18 = vaultTotalWethRewardChangeX18.add(ctx.wethRewardChangeX18);
 
             // update the last distributed debt, credit and reward values to the vault's credit delegation to the
-            // given market
-            // id, in order to keep next calculations consistent
+            // given market id, in order to keep next calculations consistent
             creditDelegation.updateVaultLastDistributedValues(
-                ctx.marketRealizedDebtUsdX18,
-                ctx.marketUnrealizedDebtUsdX18,
+                sd59x18(market.realizedDebtUsdPerVaultShare),
+                sd59x18(market.unrealizedDebtUsdPerVaultShare),
                 ud60x18(market.usdcCreditPerVaultShare),
                 ud60x18(market.wethRewardPerVaultShare)
             );
@@ -479,8 +478,13 @@ library Vault {
             // performs state update
             market.updateTotalDelegatedCredit(creditDeltaUsdX18);
 
-            // update the credit delegation stored usd value
-            creditDelegation.valueUsd = newCreditDelegationUsdX18.intoUint128();
+            // if new credit delegation is zero, we clear the credit delegation storage
+            if (newCreditDelegationUsdX18.isZero()) {
+                creditDelegation.clear();
+            } else {
+                // update the credit delegation stored usd value
+                creditDelegation.valueUsd = newCreditDelegationUsdX18.intoUint128();
+            }
         }
     }
 

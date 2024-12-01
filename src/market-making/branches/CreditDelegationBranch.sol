@@ -10,7 +10,6 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { Market } from "@zaros/market-making/leaves/Market.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
-// import { SystemDebt } from "@zaros/market-making/leaves/SystemDebt.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
 // Open Zeppelin dependencies
@@ -392,18 +391,8 @@ contract CreditDelegationBranch is EngineAccessControl {
 
     /// @dev Converts ZLP Vaults unsettled debt to settled debt by:
     ///     - Swapping the balance of collected margin collateral to USDC, if available.
-    ///     - Swapping the ZLP Vaults assets to USDC, according to the state of
-    /// `SystemDebt.vaultsDebtSettlementPriorityQueue`.
+    ///     - Swapping the ZLP Vaults assets to USDC.
     /// @dev USDC acquired from onchain markets is stored and used to cover future USD Token swaps.
-    /// @dev The Settlement Priority Queue is stored as a MinHeap, ordering vaults with the highest debt first.
-    /// @dev The protocol should also take into account the system debt state. E.g: if the protocol is in credit state
-    /// but a given vault is in net debt due to swaps, other vaults' exceeding credit (i.e exceeding assets) can be
-    /// converted to the in debt vault's underlying assets. If the protocol is in debt state but there's a vault with
-    /// net credit due to swaps, the protocol can rebalance other vaults by distributing exceeding assets from that
-    /// vault.
-    /// @dev In order to determine the logic above, it should be taken into account a vault's participation in the
-    /// system debt or credit. E.g if the protocol is in a given state and a new ZLP vault is added, this new vault is
-    /// neutral compared to the others that may be in credit or debt state.
     function settleVaultsDebt() external onlyRegisteredSystemKeepers {
         // if the vault is in debt, it will swap its assets to USDC
 
