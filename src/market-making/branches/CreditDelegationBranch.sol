@@ -383,11 +383,16 @@ contract CreditDelegationBranch is EngineAccessControl {
                 continue;
             } else if (vaultUnsettledDebtUsdX18.lt(SD59x18_ZERO)) {
                 // if the vault is in debt, it will swap its assets to USDC
+
+                // prepare the asset, dex swap strategy id and path
+                // address asset = vault.collateral.asset;
+                // uint128 dexSwapStrategyId = vault.usdcDexSwapStrategyId;
+                // bytes memory path = vault.usdcDexSwapPath;
             } else {
                 // if the vault is in credit, it will swap its USDC previously accumulated from markets' deposits to
                 // its underlying assets
 
-                // todo: if vault is in credit and has a negative amount of realized usd token debt, we should mint
+                // if vault is in credit and has a negative usd token issuance, we should mint
                 // usd tokens and swap for assets of the most in debt vaults
             }
         }

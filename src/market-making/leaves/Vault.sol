@@ -22,6 +22,7 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 /// Debt Distribution System.
 /// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd
 /// @dev Vault's debt for credit delegation and ADL purposes = marketsUnrealizedDebtUsd + unsettledRealizedDebtUsd
+/// todo: assert that when configuring the connected markets ids that they all belong to the same engine.
 library Vault {
     using Collateral for Collateral.Data;
     using CreditDelegation for CreditDelegation.Data;
@@ -53,7 +54,6 @@ library Vault {
     );
 
     /// @param id The vault identifier.
-    // todo: define final credit delegation weight system
     /// @param totalCreditDelegationWeight The total amount of credit delegation weight in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
@@ -64,11 +64,11 @@ library Vault {
     /// @param marketsDepositedUsdc The total amount of credit deposits from markets that have been converted and
     /// distributed as USDC to vaults.
     /// @param indexToken The index token address.
+    /// @param engine The engine implementation that this vault delegates credit to. Used to validate markets that can
+    /// be connected to this vault.
     /// @param collateral The collateral asset data.
     /// @param stakingFeeDistribution `actor`: Stakers, `shares`: Staked index tokens, `valuePerShare`: WETH fee
     /// earned per share.
-    /// todo: assert that when configuring the connected markets ids that they all belong to the same engine.
-    /// todo: we may need to store the connected engine contract address.
     /// @param connectedMarkets The list of connected market ids. Whenever there's an update, a new
     /// `EnumerableSet.UintSet` is created.
     /// @param withdrawalRequestIdCounter Counter for user withdraw requiest ids
@@ -81,7 +81,9 @@ library Vault {
         int128 marketsUnrealizedDebtUsd;
         int128 unsettledRealizedDebtUsd;
         uint128 marketsDepositedUsdc;
+        int128 netUsdTokenIssuance;
         address indexToken;
+        address engine;
         bool isLive;
         Collateral.Data collateral;
         Distribution.Data wethRewardDistribution;
@@ -118,7 +120,6 @@ library Vault {
     /// @notice Loads a {Vault} namespace.
     /// @param vaultId The vault identifier.
     /// @return vault The loaded vault storage pointer.
-    // todo: add engine parameter
     function load(uint128 vaultId) internal pure returns (Data storage vault) {
         bytes32 slot = keccak256(abi.encode(VAULT_LOCATION, vaultId));
         assembly {
