@@ -8,7 +8,6 @@ import { WithdrawalRequest } from "@zaros/market-making/leaves/WithdrawalRequest
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 import { Referral } from "@zaros/market-making/leaves/Referral.sol";
-import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";

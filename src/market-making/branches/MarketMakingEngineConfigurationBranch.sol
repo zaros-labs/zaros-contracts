@@ -16,6 +16,7 @@ import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { LiveMarkets } from "@zaros/market-making/leaves/LiveMarkets.sol";
+import { AssetSwapPath } from "@zaros/market-making/leaves/AssetSwapPath.sol";
 
 // Open Zeppelin Upgradeable dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -37,6 +38,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     using SafeCast for uint256;
     using DexSwapStrategy for DexSwapStrategy.Data;
     using LiveMarkets for LiveMarkets.Data;
+    using AssetSwapPath for AssetSwapPath.Data;
 
     constructor() {
         _disableInitializers();
@@ -114,6 +116,13 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param sender The address that configured the referral module.
     /// @param referralModule The address of the referral module.
     event LogConfigureReferralModule(address sender, address referralModule);
+
+    /// @notice Emitted when the dex swap path for an asset is configured.
+    /// @param asset the asset for which to update the swap path
+    /// @param assets The assets in the swap path
+    /// @param dexSwapStrategyIds The strategy ids to use for each consecutive pair of assets
+    /// @param enabled Bool indicating whether the swap path is enabled
+    event LogConfiguredSwapPath(address asset, address[] assets, uint128[] dexSwapStrategyIds, bool enabled);
 
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
@@ -500,12 +509,24 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         UsdTokenSwap.update(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
 
+
+    /// @notice Returns the fees associated with the USD token swap.
+    /// @return swapSettlementFeeBps The swap settlement fee in basis points.
+    /// @return baseFeeUsd The base fee in USD.
+    function getUsdTokenSwapFees() external view returns (uint128 swapSettlementFeeBps, uint128 baseFeeUsd) {
+        UsdTokenSwap.Data storage data = UsdTokenSwap.load();
+
+        swapSettlementFeeBps = data.swapSettlementFeeBps;
+        baseFeeUsd = data.baseFeeUsd;
+    }
+
     /// @notice Retrieves the collateral data for a given asset.
     /// @param asset The address of the asset for which the collateral data is being retrieved.
     /// @return The collateral data associated with the specified asset.
     function getCollateralData(address asset) external pure returns (Collateral.Data memory) {
         return Collateral.load(asset);
     }
+
     /// @notice Configures the referral module.
     /// @dev Only owner can configure the referral module.
     /// @param referralModule The address of the referral module.
@@ -525,6 +546,47 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit the LogConfigureReferralModule event
         emit LogConfigureReferralModule(msg.sender, referralModule);
+    }
+
+    /// @notice Configures a custom swap path for a specific asset.
+    /// @param asset The address of the asset to configure the custom swap path for.
+    /// @param enabled A boolean indicating whether the custom swap path is enabled or disabled.
+    /// @param assets An array of asset addresses defining the swap path.
+    /// @param dexSwapStrategyIds An array of DEX swap strategy IDs corresponding to each swap step.
+    function configureAssetCustomSwapPath(
+        address asset,
+        bool enabled,
+        address[] memory assets,
+        uint128[] memory dexSwapStrategyIds
+    )
+        external
+        onlyOwner
+    {
+        // each consecutive pair must have a swap strategy
+        if (assets.length != dexSwapStrategyIds.length + 1) {
+            revert Errors.InvalidSwapPathParamsLength();
+        }
+
+        AssetSwapPath.Data storage swapPath = AssetSwapPath.load(asset);
+
+        swapPath.configure(enabled, assets, dexSwapStrategyIds);
+
+        emit LogConfiguredSwapPath(asset, assets, dexSwapStrategyIds, enabled);
+    }
+
+    /// @notice Retrieves the custom swap path configuration for a given asset.
+    /// @param asset The address of the asset for which the swap path is being queried.
+    /// @return assets An array of asset addresses representing the swap path.
+    /// @return dexSwapStrategyIds An array of DEX swap strategy IDs corresponding to each step in the swap path.
+    function getAssetSwapPath(address asset)
+        external
+        view
+        returns (address[] memory assets, uint128[] memory dexSwapStrategyIds)
+    {
+        AssetSwapPath.Data storage swapPath = AssetSwapPath.load(asset);
+
+        assets = swapPath.assets;
+        dexSwapStrategyIds = swapPath.dexSwapStrategyIds;
     }
 
     /// @notice Retrieves the IDs of all live markets.

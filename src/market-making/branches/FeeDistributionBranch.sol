@@ -8,6 +8,7 @@ import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
+import { AssetSwapPath } from "@zaros/market-making/leaves/AssetSwapPath.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
@@ -104,6 +105,17 @@ contract FeeDistributionBranch is EngineAccessControl {
         emit LogReceiveMarketFee(asset, marketId, amount);
     }
 
+    struct ConvertAccumulatedFeesToWethContext {
+        UD60x18 assetAmountX18;
+        uint256 assetAmount;
+        UD60x18 receivedWethX18;
+        address weth;
+        uint256 tokensSwapped;
+        UD60x18 feeRecipientsSharesX18;
+        UD60x18 receivedProtocolWethRewardX18;
+        UD60x18 receivedVaultsWethRewardX18;
+    }
+
     /// @notice Converts collected collateral amount to WETH
     /// @dev Only registered system keepers can call this function.
     /// @dev Net WETH rewards are split among fee recipients and vaults delegating credit to the market, according to
@@ -137,87 +149,90 @@ contract FeeDistributionBranch is EngineAccessControl {
         // reverts if the market hasn't received any fees for the given asset
         if (!market.receivedFees.contains(asset)) revert Errors.MarketDoesNotContainTheAsset(asset);
 
+        // working data
+        ConvertAccumulatedFeesToWethContext memory ctx;
+
         // get the amount of asset received as fees
-        UD60x18 assetAmountX18 = ud60x18(market.receivedFees.get(asset));
+        ctx.assetAmountX18 = ud60x18(market.receivedFees.get(asset));
 
         // reverts if the amount is zero
-        if (assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
+        if (ctx.assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
 
         // convert the asset amount to token amount
-        uint256 assetAmount = collateral.convertUd60x18ToTokenAmount(assetAmountX18);
+        ctx.assetAmount = collateral.convertUd60x18ToTokenAmount(ctx.assetAmountX18);
 
-        // declare variable to store accumulated weth
-        UD60x18 receivedWethX18;
-
-        // weth address
-        address weth = MarketMakingEngineConfiguration.load().weth;
+        // load weth address
+        ctx.weth = MarketMakingEngineConfiguration.load().weth;
 
         // if asset is weth directly add to accumulated weth, else swap token for weth
-        if (asset == weth) {
+        if (asset == ctx.weth) {
             // store the amount of weth
-            receivedWethX18 = assetAmountX18;
+            ctx.receivedWethX18 = ctx.assetAmountX18;
         } else {
-            // loads the dex swap strategy data storage pointer
-            DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
-
-            // reverts if the dex swap strategy has an invalid dex adapter
-            if (dexSwapStrategy.dexAdapter == address(0)) {
-                revert Errors.DexSwapStrategyHasAnInvalidDexAdapter(dexSwapStrategyId);
-            }
-
             // load the weth collateral data storage pointer
-            Collateral.Data storage wethCollateral = Collateral.load(weth);
+            Collateral.Data storage wethCollateral = Collateral.load(ctx.weth);
 
-            // approve the collateral token to the dex adapter
-            IERC20(asset).approve(dexSwapStrategy.dexAdapter, assetAmount);
+            // load custom swap path for asset if enabled
+            AssetSwapPath.Data storage swapPath = AssetSwapPath.load(asset);
 
-            // create variable to store the amount out
-            uint256 tokensSwapped;
+            // verify if the swap should be input multi-dex/custom swap path, single or multihop
+            if (swapPath.enabled) {
+                ctx.tokensSwapped = _performMultiDexSwap(swapPath, ctx.assetAmount);
+            } else if (path.length == 0) {
+                // loads the dex swap strategy data storage pointer
+                DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
 
-            // verify if the swap should be input single or multihop
-            if (path.length == 0) {
+                // approve the collateral token to the dex adapter
+                IERC20(asset).approve(dexSwapStrategy.dexAdapter, ctx.assetAmount);
+
                 // prepare the data for executing the swap
                 SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
                     tokenIn: asset,
-                    tokenOut: weth,
-                    amountIn: assetAmount,
+                    tokenOut: ctx.weth,
+                    amountIn: ctx.assetAmount,
                     recipient: address(this)
                 });
 
                 // Swap collected collateral fee amount for WETH and store the obtained amount
-                tokensSwapped = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
+                ctx.tokensSwapped = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
             } else {
+                // loads the dex swap strategy data storage pointer
+                DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
+
+                // approve the collateral token to the dex adapter
+                IERC20(asset).approve(dexSwapStrategy.dexAdapter, ctx.assetAmount);
+
                 // prepare the data for executing the swap
                 SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
                     path: path,
                     tokenIn: asset,
-                    tokenOut: weth,
-                    amountIn: assetAmount,
+                    tokenOut: ctx.weth,
+                    amountIn: ctx.assetAmount,
                     recipient: address(this)
                 });
 
                 // Swap collected collateral fee amount for WETH and store the obtained amount
-                tokensSwapped = dexSwapStrategy.executeSwapExactInput(swapCallData);
+                ctx.tokensSwapped = dexSwapStrategy.executeSwapExactInput(swapCallData);
             }
 
             // uint256 -> ud60x18
-            receivedWethX18 = wethCollateral.convertTokenAmountToUd60x18(tokensSwapped);
+            ctx.receivedWethX18 = wethCollateral.convertTokenAmountToUd60x18(ctx.tokensSwapped);
         }
 
         // get the total fee recipients shares
-        UD60x18 feeRecipientsSharesX18 = ud60x18(MarketMakingEngineConfiguration.load().totalFeeRecipientsShares);
+        ctx.feeRecipientsSharesX18 = ud60x18(MarketMakingEngineConfiguration.load().totalFeeRecipientsShares);
 
         // calculate the weth rewards for protocol and vaults
-        UD60x18 receivedProtocolWethRewardX18 = receivedWethX18.mul(feeRecipientsSharesX18);
-        UD60x18 receivedVaultsWethRewardX18 =
-            receivedWethX18.mul(ud60x18(Constants.MAX_SHARES).sub(feeRecipientsSharesX18));
+        ctx.receivedProtocolWethRewardX18 = ctx.receivedWethX18.mul(ctx.feeRecipientsSharesX18);
+        ctx.receivedVaultsWethRewardX18 =
+            ctx.receivedWethX18.mul(ud60x18(Constants.MAX_SHARES).sub(ctx.feeRecipientsSharesX18));
 
         // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine as
-        // fees, and remove its balance from the market's `receivedFees` map
-        market.receiveWethReward(asset, receivedProtocolWethRewardX18, receivedVaultsWethRewardX18);
+        // fees, and remove its balance from the market's `receivedMarketFees` map
+        market.receiveWethReward(asset, ctx.receivedProtocolWethRewardX18, ctx.receivedVaultsWethRewardX18);
 
         // emit event to log the conversion of fees to weth
-        emit LogConvertAccumulatedFeesToWeth(receivedWethX18.intoUint256());
+        emit LogConvertAccumulatedFeesToWeth(ctx.receivedWethX18.intoUint256());
     }
 
     /// @notice Sends allocated weth amount to fee recipients.
@@ -348,5 +363,48 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @return The data of the specified DEX swap strategy.
     function getDexSwapStrategy(uint128 dexSwapStrategyId) external pure returns (DexSwapStrategy.Data memory) {
         return DexSwapStrategy.load(dexSwapStrategyId);
+    }
+
+    /// @notice Performs a custom swap path across multiple assets using specified DEX swap strategies.
+    /// @param swapPath The structured data defining the assets and DEX swap strategies to use for the swap.
+    /// @param assetAmount The initial amount of the input asset to swap.
+    /// @return The amount of the final output asset obtained after completing the swap path.
+    function _performMultiDexSwap(
+        AssetSwapPath.Data memory swapPath,
+        uint256 assetAmount
+    )
+        internal
+        returns (uint256)
+    {
+        // load assets array
+        address[] memory assets = swapPath.assets;
+
+        // load dex swap strategy ids array
+        uint128[] memory dexSwapStrategyIds = swapPath.dexSwapStrategyIds;
+
+        // declare amountIn as initial token amountIn
+        uint256 amountIn = assetAmount;
+
+        for (uint256 i; i < assets.length - 1; i++) {
+            // loads the dex swap strategy data storage pointer
+            DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyIds[i]);
+
+            // approve the collateral token to the dex adapter
+            IERC20(assets[i]).approve(dexSwapStrategy.dexAdapter, amountIn);
+
+            // prepare the data for executing the swap
+            SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
+                tokenIn: assets[i],
+                tokenOut: assets[i + 1],
+                amountIn: amountIn,
+                recipient: address(this)
+            });
+
+            // Swap collected collateral fee amount for the next asset and store the obtained amount
+            amountIn = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
+        }
+
+        // return the last swap amount out
+        return amountIn;
     }
 }

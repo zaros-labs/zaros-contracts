@@ -181,7 +181,114 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         );
     }
 
-    function testFuzz_WhenTheDexSwapStrategyHasAValidDexAdapter(
+    modifier whenTheDexSwapStrategyHasAValidDexAdapter() {
+        _;
+    }
+
+    function testFuzz_WhenTheDexSwapStrategyHasAMultiSwapPath(
+        uint256 marketId,
+        uint256 amount,
+        uint256 adapterIndex
+    )
+        external
+        givenTheSenderIsRegisteredEngine
+        whenTheMarketExist
+        whenTheCollateralIsEnabled
+        whenTheMarketHasTheAsset
+        whenTheAmountIsNotZero
+        whenTheDexSwapStrategyHasAValidDexAdapter
+    {
+        changePrank({ msgSender: address(perpsEngine) });
+
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        amount = bound({
+            x: amount,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+
+        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+
+        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
+
+        IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
+
+        address[] memory assets = new address[](3);
+        assets[0] = address(usdc);
+        assets[1] = address(wBtc);
+        assets[2] = address(wEth);
+
+        uint128[] memory dexSwapStrategyIds = new uint128[](2);
+        dexSwapStrategyIds[0] = adapter.STRATEGY_ID();
+        dexSwapStrategyIds[1] = adapter.STRATEGY_ID();
+
+        changePrank({ msgSender: users.owner.account });
+        marketMakingEngine.configureAssetCustomSwapPath(address(usdc), true, assets, dexSwapStrategyIds);
+        changePrank({ msgSender: address(perpsEngine) });
+
+        assertEq(IERC20(usdc).balanceOf(address(marketMakingEngine)), amount);
+        assertEq(IERC20(wEth).balanceOf(address(marketMakingEngine)), 0);
+
+        uint256 expectedTokenAmount = adapter.getExpectedOutput(address(usdc), address(wBtc), amount);
+        uint256 amountOutMin = adapter.calculateAmountOutMin(expectedTokenAmount);
+
+        expectedTokenAmount = adapter.getExpectedOutput(address(wBtc), address(wEth), amountOutMin);
+        amountOutMin = adapter.calculateAmountOutMin(expectedTokenAmount);
+
+        assertEq(
+            marketMakingEngine.workaround_getIfReceivedMarketFeesContainsTheAsset(
+                fuzzPerpMarketCreditConfig.marketId, address(usdc)
+            ),
+            true,
+            "the asset should be in the received market fees"
+        );
+
+        // it should emit {LogConvertAccumulatedFeesToWeth} event
+        // vm.expectEmit({ emitter: address(marketMakingEngine) });
+        // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(amountOutMin);
+
+        marketMakingEngine.convertAccumulatedFeesToWeth(
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), 0, bytes("")
+        );
+
+        // it should verify if the asset is different that weth and convert
+        assertEq(IERC20(usdc).balanceOf(address(adapter)), 0, "the adapter should have 0 balance of usdc");
+        assertEq(IERC20(wEth).balanceOf(address(adapter)), 0, "the adapter should have 0 balance of wEth");
+
+        assertEq(
+            IERC20(usdc).balanceOf(address(marketMakingEngine)),
+            0,
+            "the balance of the usdc in the market making engine after the convert should be zero"
+        );
+        assertEq(
+            IERC20(wEth).balanceOf(address(marketMakingEngine)),
+            amountOutMin,
+            "the balance of the wEth in the market making engine after the convert is wrong"
+        );
+
+        // it should update the pending protocol weth reward
+        UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
+        UD60x18 expectedPendingProtocolWethRewardX18 =
+            amountOutMinX18.mul(ud60x18(marketMakingEngine.exposed_getTotalFeeRecipientsShares()));
+
+        assertEq(
+            marketMakingEngine.workaround_getPendingProtocolWethReward(fuzzPerpMarketCreditConfig.marketId), // here
+            expectedPendingProtocolWethRewardX18.intoUint256(),
+            "the available fees to withdraw is wrong"
+        );
+
+        // it should remove the asset from receivedMarketFees
+        assertEq(
+            marketMakingEngine.workaround_getIfReceivedMarketFeesContainsTheAsset(
+                fuzzPerpMarketCreditConfig.marketId, address(usdc)
+            ),
+            false,
+            "the asset should be removed from the received market fees"
+        );
+    }
+
+    function test_WhenTheDexSwapStrategyHasASingleOrMultihopSwapPath(
         uint256 marketId,
         uint256 amount,
         bool shouldSwapExactInputSingle,
@@ -193,6 +300,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         whenTheCollateralIsEnabled
         whenTheMarketHasTheAsset
         whenTheAmountIsNotZero
+        whenTheDexSwapStrategyHasAValidDexAdapter
     {
         changePrank({ msgSender: address(perpsEngine) });
         IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);

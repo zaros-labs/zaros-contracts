@@ -564,8 +564,11 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         );
 
         deal({ token: address(wEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(wBtc), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wEth), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(wBtc), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wEth), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(wBtc), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
     }
 
     function depositInVault(uint128 vaultId, uint128 assetsToDeposit) internal {
