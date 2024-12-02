@@ -134,6 +134,46 @@ contract SettlementConfiguration_VerifyOffchainPrice_Unit_Test is Base_Test {
         );
     }
 
+    function testFuzz_RevertWhen_TheBlockTimestampIsGreaterThanThePremiumReportExpiresAt(
+        uint256 marketId,
+        uint128 settlementConfigurationId
+    )
+        external
+        whenTheStrategyIsEqualToDataStreamsDefault
+    {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        SettlementConfiguration.DataStreamsStrategy memory dataStreamsStrategy = SettlementConfiguration
+            .DataStreamsStrategy({
+            chainlinkVerifier: IVerifierProxy(address(mockChainlinkVerifier)),
+            streamId: fuzzMarketConfig.streamId
+        });
+
+        SettlementConfiguration.Data memory newSettlementConfiguration = SettlementConfiguration.Data({
+            strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
+            isEnabled: false,
+            fee: DEFAULT_SETTLEMENT_FEE,
+            keeper: marketOrderKeepers[fuzzMarketConfig.marketId],
+            data: abi.encode(dataStreamsStrategy)
+        });
+
+        perpsEngine.exposed_update(fuzzMarketConfig.marketId, settlementConfigurationId, newSettlementConfiguration);
+
+        bytes memory mockSignedReport =
+            getMockedSignedReportWithExpiresAtTimestampZero(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InvalidDataStreamReport.selector, fuzzMarketConfig.streamId, fuzzMarketConfig.streamId
+            )
+        });
+
+        perpsEngine.exposed_verifyOffchainPrice(
+            fuzzMarketConfig.marketId, settlementConfigurationId, mockSignedReport, MAX_VERIFICATION_DELAY
+        );
+    }
+
     function testFuzz_WhenDataStreamsReportIsValid(
         uint256 marketId,
         uint128 settlementConfigurationId
