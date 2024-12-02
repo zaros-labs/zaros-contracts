@@ -273,7 +273,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
             amountOutMinX18.mul(ud60x18(marketMakingEngine.exposed_getTotalFeeRecipientsShares()));
 
         assertEq(
-            marketMakingEngine.workaround_getPendingProtocolWethReward(fuzzPerpMarketCreditConfig.marketId), // here
+            marketMakingEngine.workaround_getPendingProtocolWethReward(fuzzPerpMarketCreditConfig.marketId),
             expectedPendingProtocolWethRewardX18.intoUint256(),
             "the available fees to withdraw is wrong"
         );

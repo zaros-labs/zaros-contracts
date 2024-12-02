@@ -223,6 +223,27 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogConfigureVaultConnectedMarkets(vaultId, marketsIds);
     }
 
+    /// @notice Updates the swap strategy for a specific vault.
+    /// @param vaultId The unique identifier of the vault.
+    /// @param assetDexSwapPath The encoded path for the asset swap on the DEX.
+    /// @param usdcDexSwapPath The encoded path for the USDC swap on the DEX.
+    /// @param assetDexSwapStrategyId The identifier for the asset DEX swap strategy.
+    /// @param usdcDexSwapStrategyId The identifier for the USDC DEX swap strategy.
+    function updateVaultSwapStrategy(
+        uint128 vaultId,
+        bytes memory assetDexSwapPath,
+        bytes memory usdcDexSwapPath,
+        uint128 assetDexSwapStrategyId,
+        uint128 usdcDexSwapStrategyId
+    )
+        external
+        onlyOwner
+    {
+        Vault.updateVaultSwapStrategy(
+            vaultId, assetDexSwapPath, usdcDexSwapPath, assetDexSwapStrategyId, usdcDexSwapStrategyId
+        );
+    }
+
     /// @notice Configure system keeper on Market Making Engine
     /// @dev Only owner can call this function
     /// @param systemKeeper The address of the system keeper.
@@ -508,7 +529,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         UsdTokenSwap.update(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
-
 
     /// @notice Returns the fees associated with the USD token swap.
     /// @return swapSettlementFeeBps The swap settlement fee in basis points.

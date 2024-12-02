@@ -53,6 +53,18 @@ library Vault {
         int256 vaultNewCreditCapacityUsd
     );
 
+    /// @notice Represents a swap strategy for exchanging assets.
+    /// @param usdcDexSwapStrategyId The ID of the Dex swap strategy used for swapping to USDC.
+    /// @param usdcDexSwapPath The encoded swap path for exchanging assets to USDC.
+    /// @param assetDexSwapStrategyId The ID of the Dex swap strategy used for swapping to the target asset.
+    /// @param assetDexSwapPath The encoded swap path for exchanging USDC to the target asset.
+    struct SwapStrategy {
+        uint128 usdcDexSwapStrategyId;
+        bytes usdcDexSwapPath;
+        uint128 assetDexSwapStrategyId;
+        bytes assetDexSwapPath;
+    }
+
     /// @param id The vault identifier.
     /// @param totalCreditDelegationWeight The total amount of credit delegation weight in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
@@ -65,6 +77,7 @@ library Vault {
     /// @param indexToken The index token address.
     /// @param engine The engine implementation that this vault delegates credit to. Used to validate markets that can
     /// be connected to this vault.
+    /// @param SwapStrategy Hold data about the vault asset/usdc swap paths
     /// @param collateral The collateral asset data.
     /// @param stakingFeeDistribution `actor`: Stakers, `shares`: Staked index tokens, `valuePerShare`: WETH fee
     /// earned per share.
@@ -83,6 +96,7 @@ library Vault {
         address indexToken;
         address engine;
         bool isLive;
+        SwapStrategy swapStrategy;
         Collateral.Data collateral;
         Distribution.Data wethRewardDistribution;
         EnumerableSet.UintSet[] connectedMarkets;
@@ -402,6 +416,29 @@ library Vault {
         self.indexToken = params.indexToken;
         self.collateral = params.collateral;
         self.isLive = true;
+    }
+
+    /// @notice Updates the swap strategy for a specific vault in storage.
+    /// @param vaultId The unique identifier of the vault.
+    /// @param assetDexSwapPath The encoded path for the asset swap on the DEX.
+    /// @param usdcDexSwapPath The encoded path for the USDC swap on the DEX.
+    /// @param assetDexSwapStrategyId The identifier for the asset DEX swap strategy.
+    /// @param usdcDexSwapStrategyId The identifier for the USDC DEX swap strategy.
+    function updateVaultSwapStrategy(
+        uint128 vaultId,
+        bytes memory assetDexSwapPath,
+        bytes memory usdcDexSwapPath,
+        uint128 assetDexSwapStrategyId,
+        uint128 usdcDexSwapStrategyId
+    )
+        internal
+    {
+        Data storage self = load(vaultId);
+
+        self.swapStrategy.assetDexSwapPath = assetDexSwapPath;
+        self.swapStrategy.usdcDexSwapPath = usdcDexSwapPath;
+        self.swapStrategy.assetDexSwapStrategyId = assetDexSwapStrategyId;
+        self.swapStrategy.usdcDexSwapStrategyId = usdcDexSwapStrategyId;
     }
 
     // todo: we may need to remove the return value to save gas / remove if not needed

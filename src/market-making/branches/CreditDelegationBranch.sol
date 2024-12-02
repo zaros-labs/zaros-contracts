@@ -11,6 +11,7 @@ import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol
 import { Market } from "@zaros/market-making/leaves/Market.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
+import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -311,6 +312,15 @@ contract CreditDelegationBranch is EngineAccessControl {
                 REGISTERED SYSTEM KEEPERS ONLY PROTECTED FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    struct ConvertMarketsCreditDepositsToUsdcContext {
+        address asset;
+        uint128 dexSwapStrategyId;
+        bytes path;
+        UD60x18 assetAmountX18;
+        uint256 usdcOut;
+        UD60x18 netUsdcReceivedX18;
+    }
+
     /// @notice Converts assets deposited as credit to a given market for USDC.
     /// @dev USDC accumulated by swaps is stored at markets, and later pushed to its connected vaults in order to
     /// cover an engine's usd token.
@@ -336,35 +346,40 @@ contract CreditDelegationBranch is EngineAccessControl {
             revert Errors.ArrayLengthMismatch(0, 0);
         }
 
+        // define context
+        ConvertMarketsCreditDepositsToUsdcContext memory ctx;
+
         // load the market's data storage pointer
         Market.Data storage market = Market.loadExisting(marketId);
 
         for (uint256 i; i < assets.length; i++) {
             // prepare the asset, dex swap strategy id and path
-            address asset = assets[i];
-            uint128 dexSwapStrategyId = dexSwapStrategyIds[i];
-            bytes memory path = paths[i];
+            ctx.asset = assets[i];
+            ctx.dexSwapStrategyId = dexSwapStrategyIds[i];
+            ctx.path = paths[i];
 
             // revert if the market hasn't received any fees for the given asset
-            if (!market.creditDeposits.contains(asset)) revert Errors.MarketDoesNotContainTheAsset(asset);
+            if (!market.creditDeposits.contains(ctx.asset)) revert Errors.MarketDoesNotContainTheAsset(ctx.asset);
 
             // get the amount of assets deposited as credit
-            UD60x18 assetAmountX18 = ud60x18(market.creditDeposits.get(asset));
+            ctx.assetAmountX18 = ud60x18(market.creditDeposits.get(ctx.asset));
 
             // convert the assets to USDC
-            uint256 usdcOut = _convertAssetsToUsdc(dexSwapStrategyId, asset, assetAmountX18, path);
+            ctx.usdcOut = _convertAssetsToUsdc(ctx.dexSwapStrategyId, ctx.asset, ctx.assetAmountX18, ctx.path);
 
             // load the usdc collateral data storage pointer
             Collateral.Data storage usdcCollateral = Collateral.load(MarketMakingEngineConfiguration.load().usdc);
 
             // uint256 -> UD60x18 with decimals conversion
-            UD60x18 netUsdcReceivedX18 = usdcCollateral.convertTokenAmountToUd60x18(usdcOut);
+            ctx.netUsdcReceivedX18 = usdcCollateral.convertTokenAmountToUd60x18(ctx.usdcOut);
 
             // settles the credit deposit for the amount of USDC receicevd
-            market.settleCreditDeposit(asset, netUsdcReceivedX18);
+            market.settleCreditDeposit(ctx.asset, ctx.netUsdcReceivedX18);
 
             // emit an event
-            emit LogConvertMarketCreditDepositsToUsdc(marketId, asset, assetAmountX18.intoUint256(), usdcOut);
+            emit LogConvertMarketCreditDepositsToUsdc(
+                marketId, ctx.asset, ctx.assetAmountX18.intoUint256(), ctx.usdcOut
+            );
         }
     }
 
@@ -390,34 +405,113 @@ contract CreditDelegationBranch is EngineAccessControl {
             SD59x18 vaultUnsettledDebtUsdX18 = vault.getUnsettledDebt();
 
             // cache the vault asset
-            address asset = vault.collateral.asset;
+            address vaultAsset = vault.collateral.asset;
 
             // cache the usdc address
             address usdc = MarketMakingEngineConfiguration.load().usdc;
+
+            uint128 dexSwapStrategyId;
+            bytes memory path;
+            address assetIn;
+            address assetOut;
+            uint256 swapAmount;
+            DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
 
             if (vaultUnsettledDebtUsdX18.isZero()) {
                 // proceed to the next vault if the vault has no debt that needs to be settled
                 continue;
             } else if (vaultUnsettledDebtUsdX18.lt(SD59x18_ZERO)) {
+                // vault asset -> USDC
                 // if the vault is in debt, it will swap its assets to USDC
+                if (vaultAsset == usdc) {
+                }
 
-                if (asset == usdc) { }
+                // cache assets
+                assetIn = vaultAsset;
+                assetOut = usdc;
 
-                // otherwise, cache the dex swap strategy id and path
-                // todo: store those swap strategies and paths at the vault data struct
-                // uint128 dexSwapStrategyId = vault.usdcDexSwapStrategyId;
-                // bytes memory path = vault.usdcDexSwapPath;
+                // loads the dex swap strategy data storage pointer
+                dexSwapStrategy = DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
+
+                // cache path
+                path = vault.swapStrategy.usdcDexSwapPath;
+
+                // get swap amount
+                swapAmount =
+                    calculateSwapAmount(dexSwapStrategy.dexAdapter, assetIn, assetOut, vaultUnsettledDebtUsdX18, usdc);
             } else {
+                // USDC -> vault asset
                 // if the vault is in credit, it will swap its USDC previously accumulated from markets' and vaults'
                 // deposits to its underlying assets
+                if (vaultAsset == usdc) { }
 
-                if (asset == usdc) { }
+                // cache assets
+                assetIn = usdc;
+                assetOut = vaultAsset;
 
-                // otherwise, cache the dex swap strategy id and path
-                // uint128 dexSwapStrategyId = vault.assetDexSwapStrategyId;
-                // bytes memory path = vault.assetDexSwapPath;
+                // loads the dex swap strategy data storage pointer
+                dexSwapStrategy = DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
+
+                // cache path
+                path = vault.swapStrategy.assetDexSwapPath;
+
+                // get swap amount
+                swapAmount =
+                    calculateSwapAmount(dexSwapStrategy.dexAdapter, assetIn, assetOut, vaultUnsettledDebtUsdX18, usdc);
+
+                // get USDC balance of the vault
+                uint256 vaultUsdcBalance = IERC20(usdc).balanceOf(vault.indexToken);
+
+                // if the vault doesn't have enough usdc use whatever amount it has
+                swapAmount = swapAmount <= vaultUsdcBalance ? swapAmount : vaultUsdcBalance;
             }
+
+            // approve the asset to be spent by the dex adapter contract
+            IERC20(assetIn).approve(dexSwapStrategy.dexAdapter, swapAmount);
+
+            // prepare the data for executing the swap
+            SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
+                path: path,
+                tokenIn: assetIn,
+                tokenOut: assetOut,
+                amountIn: swapAmount,
+                recipient: vault.indexToken
+            });
+
+            // swap the credit deposit assets for USDC and store the output amount
+            dexSwapStrategy.executeSwapExactInput(swapCallData);
         }
+    }
+
+    /// vault asset -> usdc
+    /// @notice Calculates the amount of a specific vault asset needed to cover negative unsettled debt in USD.
+    /// usdc -> vault asset
+    /// @notice Calculates the amount of usdc needed to cover positive unsettled debt in USD.
+    /// @param dexAdapter The address of the DEX adapter used for price calculation.
+    /// @param assetIn The address of the vault asset to calculate the amount for.
+    /// @param assetOut The address of the USDC token.
+    /// @param vaultUnsettledDebtUsdX18 The unsettled debt in USD, represented in SD59x18 format.
+    /// @param usdc The USDC token address
+    /// @return amount The amount of the vault asset required to cover the unsettled debt in USD.
+    function calculateSwapAmount(
+        address dexAdapter,
+        address assetIn,
+        address assetOut,
+        SD59x18 vaultUnsettledDebtUsdX18,
+        address usdc
+    )
+        public
+        view
+        returns (uint256)
+    {
+        // get vault unsettled debt absolute value USDC in uint256
+        uint256 vaultUnsettledDebtUsdAbs =
+            Collateral.load(usdc).convertSd59x18ToTokenAmount(vaultUnsettledDebtUsdX18.abs());
+
+        // calculate expected asset amount needed to cover the debt
+        uint256 amount = IDexAdapter(dexAdapter).getExpectedOutput(assetOut, assetIn, vaultUnsettledDebtUsdAbs);
+
+        return amount;
     }
 
     /// @notice Rebalances credit and debt between two vaults.
@@ -442,10 +536,10 @@ contract CreditDelegationBranch is EngineAccessControl {
         // recalculate the credit capacity of both vaults
         Vault.recalculateVaultsCreditCapacity(vaultsIdsForRecalculation);
 
-        // cache the in credit vault unsettled debt
-        SD59x18 inCreditVaultUnsettledDebtUsdX18 = inCreditVault.getUnsettledDebt();
         // cache the in debt vault unsettled debt
         SD59x18 inDebtVaultUnsettledDebtUsdX18 = inDebtVault.getUnsettledDebt();
+        // cache the in credit vault unsettled debt
+        SD59x18 inCreditVaultUnsettledDebtUsdX18 = inCreditVault.getUnsettledDebt();
 
         // if the vault that is supposed to be in credit is not, or the vault that is supposed to be in debt is not,
         // revert
@@ -453,9 +547,43 @@ contract CreditDelegationBranch is EngineAccessControl {
             revert Errors.InvalidVaultDebtSettlementRequest();
         }
 
-        // todo take assets from the in debt vault and swap for usdc
+        // get credit absolute value
+        SD59x18 inCreditVaultUnsettledDebtUsdX18Abs = inCreditVaultUnsettledDebtUsdX18.abs();
 
-        // deposit the usdc to the in credit vault
+        // if credit absolute value > debt, use debt value, else use credit value
+        SD59x18 depositAmountUsdX18 = inCreditVaultUnsettledDebtUsdX18Abs.gt(inDebtVaultUnsettledDebtUsdX18)
+            ? inDebtVaultUnsettledDebtUsdX18
+            : inCreditVaultUnsettledDebtUsdX18Abs;
+
+        // loads the dex swap strategy data storage pointer
+        DexSwapStrategy.Data storage dexSwapStrategy =
+            DexSwapStrategy.loadExisting(inDebtVault.swapStrategy.usdcDexSwapStrategyId);
+
+        // load usdc
+        address usdc = MarketMakingEngineConfiguration.load().usdc;
+
+        // SD59x18 -> uint256
+        uint256 depositAmountUsdc = Collateral.load(usdc).convertSd59x18ToTokenAmount(depositAmountUsdX18);
+
+        // get collateral asset amount for usd value
+        uint256 depositAmount = IDexAdapter(dexSwapStrategy.dexAdapter).getExpectedOutput(
+            usdc, inDebtVault.collateral.asset, depositAmountUsdc
+        );
+
+        // prepare the data for executing the swap asset -> usdc
+        SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
+            path: inDebtVault.swapStrategy.usdcDexSwapPath,
+            tokenIn: inDebtVault.collateral.asset,
+            tokenOut: usdc,
+            amountIn: depositAmount,
+            recipient: inCreditVault.indexToken // deposit the usdc to the in credit vault
+         });
+
+        // approve the collateral token to the dex adapter
+        IERC20(inDebtVault.collateral.asset).approve(dexSwapStrategy.dexAdapter, depositAmount);
+
+        // swap the credit deposit assets for USDC
+        dexSwapStrategy.executeSwapExactInput(swapCallData);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -496,6 +624,10 @@ contract CreditDelegationBranch is EngineAccessControl {
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
     }
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                   INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////////////////*/
+
     function _convertAssetsToUsdc(
         uint128 dexSwapStrategyId,
         address asset,
@@ -526,12 +658,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             usdcOut = assetAmount;
         } else {
             // loads the dex swap strategy data storage pointer
-            DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.load(dexSwapStrategyId);
-
-            // reverts if the dex swap strategy has an invalid dex adapter
-            if (dexSwapStrategy.dexAdapter == address(0)) {
-                revert Errors.DexSwapStrategyHasAnInvalidDexAdapter(dexSwapStrategyId);
-            }
+            DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
 
             // approve the asset to be spent by the dex adapter contract
             IERC20(asset).approve(dexSwapStrategy.dexAdapter, assetAmount);

@@ -10,6 +10,7 @@ out
 .pnp.*
 lcov.info
 yarn.lock
+.vscode/extensions.json
 
 # broadcasts
 !broadcast
