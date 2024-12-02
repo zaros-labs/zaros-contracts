@@ -43,7 +43,7 @@ contract DepositMargin_Integration_Test is Base_Test {
         whenTheAmountIsNotZero
     {
         changePrank({ msgSender: users.owner.account });
-        
+
         configureSystemParameters();
         createPerpMarkets();
 
@@ -94,12 +94,12 @@ contract DepositMargin_Integration_Test is Base_Test {
         uint256 amountToWithdraw,
         uint256 marketId,
         bool isLong
-    ) 
+    )
         external
         whenTheAmountIsNotZero
     {
         changePrank({ msgSender: users.owner.account });
-        
+
         configureSystemParameters();
         createPerpMarkets();
 
@@ -150,6 +150,7 @@ contract DepositMargin_Integration_Test is Base_Test {
             orderFeeRecipient: feeRecipients.orderFeeRecipient,
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
             liquidationFeeRecipient: users.liquidationFeeRecipient.account,
+            referralModule: address(referralModule),
             marketMakingEngine: address(marketMakingEngine),
             maxVerificationDelay: MAX_VERIFICATION_DELAY
         });

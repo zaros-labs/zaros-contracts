@@ -10,7 +10,6 @@ import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
-import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 
