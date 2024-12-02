@@ -94,11 +94,11 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
         }
 
         // create more trading accounts that will not open positions
-        deal({ token: address(usdz), to: users.naruto.account, give: marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
 
         for (uint256 i; i < amountOfTradingAccounts; i++) {
             uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
-            createAccountAndDeposit(accountMarginValueUsd, address(usdz));
+            createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
         }
 
         // check to prevent panic array out of bounds
