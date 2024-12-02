@@ -8,7 +8,6 @@ import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Base_Test } from "test/Base.t.sol";
 
 contract MarketMakingEngineConfigurationBranch_GetCollateralData_Integration_Test is Base_Test {
-
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });

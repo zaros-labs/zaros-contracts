@@ -73,7 +73,8 @@ library Vault {
     /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
     /// @param marketsUnrealizedDebtUsd The total amount of unrealized debt coming from markets in USD.
     /// @param unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
-    /// @param depositedUsdc The total amount of USDC deposits coming from markets or other vaults to this vault.
+    /// @param depositedUsdc The total amount of USDC deposits coming from markets or other vaults to this vault,
+    /// takes part of the unsettled realized debt value.
     /// @param indexToken The index token address.
     /// @param engine The engine implementation that this vault delegates credit to. Used to validate markets that can
     /// be connected to this vault.
@@ -196,17 +197,23 @@ library Vault {
     /// credit deposited by markets.
     /// @param self The vault storage pointer.
     function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) {
-        totalDebtUsdX18 = getUnsettledDebt(self).add(ud60x18(self.depositedUsdc).intoSD59x18());
+        totalDebtUsdX18 = getUnsettledRealizedDebt(self).add(sd59x18(self.marketsUnrealizedDebtUsd));
     }
 
     /// @notice Returns the vault's total unsettled debt in USD, taking into account both the markets' unrealized
-    /// debt, but yet to be settled.
+    /// debt, but yet to be settled, and the usdc deposits allocated to the vault.
     /// @dev Note that only the vault's share of the markets' realized debt is taken into consideration for debt /
-    /// credit settlements.
+    /// credit settlements. Unrealized debt isn't taken into account for this purpose until realized by the markets,
+    /// but it affects the vault's credit capacity and the conversion rate between index and underlying tokens.
     /// @param self The vault storage pointer.
-    /// @return unsettledDebtUsdX18 The vault's total unsettled debt in USD.
-    function getUnsettledDebt(Data storage self) internal view returns (SD59x18 unsettledDebtUsdX18) {
-        unsettledDebtUsdX18 = sd59x18(self.unsettledRealizedDebtUsd).add(sd59x18(self.marketsUnrealizedDebtUsd));
+    /// @return unsettledRealizedDebtUsdX18 The vault's total unsettled debt in USD.
+    function getUnsettledRealizedDebt(Data storage self)
+        internal
+        view
+        returns (SD59x18 unsettledRealizedDebtUsdX18)
+    {
+        unsettledRealizedDebtUsdX18 =
+            sd59x18(self.unsettledRealizedDebtUsd).add(ud60x18(self.depositedUsdc).intoSD59x18());
     }
 
     struct RecalculateConnectedMarketsState_Context {

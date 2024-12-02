@@ -402,7 +402,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             Vault.Data storage vault = Vault.loadExisting(vaultsIds[i].toUint128());
 
             // cache the vault's unsettled debt
-            SD59x18 vaultUnsettledDebtUsdX18 = vault.getUnsettledDebt();
+            SD59x18 vaultUnsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
 
             // cache the vault asset
             address vaultAsset = vault.collateral.asset;
@@ -417,14 +417,13 @@ contract CreditDelegationBranch is EngineAccessControl {
             uint256 swapAmount;
             DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
 
-            if (vaultUnsettledDebtUsdX18.isZero()) {
+            if (vaultUnsettledRealizedDebtUsdX18.isZero()) {
                 // proceed to the next vault if the vault has no debt that needs to be settled
                 continue;
-            } else if (vaultUnsettledDebtUsdX18.lt(SD59x18_ZERO)) {
+            } else if (vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)) {
                 // vault asset -> USDC
                 // if the vault is in debt, it will swap its assets to USDC
-                if (vaultAsset == usdc) {
-                }
+                if (vaultAsset == usdc) { }
 
                 // cache assets
                 assetIn = vaultAsset;
@@ -437,8 +436,9 @@ contract CreditDelegationBranch is EngineAccessControl {
                 path = vault.swapStrategy.usdcDexSwapPath;
 
                 // get swap amount
-                swapAmount =
-                    calculateSwapAmount(dexSwapStrategy.dexAdapter, assetIn, assetOut, vaultUnsettledDebtUsdX18, usdc);
+                swapAmount = calculateSwapAmount(
+                    dexSwapStrategy.dexAdapter, assetIn, assetOut, vaultUnsettledRealizedDebtUsdX18, usdc
+                );
             } else {
                 // USDC -> vault asset
                 // if the vault is in credit, it will swap its USDC previously accumulated from markets' and vaults'
@@ -456,8 +456,9 @@ contract CreditDelegationBranch is EngineAccessControl {
                 path = vault.swapStrategy.assetDexSwapPath;
 
                 // get swap amount
-                swapAmount =
-                    calculateSwapAmount(dexSwapStrategy.dexAdapter, assetIn, assetOut, vaultUnsettledDebtUsdX18, usdc);
+                swapAmount = calculateSwapAmount(
+                    dexSwapStrategy.dexAdapter, assetIn, assetOut, vaultUnsettledRealizedDebtUsdX18, usdc
+                );
 
                 // get USDC balance of the vault
                 uint256 vaultUsdcBalance = IERC20(usdc).balanceOf(vault.indexToken);
@@ -490,14 +491,14 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @param dexAdapter The address of the DEX adapter used for price calculation.
     /// @param assetIn The address of the vault asset to calculate the amount for.
     /// @param assetOut The address of the USDC token.
-    /// @param vaultUnsettledDebtUsdX18 The unsettled debt in USD, represented in SD59x18 format.
+    /// @param vaultUnsettledRealizedDebtUsdX18 The unsettled debt in USD, represented in SD59x18 format.
     /// @param usdc The USDC token address
     /// @return amount The amount of the vault asset required to cover the unsettled debt in USD.
     function calculateSwapAmount(
         address dexAdapter,
         address assetIn,
         address assetOut,
-        SD59x18 vaultUnsettledDebtUsdX18,
+        SD59x18 vaultUnsettledRealizedDebtUsdX18,
         address usdc
     )
         public
@@ -506,7 +507,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     {
         // get vault unsettled debt absolute value USDC in uint256
         uint256 vaultUnsettledDebtUsdAbs =
-            Collateral.load(usdc).convertSd59x18ToTokenAmount(vaultUnsettledDebtUsdX18.abs());
+            Collateral.load(usdc).convertSd59x18ToTokenAmount(vaultUnsettledRealizedDebtUsdX18.abs());
 
         // calculate expected asset amount needed to cover the debt
         uint256 amount = IDexAdapter(dexAdapter).getExpectedOutput(assetOut, assetIn, vaultUnsettledDebtUsdAbs);
@@ -537,23 +538,26 @@ contract CreditDelegationBranch is EngineAccessControl {
         Vault.recalculateVaultsCreditCapacity(vaultsIdsForRecalculation);
 
         // cache the in debt vault unsettled debt
-        SD59x18 inDebtVaultUnsettledDebtUsdX18 = inDebtVault.getUnsettledDebt();
+        SD59x18 inDebtVaultUnsettledRealizedDebtUsdX18 = inDebtVault.getUnsettledRealizedDebt();
         // cache the in credit vault unsettled debt
-        SD59x18 inCreditVaultUnsettledDebtUsdX18 = inCreditVault.getUnsettledDebt();
+        SD59x18 inCreditVaultUnsettledRealizedDebtUsdX18 = inCreditVault.getUnsettledRealizedDebt();
 
         // if the vault that is supposed to be in credit is not, or the vault that is supposed to be in debt is not,
         // revert
-        if (inCreditVaultUnsettledDebtUsdX18.lte(SD59x18_ZERO) || inDebtVaultUnsettledDebtUsdX18.gte(SD59x18_ZERO)) {
+        if (
+            inCreditVaultUnsettledRealizedDebtUsdX18.lte(SD59x18_ZERO)
+                || inDebtVaultUnsettledRealizedDebtUsdX18.gte(SD59x18_ZERO)
+        ) {
             revert Errors.InvalidVaultDebtSettlementRequest();
         }
 
         // get credit absolute value
-        SD59x18 inCreditVaultUnsettledDebtUsdX18Abs = inCreditVaultUnsettledDebtUsdX18.abs();
+        SD59x18 inCreditVaultUnsettledRealizedDebtUsdX18Abs = inCreditVaultUnsettledRealizedDebtUsdX18.abs();
 
         // if credit absolute value > debt, use debt value, else use credit value
-        SD59x18 depositAmountUsdX18 = inCreditVaultUnsettledDebtUsdX18Abs.gt(inDebtVaultUnsettledDebtUsdX18)
-            ? inDebtVaultUnsettledDebtUsdX18
-            : inCreditVaultUnsettledDebtUsdX18Abs;
+        SD59x18 depositAmountUsdX18 = inCreditVaultUnsettledRealizedDebtUsdX18Abs.gt(
+            inDebtVaultUnsettledRealizedDebtUsdX18
+        ) ? inDebtVaultUnsettledRealizedDebtUsdX18 : inCreditVaultUnsettledRealizedDebtUsdX18Abs;
 
         // loads the dex swap strategy data storage pointer
         DexSwapStrategy.Data storage dexSwapStrategy =

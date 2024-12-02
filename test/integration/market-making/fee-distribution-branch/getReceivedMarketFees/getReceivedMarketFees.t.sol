@@ -27,7 +27,8 @@ contract MarketMakingEngineConfigurationBranch_GetReceivedMarketFees_Integration
 
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
-        (address[] memory assets, uint256[] memory feesCollected) = marketMakingEngine.getReceivedMarketFees(fuzzPerpMarketCreditConfig.marketId);
+        (address[] memory assets, uint256[] memory feesCollected) =
+            marketMakingEngine.getReceivedMarketFees(fuzzPerpMarketCreditConfig.marketId);
 
         // it should return the received fees
         assertEq(assets[0], address(usdc));

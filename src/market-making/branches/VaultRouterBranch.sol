@@ -114,7 +114,8 @@ contract VaultRouterBranch {
 
         // get the vault's total unsettled debt, taking into account both the markets' reported unrealized debt + the
         // realized, but still unsettled (i.e to be settled) debt
-        SD59x18 unsettledDebtUsdX18 = vault.getUnsettledDebt();
+        // todo: this needs to be the total debt
+        SD59x18 unsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
 
         // get decimal offset
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
@@ -123,7 +124,7 @@ contract VaultRouterBranch {
         UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
         // convert the unsettled debt value in USD to the equivalent amount of assets to be credited or debited
-        SD59x18 unsettledDebtInAssetsX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
+        SD59x18 unsettledDebtInAssetsX18 = unsettledRealizedDebtUsdX18.div(assetPriceX18.intoSD59x18());
 
         // subtract the unsettled debt from the total assets
         // NOTE: we add 1 to the total assets to avoid division by zero
@@ -162,7 +163,8 @@ contract VaultRouterBranch {
 
         // get the vault's total unsettled debt, taking into account both the markets' reported unrealized debt + the
         // realized, but still unsettled (i.e to be settled) debt
-        SD59x18 unsettledDebtUsdX18 = vault.getUnsettledDebt();
+        // todo: this needs to be the total debt
+        SD59x18 unsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
 
         // get decimal offset
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
@@ -171,7 +173,7 @@ contract VaultRouterBranch {
         UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
         // convert the unsettled debt value in USD to the equivalent amount of assets to be credited or debited
-        SD59x18 unsettledDebtInAssetsX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
+        SD59x18 unsettledDebtInAssetsX18 = unsettledRealizedDebtUsdX18.div(assetPriceX18.intoSD59x18());
 
         // subtract the unsettled debt from the total assets
         // NOTE: we add 1 to the total assets to avoid division by zero
