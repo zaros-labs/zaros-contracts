@@ -421,6 +421,8 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// case the vault is in debt.
     /// @dev If the vault is in net credit and doesn't own enough USDC to fully settle the due amount, it may have its
     /// assets rebalanced with other vaults through `CreditDelegation::rebalanceVaultsAssets`.
+    /// @dev There isn't any issue settling debt of vaults of different engines in the same call, as the system
+    /// allocates the USDC acquired in case of a debt settlement to the engine's USD Token accordingly.
     /// @param vaultsIds The vaults' identifiers to settle.
     function settleVaultsDebt(uint256[] calldata vaultsIds) external onlyRegisteredSystemKeepers {
         // first, we need to update the credit capacity of the vaults
@@ -621,6 +623,12 @@ contract CreditDelegationBranch is EngineAccessControl {
         Vault.Data storage inCreditVault = Vault.loadExisting(vaultsIds[0]);
         // load the storage pointer of the vault in net debt
         Vault.Data storage inDebtVault = Vault.loadExisting(vaultsIds[1]);
+
+        // both vaults must belong to the same engine in order to have their debt state rebalanced, as each usd
+        // token's debt is isolated
+        if (inCreditVault.engine != inDebtVault.engine) {
+            revert Errors.VaultsConnectedToDifferentEngines();
+        }
 
         // create an in-memory dynamic array in order to call `Vault::recalculateVaultsCreditCapacity`
         uint256[] memory vaultsIdsForRecalculation = new uint256[](2);
