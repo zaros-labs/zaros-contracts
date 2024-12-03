@@ -92,5 +92,20 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
             // it should return an array with the liquidatable accounts ids
             assertEq(liquidatableAccountIds[i], lowerBound + i);
         }
+
+        // create more trading accounts that will not open positions
+        deal({ token: address(usdToken), to: users.naruto.account, give: marginValueUsd });
+
+        for (uint256 i; i < amountOfTradingAccounts; i++) {
+            uint256 accountMarginValueUsd = marginValueUsd / amountOfTradingAccounts;
+            createAccountAndDeposit(accountMarginValueUsd, address(usdToken));
+        }
+
+        // check to prevent panic array out of bounds
+        liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(amountOfTradingAccounts + 1, amountOfTradingAccounts * 2);
+
+        for (uint256 i; i < liquidatableAccountIds.length; i++) {
+            assertEq(liquidatableAccountIds[i], 0);
+        }
     }
 }
