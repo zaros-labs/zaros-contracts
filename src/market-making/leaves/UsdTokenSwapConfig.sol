@@ -42,7 +42,7 @@ library UsdTokenSwapConfig {
         uint128 baseFeeUsd; // 1 USD
         uint128 swapSettlementFeeBps; // 0.3 %
         uint128 maxExecutionTime;
-        mapping(address engine => uint128 availableUsdc) usdcAvailableForEngine;
+        mapping(address engine => uint256 availableUsdc) usdcAvailableForEngine;
         mapping(address => uint128) swapRequestIdCounter;
         mapping(address => mapping(uint128 => SwapRequest)) swapRequests;
     }

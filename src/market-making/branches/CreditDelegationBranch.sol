@@ -5,13 +5,14 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { UsdToken } from "@zaros/usd/UsdToken.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { Market } from "@zaros/market-making/leaves/Market.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
-import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -30,6 +31,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeCast for uint256;
+    using SafeCast for int256;
     using SafeERC20 for IERC20;
     using Vault for Vault.Data;
 
@@ -404,6 +406,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 swapAmount;
         UD60x18 swapAmountX18;
         uint256 usdcOut;
+        UD60x18 usdcOutX18;
         uint256 usdcIn;
         UD60x18 usdcInX18;
         uint256 vaultUsdcBalance;
@@ -425,6 +428,12 @@ contract CreditDelegationBranch is EngineAccessControl {
 
         SettleVaultDebtContext memory ctx;
 
+        // cache the usdc address
+        ctx.usdc = MarketMakingEngineConfiguration.load().usdc;
+
+        // load the usdc collateral data storage pointer
+        Collateral.Data storage usdcCollateralConfig = Collateral.load(ctx.usdc);
+
         for (uint256 i; i < vaultsIds.length; i++) {
             // load the vault storage pointer
             Vault.Data storage vault = Vault.loadExisting(vaultsIds[i].toUint128());
@@ -434,9 +443,6 @@ contract CreditDelegationBranch is EngineAccessControl {
 
             // cache the vault asset
             ctx.vaultAsset = vault.collateral.asset;
-
-            // cache the usdc address
-            ctx.usdc = MarketMakingEngineConfiguration.load().usdc;
 
             if (ctx.vaultUnsettledRealizedDebtUsdX18.isZero()) {
                 // proceed to the next vault if the vault has no debt that needs to be settled
@@ -470,10 +476,18 @@ contract CreditDelegationBranch is EngineAccessControl {
                     address(this)
                 );
 
-                // use the usdcOut to update the vault's state
-                // todo: subtract unsettled realized debt, increase the engine's usd token usdc backing
-                vault.depositedUsdc +=
-                    Collateral.load(ctx.usdc).convertTokenAmountToUd60x18(ctx.usdcOut).intoUint256().toUint128();
+                ctx.usdcOutX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcOut);
+
+                // use the amount of usdc bought with assets to update the vault's state
+
+                // deduct the amount of usdc swapped for assets from the vault's unsettled debt
+                vault.marketsRealizedDebtUsd -= ctx.usdcOutX18.intoUint256().toInt256().toInt128();
+
+                // load the usd token swap config
+                UsdTokenSwapConfig.Data storage usdTokenSwapConfig = UsdTokenSwapConfig.load();
+
+                // allocate the usdc acquired to back the engine's usd token
+                usdTokenSwapConfig.usdcAvailableForEngine[vault.engine] += ctx.usdcOutX18.intoUint256();
 
                 // update the variables to be logged
                 ctx.assetIn = ctx.vaultAsset;
@@ -507,7 +521,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 ctx.usdcIn = (ctx.usdcIn <= ctx.vaultUsdcBalance) ? ctx.usdcIn : ctx.vaultUsdcBalance;
 
                 // convert the usdc amount to UD60x18 using 18 decimals
-                ctx.usdcInX18 = Collateral.load(ctx.usdc).convertTokenAmountToUd60x18(ctx.usdcIn);
+                ctx.usdcInX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcIn);
 
                 // swaps the vault's usdc balance to more vault assets and send them to the ZLP Vault contract (index
                 // token address)
@@ -519,10 +533,11 @@ contract CreditDelegationBranch is EngineAccessControl {
                     vault.indexToken
                 );
 
-                // subtract the amount of usdc sold from the vault's deposited usdc balance
-                // todo: increase unsettled realized debt, deduct the engine's usd token usdc backing
-                vault.depositedUsdc -=
-                    Collateral.load(ctx.usdc).convertTokenAmountToUd60x18(ctx.usdcIn).intoUint256().toUint128();
+                // use the amount of usdc swapped for assets to update the vault's state
+
+                // subtract the usdc amount used to buy vault assets from the vault's deposited usdc, thus, settling
+                // the due credit amount (partially or fully)
+                vault.depositedUsdc -= ctx.usdcInX18.intoUint128();
 
                 // update the variables to be logged
                 ctx.assetIn = ctx.usdc;

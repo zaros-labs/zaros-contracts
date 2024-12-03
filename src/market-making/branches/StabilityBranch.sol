@@ -332,7 +332,7 @@ contract StabilityBranch is EngineAccessControl {
         ctx.protocolReward = collateral.convertUd60x18ToTokenAmount(ctx.baseFeeX18.add(ctx.protocolSwapFeeX18));
 
         // update vault debt
-        vault.unsettledRealizedDebtUsd -= int128(request.amountIn);
+        vault.marketsRealizedDebtUsd -= int128(request.amountIn);
 
         // burn usd amount from address(this)
         ctx.usdToken.burn(request.amountIn);
