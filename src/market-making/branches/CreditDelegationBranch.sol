@@ -72,18 +72,26 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @notice Emitted when a vault's debt or credit is settled.
     /// @dev Some of the emitted values are zero depending on the vault's state.
     /// @param vaultId The vault identifier.
-    /// @param assetsBought The amount of assets bought.
-    /// @param assetsSold The amount of assets sold.
-    /// @param usdcBought The amount of USDC bought.
-    /// @param usdcSold The amount of USDC sold.
-    /// @param usdTokensIssuedAndSold The amount of USD Tokens issued and sold.
+    /// @param assetIn The asset sold to settle the credit or debt.
+    /// @param assetInAmount The amount of assets sold.
+    /// @param assetOut The asset bought to settle the credit or debt.
+    /// @param assetOutAmount The amount of assets bought.
+    /// @param settledDebt The amount of settled credit or debt.
     event LogSettleVaultDebt(
         uint128 indexed vaultId,
-        uint256 assetsBought,
-        uint256 assetsSold,
-        uint256 usdcBought,
-        uint256 usdcSold,
-        uint256 usdTokensIssuedAndSold
+        address assetIn,
+        uint256 assetInAmount,
+        address assetOut,
+        uint256 assetOutAmount,
+        int256 settledDebt
+    );
+
+    /// @notice Emitted when two vaults' assets are rebalanced.
+    /// @param inCreditVaultId The vault in net credit to receive a usdc deposit from the in debt vault.
+    /// @param inDebtVaultId The vault in net debt to sell its assets for usdc.
+    /// @param settlementValueUsd The amount of USDC transferred between vaults settling their credit / debt.
+    event LogRebalanceVaultsAssets(
+        uint128 indexed inCreditVaultId, uint128 indexed inDebtVaultId, uint256 settlementValueUsd
     );
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -411,6 +419,13 @@ contract CreditDelegationBranch is EngineAccessControl {
             // cache the usdc address
             address usdc = MarketMakingEngineConfiguration.load().usdc;
 
+            // prepare the data to be logged
+            address assetIn;
+            uint256 assetInAmount;
+            address assetOut;
+            uint256 assetOutAmount;
+            int256 settledDebt;
+
             if (vaultUnsettledRealizedDebtUsdX18.isZero()) {
                 // proceed to the next vault if the vault has no debt that needs to be settled
                 continue;
@@ -430,8 +445,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // uint256 -> UD60x18
                 UD60x18 swapAmountX18 = Collateral.load(vaultAsset).convertTokenAmountToUd60x18(swapAmount);
 
-                // note: here you can call _convertAssetsToUsdc after determining the swap amount based on the vault
-                // unsettled realized debt value / swap amount
+                // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
                 uint256 usdcOut = _convertAssetsToUsdc(
                     vault.swapStrategy.usdcDexSwapStrategyId,
                     vaultAsset,
@@ -443,6 +457,14 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // use the usdcOut to update the vault's state
                 vault.depositedUsdc +=
                     Collateral.load(usdc).convertTokenAmountToUd60x18(usdcOut).intoUint256().toUint128();
+
+                // update the variables to be logged
+                assetIn = vaultAsset;
+                assetInAmount = swapAmount;
+                assetOut = usdc;
+                assetOutAmount = usdcOut;
+                // since we're handling debt, we provide a positive value
+                settledDebt = usdcOut.toInt256();
             } else {
                 // USDC -> vault asset
                 // if the vault is in credit, it will swap its USDC previously accumulated from markets' and vaults'
@@ -453,34 +475,45 @@ contract CreditDelegationBranch is EngineAccessControl {
                     DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
 
                 // get swap amount
-                uint256 usdcOut = calculateSwapAmount(
+                uint256 usdcIn = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter, usdc, vaultAsset, vaultUnsettledRealizedDebtUsdX18, usdc
                 );
 
                 // get deposited USDC balance of the vault
-                // note: change the following value to vault.depositedUsdc
                 uint256 vaultUsdcBalance = vault.depositedUsdc;
 
                 // if the vault doesn't have enough usdc use whatever amount it has
-                usdcOut = (usdcOut <= vaultUsdcBalance) ? usdcOut : vaultUsdcBalance;
+                usdcIn = (usdcIn <= vaultUsdcBalance) ? usdcIn : vaultUsdcBalance;
 
-                UD60x18 usdcOutX18 = Collateral.load(usdc).convertTokenAmountToUd60x18(usdcOut);
+                // convert the usdc amount to UD60x18 using 18 decimals
+                UD60x18 usdcInX18 = Collateral.load(usdc).convertTokenAmountToUd60x18(usdcIn);
 
-                // note: here you can call _convertUsdcToAssets after determining the swap amount based on the vault
-                // unsettled realized debt value / swap amount
-                _convertUsdcToAssets(
+                // swaps the vault's usdc balance to more vault assets and send them to the ZLP Vault contract (index
+                // token address)
+                assetOutAmount = _convertUsdcToAssets(
                     vault.swapStrategy.assetDexSwapStrategyId,
                     vaultAsset,
-                    usdcOutX18,
+                    usdcInX18,
                     vault.swapStrategy.assetDexSwapPath,
                     vault.indexToken
                 );
 
+                // subtract the amount of usdc sold from the vault's deposited usdc balance
                 vault.depositedUsdc -=
-                    Collateral.load(usdc).convertTokenAmountToUd60x18(usdcOut).intoUint256().toUint128();
-                // note: since you're buying assets, you should transfer the assets to the vault. You probably want to
-                // use the vault's indexToken address as the swap recipient at convertUsdcToAssets
+                    Collateral.load(usdc).convertTokenAmountToUd60x18(usdcIn).intoUint256().toUint128();
+
+                // update the variables to be logged
+                assetIn = usdc;
+                assetInAmount = usdcIn;
+                assetOut = vaultAsset;
+                // since we're handling credit, we provide a negative value
+                settledDebt = -usdcIn.toInt256();
             }
+
+            // emit an event per vault settled
+            emit LogSettleVaultDebt(
+                vaultsIds[i].toUint128(), assetIn, assetInAmount, assetOut, assetOutAmount, settledDebt
+            );
         }
     }
 
@@ -580,7 +613,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             tokenIn: inDebtVault.collateral.asset,
             tokenOut: usdc,
             amountIn: depositAmount,
-            recipient: inCreditVault.indexToken // deposit the usdc to the in credit vault
+            recipient: address(this) // deposit the usdc to the market making engine proxy
          });
 
         // approve the collateral token to the dex adapter
@@ -588,6 +621,14 @@ contract CreditDelegationBranch is EngineAccessControl {
 
         // swap the credit deposit assets for USDC
         dexSwapStrategy.executeSwapExactInput(swapCallData);
+
+        // deposits the USDC to the vault in net credit
+        inCreditVault.depositedUsdc += depositAmountUsdc.toUint128();
+        // withdraws the USDC from the vault in net debt
+        inDebtVault.depositedUsdc -= depositAmountUsdc.toUint128();
+
+        // emit an event
+        emit LogRebalanceVaultsAssets(vaultsIds[0], vaultsIds[1], depositAmountUsdX18.intoUint256());
     }
 
     /*//////////////////////////////////////////////////////////////////////////
