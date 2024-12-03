@@ -13,6 +13,9 @@ import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
+// PRB Math dependencies
+import { sd59x18 } from "@prb-math/SD59x18.sol";
+
 // Open Zeppelin Upgradeable dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { ERC20, IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -520,6 +523,8 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         if (params.maxFundingVelocity == 0) {
             revert Errors.ZeroInput("maxFundingVelocity");
         }
+
+        perpMarket.updateFunding(sd59x18(perpMarket.lastFundingRate), sd59x18(perpMarket.lastFundingFeePerUnit)); 
 
         perpMarketConfiguration.update(
             MarketConfiguration.Data({

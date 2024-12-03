@@ -523,5 +523,6 @@ contract UpdatePerpMarketConfiguration_Integration_Test is Base_Test {
         assertEq(
             perpMarket.configuration.orderFees.takerFee, newParams.orderFees.takerFee, "TakerFee should be updated"
         );
+        assertEq(perpMarket.lastFundingTime, block.timestamp, "LastFundingTime should be updated");
     }
 }
