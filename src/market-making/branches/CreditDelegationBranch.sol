@@ -591,11 +591,30 @@ contract CreditDelegationBranch is EngineAccessControl {
     }
 
     /// @notice Rebalances credit and debt between two vaults.
-    /// @dev Since the protocol supports usdToken holders to redeem a ZLP Vault's underlying assets, it may enter a
-    /// state where the relation between vaults' credit and debt is unbalanced. This function allows the system to fix
-    /// this correlation by swapping assets of a vault in net debt for USDC and depositing the USDC to the vault in
-    /// net credit, rebalancing the system. Accumulated USDC is later swapped back to the in credit vault's underlying
-    /// assets at `CreditDelegationBranch::settleVaultsDebt`.
+    /// @dev There are multiple factors that may result on vaults backing the same engine having a completely
+    /// different credit or debt state, such as:
+    ///  - connecting vaults with markets in different times
+    ///  - connecting vaults with different sets of markets
+    ///  - users swapping the engine's usd token for assets of different vaults
+    /// This way, from time to time, the system keepers must rebalance vaults with a significant state difference in
+    /// order to facilitate settlement of their credit and debt. A rebalancing doesn't need to always fully settle the
+    /// amount of USDC that a vault in credit requires to settle its due amount, so the system is optimized to ensure
+    /// a financial stability of the protocol.
+    /// @dev Example:
+    ///  in credit vault markets realized debt = -100 -> -90
+    ///  in credit vault deposited usdc = 200 -> 210
+    ///  in credit vault unsettled realized debt = -300 | as -100 + -200 -> after settlement -> -300 | as -90 + -210
+    ///  = -300
+
+    ///  thus, we need to rebalance as the in credit vault doesn't own enough usdc to settle its due credit
+
+    ///  in debt vault markets realized debt = 50 -> 40
+    ///  in debt vault deposited usdc = 10 -> 0
+    ///  in debt vault unsettled realized debt = 40 | as 50 + -10  -> after settlement -> 40 | as 40 + 0 = 40
+    /// @dev The first vault id passed is assumed to be the in credit vault, and the second vault id is assumed to be
+    /// the in debt vault.
+    /// @dev The final unsettled realized debt of both vaults MUST remain the same after the rebalance.
+    /// @dev The actual increase or decrease in the vaults' unsettled realized debt happen at `settleVaultsDebt`.
     /// @param vaultsIds The vaults' identifiers to rebalance.
     function rebalanceVaultsAssets(uint128[2] calldata vaultsIds) external onlyRegisteredSystemKeepers {
         // load the storage pointer of the vault in net credit
@@ -666,8 +685,14 @@ contract CreditDelegationBranch is EngineAccessControl {
 
         // deposits the USDC to the vault in net credit
         inCreditVault.depositedUsdc += depositAmountUsdc.toUint128();
+        // increase the vault's share of the markets realized debt as it has received the USDC and needs to settle it
+        // in the future
+        inCreditVault.marketsRealizedDebtUsd += depositAmountUsdX18.intoUint256().toInt256().toInt128();
+
         // withdraws the USDC from the vault in net debt
         inDebtVault.depositedUsdc -= depositAmountUsdc.toUint128();
+        // decrease the vault's share of the markets realized debt as it has transferred USDC to the in credit vault
+        inDebtVault.marketsRealizedDebtUsd -= depositAmountUsdX18.intoUint256().toInt256().toInt128();
 
         // emit an event
         emit LogRebalanceVaultsAssets(vaultsIds[0], vaultsIds[1], depositAmountUsdX18.intoUint256());

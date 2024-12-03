@@ -34,7 +34,9 @@ library UsdTokenSwapConfig {
     /// amount.
     /// @param maxExecutionTime The maximum allowed time, in seconds, to execute a swap after it has been requested.
     /// @param usdcAvailableForEngine The amount of USDC backing an engine's usd token, coming from vaults that had
-    /// their debt settled, allocating the usdc acquired to users of that engine.
+    /// their debt settled, allocating the usdc acquired to users of that engine. Note: usdc stored here isn't owned
+    // by any vault, it's where usdc from settled vaults is stored, to be used for swaps, although swaps can
+    // also be done using a vault's deposited usdc.
     /// @param swapRequestIdCounter A counter for tracking the number of swap requests per user address.
     /// @param swapRequests A mapping that tracks all swap requests for each user, by user address and swap request
     /// id.
