@@ -8,6 +8,10 @@ WithdrawMargin_Integration_Test
         ├── when the amount is zero
         │   └── it should revert
         └── when the amount is not zero
+            ├── given the user has pending market order
+            │   └── it should revert
+            ├── given the user has active market order
+            │   └── it should revert
             ├── given there isn't enough margin collateral
             │   └── it should revert
             └── given there is enough margin collateral
