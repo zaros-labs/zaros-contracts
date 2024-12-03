@@ -14,7 +14,7 @@ library LiveMarkets {
         EnumerableSet.UintSet liveMarketIds;
     }
 
-    /// @notice Loads a {UsdTokenSwap}.
+    /// @notice Loads a {UsdTokenSwapConfig}.
     /// @return swap The loaded swap data storage pointer.
     function load() internal pure returns (Data storage swap) {
         bytes32 slot = keccak256(abi.encode(MARKET_FEE_LOCATION));

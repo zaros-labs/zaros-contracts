@@ -451,7 +451,11 @@ contract CreditDelegationBranch is EngineAccessControl {
 
                 // get swap amount
                 ctx.swapAmount = calculateSwapAmount(
-                    dexSwapStrategy.dexAdapter, ctx.vaultAsset, ctx.usdc, ctx.vaultUnsettledRealizedDebtUsdX18, ctx.usdc
+                    dexSwapStrategy.dexAdapter,
+                    ctx.vaultAsset,
+                    ctx.usdc,
+                    ctx.vaultUnsettledRealizedDebtUsdX18,
+                    ctx.usdc
                 );
 
                 // uint256 -> UD60x18
@@ -467,6 +471,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 );
 
                 // use the usdcOut to update the vault's state
+                // todo: subtract unsettled realized debt, increase the engine's usd token usdc backing
                 vault.depositedUsdc +=
                     Collateral.load(ctx.usdc).convertTokenAmountToUd60x18(ctx.usdcOut).intoUint256().toUint128();
 
@@ -488,7 +493,11 @@ contract CreditDelegationBranch is EngineAccessControl {
 
                 // get swap amount
                 ctx.usdcIn = calculateSwapAmount(
-                    dexSwapStrategy.dexAdapter, ctx.usdc, ctx.vaultAsset, ctx.vaultUnsettledRealizedDebtUsdX18, ctx.usdc
+                    dexSwapStrategy.dexAdapter,
+                    ctx.usdc,
+                    ctx.vaultAsset,
+                    ctx.vaultUnsettledRealizedDebtUsdX18,
+                    ctx.usdc
                 );
 
                 // get deposited USDC balance of the vault
@@ -511,6 +520,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 );
 
                 // subtract the amount of usdc sold from the vault's deposited usdc balance
+                // todo: increase unsettled realized debt, deduct the engine's usd token usdc backing
                 vault.depositedUsdc -=
                     Collateral.load(ctx.usdc).convertTokenAmountToUd60x18(ctx.usdcIn).intoUint256().toUint128();
 
@@ -524,7 +534,12 @@ contract CreditDelegationBranch is EngineAccessControl {
 
             // emit an event per vault settled
             emit LogSettleVaultDebt(
-                vaultsIds[i].toUint128(), ctx.assetIn, ctx.assetInAmount, ctx.assetOut, ctx.assetOutAmount, ctx.settledDebt
+                vaultsIds[i].toUint128(),
+                ctx.assetIn,
+                ctx.assetInAmount,
+                ctx.assetOut,
+                ctx.assetOutAmount,
+                ctx.settledDebt
             );
         }
     }

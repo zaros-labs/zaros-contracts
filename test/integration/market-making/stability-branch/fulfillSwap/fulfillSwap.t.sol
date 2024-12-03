@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
-import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -80,7 +80,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
     {
         uint128 maxExecutionEndTime = 100;
         changePrank({ msgSender: users.owner.account });
-        marketMakingEngine.configureUsdTokenSwap(1, 30, maxExecutionEndTime);
+        marketMakingEngine.configureUsdTokenSwapConfig(1, 30, maxExecutionEndTime);
         changePrank({ msgSender: users.naruto.account });
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -98,7 +98,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         bytes memory priceData = getMockedSignedReport(fuzzVaultConfig.streamId, 1e10);
         address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
-        UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, 1);
+        UsdTokenSwapConfig.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, 1);
 
         // Fast forward time so request expires
         skip(maxExecutionEndTime + 1);
@@ -129,7 +129,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: users.owner.account });
         uint128 bpsFee = 30;
-        marketMakingEngine.configureUsdTokenSwap(1, bpsFee, type(uint96).max);
+        marketMakingEngine.configureUsdTokenSwapConfig(1, bpsFee, type(uint96).max);
         changePrank({ msgSender: users.naruto.account });
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -175,7 +175,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         whenSwapRequestNotExpired
     {
         changePrank({ msgSender: users.owner.account });
-        marketMakingEngine.configureUsdTokenSwap(1, 30, type(uint96).max);
+        marketMakingEngine.configureUsdTokenSwapConfig(1, 30, type(uint96).max);
         changePrank({ msgSender: users.naruto.account });
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -194,7 +194,8 @@ contract FulfillSwap_Integration_Test is Base_Test {
         address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
         uint128 requestId = 1;
-        UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
+        UsdTokenSwapConfig.SwapRequest memory request =
+            marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
 
         UD60x18 amountOut = marketMakingEngine.getAmountOfAssetOut(ud60x18(swapAmount), ud60x18(1e10));
 

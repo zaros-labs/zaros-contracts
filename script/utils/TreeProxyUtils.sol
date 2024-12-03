@@ -462,14 +462,16 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigBranchSelectors[15] =
         MarketMakingEngineConfigurationBranch.updateStabilityConfiguration.selector;
     marketMakingEngineConfigBranchSelectors[16] = MarketMakingEngineConfigurationBranch.getCollateralData.selector;
-    marketMakingEngineConfigBranchSelectors[17] = MarketMakingEngineConfigurationBranch.configureUsdTokenSwap.selector;
+    marketMakingEngineConfigBranchSelectors[17] =
+        MarketMakingEngineConfigurationBranch.configureUsdTokenSwapConfig.selector;
     marketMakingEngineConfigBranchSelectors[18] = MarketMakingEngineConfigurationBranch.unpauseMarket.selector;
     marketMakingEngineConfigBranchSelectors[19] = MarketMakingEngineConfigurationBranch.pauseMarket.selector;
     marketMakingEngineConfigBranchSelectors[20] = MarketMakingEngineConfigurationBranch.getLiveMarketIds.selector;
     marketMakingEngineConfigBranchSelectors[21] =
         MarketMakingEngineConfigurationBranch.configureAssetCustomSwapPath.selector;
     marketMakingEngineConfigBranchSelectors[22] = MarketMakingEngineConfigurationBranch.getAssetSwapPath.selector;
-    marketMakingEngineConfigBranchSelectors[23] = MarketMakingEngineConfigurationBranch.getUsdTokenSwapFees.selector;
+    marketMakingEngineConfigBranchSelectors[23] =
+        MarketMakingEngineConfigurationBranch.getUsdTokenSwapConfigFees.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](8);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;

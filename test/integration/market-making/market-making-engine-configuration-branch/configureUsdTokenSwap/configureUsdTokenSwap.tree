@@ -1,4 +1,4 @@
-MarketMakingEngineConfigurationBranch_ConfigureUsdTokenSwap_Integration_Test
+MarketMakingEngineConfigurationBranch_ConfigureUsdTokenSwapConfig_Integration_Test
 ├── given the sender is not the owner
 │   └── it should revert
 └── given the sender is the owner

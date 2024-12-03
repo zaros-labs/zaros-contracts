@@ -9,7 +9,7 @@ import { Math } from "@zaros/utils/Math.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
-import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 import { StabilityConfiguration } from "@zaros/market-making/leaves/StabilityConfiguration.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 
@@ -27,7 +27,7 @@ contract StabilityBranch is EngineAccessControl {
     using SafeCast for uint256;
     using SafeCast for uint120;
     using StabilityConfiguration for StabilityConfiguration.Data;
-    using UsdTokenSwap for UsdTokenSwap.Data;
+    using UsdTokenSwapConfig for UsdTokenSwapConfig.Data;
 
     /// @notice Emitted to trigger the Chainlink Log based upkeep
     event LogInitiateSwap(
@@ -78,9 +78,9 @@ contract StabilityBranch is EngineAccessControl {
     )
         external
         view
-        returns (UsdTokenSwap.SwapRequest memory request)
+        returns (UsdTokenSwapConfig.SwapRequest memory request)
     {
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+        UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
 
         request = tokenSwapData.swapRequests[caller][requestId];
     }
@@ -118,7 +118,7 @@ contract StabilityBranch is EngineAccessControl {
         returns (UD60x18 baseFeeX18, UD60x18 swapFeeX18)
     {
         // load swap data
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+        UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
 
         // convert the base fee in usd to the asset amount to be charged
         baseFeeX18 = ud60x18(tokenSwapData.baseFeeUsd).div(priceX18);
@@ -143,7 +143,7 @@ contract StabilityBranch is EngineAccessControl {
         returns (UD60x18 baseFeeUsdX18, UD60x18 swapFeeUsdX18)
     {
         // load swap data
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+        UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
 
         // returns the base fee in UD60x18
         baseFeeUsdX18 = ud60x18(tokenSwapData.baseFeeUsd);
@@ -199,7 +199,7 @@ contract StabilityBranch is EngineAccessControl {
         MarketMakingEngineConfiguration.Data storage configuration = MarketMakingEngineConfiguration.load();
 
         // load usd token swap data
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+        UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
 
         for (uint256 i; i < amountsIn.length; i++) {
             // if trying to create a swap request with a different collateral asset, we must revert
@@ -216,7 +216,7 @@ contract StabilityBranch is EngineAccessControl {
             ctx.requestId = tokenSwapData.nextId(msg.sender);
 
             // load swap request
-            UsdTokenSwap.SwapRequest storage swapRequest = tokenSwapData.swapRequests[msg.sender][ctx.requestId];
+            UsdTokenSwapConfig.SwapRequest storage swapRequest = tokenSwapData.swapRequests[msg.sender][ctx.requestId];
 
             // Set swap request parameters
             swapRequest.minAmountOut = minAmountsOut[i];
@@ -270,7 +270,7 @@ contract StabilityBranch is EngineAccessControl {
         onlyRegisteredSystemKeepers
     {
         // load request for user by id
-        UsdTokenSwap.SwapRequest storage request = UsdTokenSwap.load().swapRequests[user][requestId];
+        UsdTokenSwapConfig.SwapRequest storage request = UsdTokenSwapConfig.load().swapRequests[user][requestId];
 
         // revert if already processed
         if (request.processed) {
@@ -369,10 +369,10 @@ contract StabilityBranch is EngineAccessControl {
     /// @param requestId The unique ID of the swap request to be refunded.
     function refundSwap(uint128 requestId, address engine) external {
         // load swap data
-        UsdTokenSwap.Data storage tokenSwapData = UsdTokenSwap.load();
+        UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
 
         // load swap request
-        UsdTokenSwap.SwapRequest storage request = tokenSwapData.swapRequests[msg.sender][requestId];
+        UsdTokenSwapConfig.SwapRequest storage request = tokenSwapData.swapRequests[msg.sender][requestId];
 
         // if request already procesed revert
         if (request.processed) {

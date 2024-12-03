@@ -207,7 +207,9 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.ActiveMarketOrder.selector, tradingAccountId, fuzzMarketConfig.marketId, sizeDelta, block.timestamp)
+            revertData: abi.encodeWithSelector(
+                Errors.ActiveMarketOrder.selector, tradingAccountId, fuzzMarketConfig.marketId, sizeDelta, block.timestamp
+            )
         });
 
         perpsEngine.withdrawMargin(tradingAccountId, address(usdc), amountToWithdraw);
