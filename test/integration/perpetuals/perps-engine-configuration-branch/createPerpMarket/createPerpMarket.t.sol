@@ -443,9 +443,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    function testFuzz_WhenMaxFundingVelocityIsNotZero(
-        uint128 marketId
-    )
+    function testFuzz_WhenMaxFundingVelocityIsNotZero(uint128 marketId)
         external
         whenMarketIdIsNotZero
         whenLengthOfNameIsNotZero

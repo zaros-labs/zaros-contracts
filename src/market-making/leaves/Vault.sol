@@ -16,12 +16,12 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
 /// @dev NOTE: each market's realized debt must always be distributed as unsettledRealizedDebt to vaults following the
 /// Debt Distribution System.
-/// @dev Vault's debt for asset settlement purposes = unsettledRealizedDebtUsd
-/// @dev Vault's debt for credit delegation and ADL purposes = marketsUnrealizedDebtUsd + unsettledRealizedDebtUsd
+/// @dev Vault's debt for asset settlement purposes = marketsRealizedDebtUsd
+/// @dev Vault's debt for credit delegation and ADL purposes = marketsUnrealizedDebtUsd + marketsRealizedDebtUsd
 /// todo: assert that when configuring the connected markets ids that they all belong to the same engine.
 library Vault {
     using Collateral for Collateral.Data;
@@ -72,7 +72,8 @@ library Vault {
     /// @param lockedCreditRatio The configured ratio that determines how much of the vault's total assets can't be
     /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
     /// @param marketsUnrealizedDebtUsd The total amount of unrealized debt coming from markets in USD.
-    /// @param unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
+    /// @param marketsRealizedDebtUsd The total amount of realized debt coming from markets in USD. This value
+    /// represents the net delta of a market's credit deposits and its net usd token issuance.
     /// @param depositedUsdc The total amount of USDC deposits coming from markets or other vaults to this vault,
     /// takes part of the unsettled realized debt value.
     /// @param indexToken The index token address.
@@ -92,7 +93,7 @@ library Vault {
         uint128 withdrawalDelay;
         uint128 lockedCreditRatio;
         int128 marketsUnrealizedDebtUsd;
-        int128 unsettledRealizedDebtUsd;
+        int128 marketsRealizedDebtUsd;
         uint128 depositedUsdc;
         address indexToken;
         address engine;
@@ -205,6 +206,9 @@ library Vault {
     /// @dev Note that only the vault's share of the markets' realized debt is taken into consideration for debt /
     /// credit settlements. Unrealized debt isn't taken into account for this purpose until realized by the markets,
     /// but it affects the vault's credit capacity and the conversion rate between index and underlying tokens.
+    /// @dev USDC deposits are considered a net credit taking part of the unsettled realized debt, as they're used to
+    /// back usd tokens and deducted during debt settlements. This is why we unary minus the deposited USDC value to
+    /// calculate the vault's total unsettled debt.
     /// @param self The vault storage pointer.
     /// @return unsettledRealizedDebtUsdX18 The vault's total unsettled debt in USD.
     function getUnsettledRealizedDebt(Data storage self)
@@ -213,7 +217,7 @@ library Vault {
         returns (SD59x18 unsettledRealizedDebtUsdX18)
     {
         unsettledRealizedDebtUsdX18 =
-            sd59x18(self.unsettledRealizedDebtUsd).add(ud60x18(self.depositedUsdc).intoSD59x18());
+            sd59x18(self.marketsRealizedDebtUsd).add(unary(ud60x18(self.depositedUsdc).intoSD59x18()));
     }
 
     struct RecalculateConnectedMarketsState_Context {
@@ -361,8 +365,8 @@ library Vault {
             ) = recalculateConnectedMarketsState(self, connectedMarketsIdsCache, true);
 
             // updates the vault's stored unsettled realized debt distributed from markets
-            self.unsettledRealizedDebtUsd =
-                sd59x18(self.unsettledRealizedDebtUsd).add(vaultTotalRealizedDebtChangeUsdX18).intoInt256().toInt128();
+            self.marketsRealizedDebtUsd =
+                sd59x18(self.marketsRealizedDebtUsd).add(vaultTotalRealizedDebtChangeUsdX18).intoInt256().toInt128();
 
             // updates the vault's stored unrealized debt distributed from markets
             self.marketsUnrealizedDebtUsd = sd59x18(self.marketsUnrealizedDebtUsd).add(

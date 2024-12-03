@@ -7,7 +7,7 @@ import { IStreamsLookupCompatible } from "@zaros/external/chainlink/interfaces/I
 import { BaseKeeper } from "../BaseKeeper.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
-import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 
 contract UsdTokenSwapKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKeeper {
     /// @notice ERC7201 storage location.
@@ -93,7 +93,7 @@ contract UsdTokenSwapKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKee
         UsdTokenSwapKeeperStorage storage self = _getUsdTokenSwapKeeperStorage();
 
         // load requiest for user by id
-        UsdTokenSwap.SwapRequest memory request =
+        UsdTokenSwapConfig.SwapRequest memory request =
             IMarketMakingEngine(self.marketMakingEngine).getSwapRequest(caller, requestId);
 
         // if request dealine expired revert

@@ -444,6 +444,10 @@ library Market {
         // add the usdc acquired to the accumulated usdc credit variable
         self.usdcCreditPerVaultShare =
             ud60x18(self.usdcCreditPerVaultShare).add(addedUsdcPerCreditShareX18).intoUint128();
+        // deduct the amount of usdc credit from the realized debt per vault share, so we don't double count it
+        self.realizedDebtUsdPerVaultShare = sd59x18(self.realizedDebtUsdPerVaultShare).sub(
+            addedUsdcPerCreditShareX18.intoSD59x18()
+        ).intoInt256().toInt128();
     }
 
     /// @notice Updates the net amount of usd tokens minted and burned by this market.
