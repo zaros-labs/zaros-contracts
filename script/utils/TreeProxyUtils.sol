@@ -435,7 +435,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](27);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](26);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -470,10 +470,9 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.configureAssetCustomSwapPath.selector;
     marketMakingEngineConfigBranchSelectors[22] = MarketMakingEngineConfigurationBranch.getAssetSwapPath.selector;
     marketMakingEngineConfigBranchSelectors[23] = MarketMakingEngineConfigurationBranch.getUsdTokenSwapFees.selector;
-    marketMakingEngineConfigBranchSelectors[24] = MarketMakingEngineConfigurationBranch.configureDepositFee.selector;
-    marketMakingEngineConfigBranchSelectors[25] = MarketMakingEngineConfigurationBranch.configureredeemFee.selector;
-    marketMakingEngineConfigBranchSelectors[26] =
-        MarketMakingEngineConfigurationBranch.configureVaultDepositAndredeemFeeRecipient.selector;
+    marketMakingEngineConfigBranchSelectors[24] = MarketMakingEngineConfigurationBranch.configureDepositAndRedeemFees.selector;
+    marketMakingEngineConfigBranchSelectors[25] =
+        MarketMakingEngineConfigurationBranch.configureVaultDepositAndRedeemFeeRecipient.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](9);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;

@@ -35,7 +35,7 @@ library MarketMakingEngineConfiguration {
         address referralModule;
         uint128 settlementBaseFeeUsdX18;
         uint128 totalFeeRecipientsShares;
-        address vaultDepositAndredeemFeeRecipient;
+        address vaultDepositAndRedeemFeeRecipient;
         EnumerableMap.AddressToUintMap protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
