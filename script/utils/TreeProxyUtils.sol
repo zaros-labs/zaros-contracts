@@ -27,6 +27,7 @@ import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBran
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 import { VaultHarness } from "test/harnesses/market-making/leaves/VaultHarness.sol";
 import { WithdrawalRequestHarness } from "test/harnesses/market-making/leaves/WithdrawalRequestHarness.sol";
+import { CreditDelegationBranch } from "@zaros/market-making/branches/CreditDelegationBranch.sol";
 import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 import { CollateralHarness } from "test/harnesses/market-making/leaves/CollateralHarness.sol";
 import { DistributionHarness } from "test/harnesses/market-making/leaves/DistributionHarness.sol";
@@ -396,10 +397,13 @@ function getPerpsEngineHarnessesSelectors() pure returns (bytes4[][] memory) {
 // Market Making Engine
 
 function deployMarketMakingEngineBranches() returns (address[] memory) {
-    address[] memory branches = new address[](5);
+    address[] memory branches = new address[](6);
 
     address upgradeBranch = address(new UpgradeBranch());
     console.log("UpgradeBranch: ", upgradeBranch);
+
+    address creditDelegationBranch = address(new CreditDelegationBranch());
+    console.log("CreditDelegationBranch: ", creditDelegationBranch);
 
     address marketMakingEnginConfigBranch = address(new MarketMakingEngineConfigurationBranch());
     console.log("MarketMakingEnginConfigBranch: ", marketMakingEnginConfigBranch);
@@ -418,12 +422,13 @@ function deployMarketMakingEngineBranches() returns (address[] memory) {
     branches[2] = vaultRouterBranch;
     branches[3] = feeDistributionBranch;
     branches[4] = stabillityBranch;
+    branches[5] = creditDelegationBranch;
 
     return branches;
 }
 
 function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
-    bytes4[][] memory selectors = new bytes4[][](5);
+    bytes4[][] memory selectors = new bytes4[][](6);
 
     bytes4[] memory upgradeBranchSelectors = new bytes4[](2);
 
@@ -496,11 +501,24 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     stabilityBranchSelectors[5] = StabilityBranch.fulfillSwap.selector;
     stabilityBranchSelectors[6] = StabilityBranch.refundSwap.selector;
 
+    bytes4[] memory creditDelegationBranchSelectors = new bytes4[](9);
+    creditDelegationBranchSelectors[0] = CreditDelegationBranch.getCreditCapacityForMarketId.selector;
+    creditDelegationBranchSelectors[1] = CreditDelegationBranch.getAdjustedProfitForMarketId.selector;
+    creditDelegationBranchSelectors[2] = CreditDelegationBranch.depositCreditForMarket.selector;
+    creditDelegationBranchSelectors[3] = CreditDelegationBranch.withdrawUsdTokenFromMarket.selector;
+    creditDelegationBranchSelectors[4] = CreditDelegationBranch.settleVaultsDebt.selector;
+    creditDelegationBranchSelectors[5] = CreditDelegationBranch.rebalanceVaultsAssets.selector;
+    creditDelegationBranchSelectors[6] = CreditDelegationBranch.updateMarketCreditDelegations.selector;
+    creditDelegationBranchSelectors[7] =
+        CreditDelegationBranch.updateMarketCreditDelegationsAndReturnCapacity.selector;
+    creditDelegationBranchSelectors[8] = CreditDelegationBranch.updateVaultCreditCapacity.selector;
+
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = marketMakingEngineConfigBranchSelectors;
     selectors[2] = vaultRouterBranchSelectors;
     selectors[3] = feeDistributionBranchSelectors;
     selectors[4] = stabilityBranchSelectors;
+    selectors[5] = creditDelegationBranchSelectors;
 
     return selectors;
 }

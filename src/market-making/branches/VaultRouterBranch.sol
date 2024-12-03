@@ -69,7 +69,8 @@ contract VaultRouterBranch {
     /// @return depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @return withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @return unsettledRealizedDebtUsd The total amount of unsettled debt in USD.
-    /// @return settledRealizedDebtUsd The total amount of settled debt in USD.
+    /// @return depositedUsdc The total amount of credit deposits from markets that have been converted and
+    /// distributed as USDC to vaults.
     /// @return indexToken The index token address.
     /// @return collateral The collateral asset data.
     function getVaultData(uint128 vaultId)
@@ -79,7 +80,7 @@ contract VaultRouterBranch {
             uint128 depositCap,
             uint128 withdrawalDelay,
             int128 unsettledRealizedDebtUsd,
-            int128 settledRealizedDebtUsd,
+            uint128 depositedUsdc,
             address indexToken,
             Collateral.Data memory collateral
         )
@@ -90,7 +91,7 @@ contract VaultRouterBranch {
         depositCap = vault.depositCap;
         withdrawalDelay = vault.withdrawalDelay;
         unsettledRealizedDebtUsd = vault.unsettledRealizedDebtUsd;
-        settledRealizedDebtUsd = vault.settledRealizedDebtUsd;
+        depositedUsdc = vault.depositedUsdc;
         indexToken = vault.indexToken;
         collateral = vault.collateral;
     }
@@ -113,7 +114,8 @@ contract VaultRouterBranch {
 
         // get the vault's total unsettled debt, taking into account both the markets' reported unrealized debt + the
         // realized, but still unsettled (i.e to be settled) debt
-        SD59x18 unsettledDebtUsdX18 = vault.getUnsettledDebt();
+        // todo: this needs to be the total debt
+        SD59x18 unsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
 
         // get decimal offset
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
@@ -122,7 +124,7 @@ contract VaultRouterBranch {
         UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
         // convert the unsettled debt value in USD to the equivalent amount of assets to be credited or debited
-        SD59x18 unsettledDebtInAssetsX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
+        SD59x18 unsettledDebtInAssetsX18 = unsettledRealizedDebtUsdX18.div(assetPriceX18.intoSD59x18());
 
         // subtract the unsettled debt from the total assets
         // NOTE: we add 1 to the total assets to avoid division by zero
@@ -161,7 +163,8 @@ contract VaultRouterBranch {
 
         // get the vault's total unsettled debt, taking into account both the markets' reported unrealized debt + the
         // realized, but still unsettled (i.e to be settled) debt
-        SD59x18 unsettledDebtUsdX18 = vault.getUnsettledDebt();
+        // todo: this needs to be the total debt
+        SD59x18 unsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
 
         // get decimal offset
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
@@ -170,7 +173,7 @@ contract VaultRouterBranch {
         UD60x18 assetPriceX18 = vault.collateral.getPrice();
 
         // convert the unsettled debt value in USD to the equivalent amount of assets to be credited or debited
-        SD59x18 unsettledDebtInAssetsX18 = unsettledDebtUsdX18.div(assetPriceX18.intoSD59x18());
+        SD59x18 unsettledDebtInAssetsX18 = unsettledRealizedDebtUsdX18.div(assetPriceX18.intoSD59x18());
 
         // subtract the unsettled debt from the total assets
         // NOTE: we add 1 to the total assets to avoid division by zero
@@ -273,7 +276,8 @@ contract VaultRouterBranch {
         bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
 
         // update actor shares of connected markets
-        vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, true);
+        // todo: rework unstake on a separate pr, we need to handle credit updates at deposit
+        // vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, true);
 
         // prepare the `Vault::recalculateVaultsCreditCapacity` call
         uint256[] memory vaultsIds = new uint256[](1);
@@ -317,6 +321,8 @@ contract VaultRouterBranch {
 
         // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
+
+        // todo: validate the vault.lockedCreditRatio invariant
 
         // increment withdrawal request counter and set withdrawal request id
         uint128 withdrawalRequestId = ++vault.withdrawalRequestIdCounter[msg.sender];
@@ -372,6 +378,8 @@ contract VaultRouterBranch {
         // updates the vault's credit capacity before redeeming
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
+        // todo: validate the vault.lockedCreditRatio invariant
+
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
         uint256 assets = IERC4626(vault.indexToken).redeem(withdrawalRequest.shares, msg.sender, address(this));
 
@@ -421,7 +429,8 @@ contract VaultRouterBranch {
         bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
 
         // update actor shares of connected markets
-        vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, false);
+        // todo: rework unstake on a separate pr, we need to handle credit updates at redeem
+        // vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, false);
 
         // transfer shares to user
         IERC20(vault.indexToken).safeTransfer(msg.sender, shares);

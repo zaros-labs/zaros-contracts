@@ -27,12 +27,15 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
+import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // TODO: add initializer at upgrade branch or auth branch
 contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
+    using DexSwapStrategy for DexSwapStrategy.Data;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
+    using SafeCast for uint256;
     using DexSwapStrategy for DexSwapStrategy.Data;
     using LiveMarkets for LiveMarkets.Data;
     using AssetSwapPath for AssetSwapPath.Data;
@@ -218,6 +221,27 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit event LogConfigureVaultConnectedMarkets
         emit LogConfigureVaultConnectedMarkets(vaultId, marketsIds);
+    }
+
+    /// @notice Updates the swap strategy for a specific vault.
+    /// @param vaultId The unique identifier of the vault.
+    /// @param assetDexSwapPath The encoded path for the asset swap on the DEX.
+    /// @param usdcDexSwapPath The encoded path for the USDC swap on the DEX.
+    /// @param assetDexSwapStrategyId The identifier for the asset DEX swap strategy.
+    /// @param usdcDexSwapStrategyId The identifier for the USDC DEX swap strategy.
+    function updateVaultSwapStrategy(
+        uint128 vaultId,
+        bytes memory assetDexSwapPath,
+        bytes memory usdcDexSwapPath,
+        uint128 assetDexSwapStrategyId,
+        uint128 usdcDexSwapStrategyId
+    )
+        external
+        onlyOwner
+    {
+        Vault.updateVaultSwapStrategy(
+            vaultId, assetDexSwapPath, usdcDexSwapPath, assetDexSwapStrategyId, usdcDexSwapStrategyId
+        );
     }
 
     /// @notice Configure system keeper on Market Making Engine
@@ -421,6 +445,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @dev Only owner can call this function
     /// @dev The share is in 1e18 precision, example: 0.5e18 (50%), the sum of all shares must not exceed 1e18 (100%),
     /// if pass it will revert.
+    /// @dev The protocol must never be configured with 100% of fees being sent to protocol fee recipients, otherwise
+    /// it's expected to produce weird behaviors.
     /// @param feeRecipient The address of the fee recipient.
     /// @param share The share of the fee recipient, example: 0.5e18 (50%).
     function configureFeeRecipient(address feeRecipient, uint256 share) external onlyOwner {
@@ -433,15 +459,22 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // check if share is greater than zero to verify the total will not exceed the maximum shares
         if (share > 0) {
-            UD60x18 totalFeeRecipientsSharesX18 = marketMakingEngineConfiguration.getTotalFeeRecipientsShares();
+            UD60x18 totalFeeRecipientsSharesX18 = ud60x18(marketMakingEngineConfiguration.totalFeeRecipientsShares);
 
-            if (totalFeeRecipientsSharesX18.add(ud60x18(share)).gt(ud60x18(Constants.MAX_SHARES))) {
-                revert Errors.FeeRecipientShareExceedsOne();
+            if (
+                totalFeeRecipientsSharesX18.add(ud60x18(share)).gt(
+                    ud60x18(Constants.MAX_CONFIGURABLE_PROTOCOL_FEE_SHARES)
+                )
+            ) {
+                revert Errors.FeeRecipientShareExceedsLimit();
             }
         }
 
         // update protocol fee recipient
         marketMakingEngineConfiguration.protocolFeeRecipients.set(feeRecipient, share);
+
+        // update protocol total fee recipients shares value
+        marketMakingEngineConfiguration.totalFeeRecipientsShares += share.toUint128();
 
         // emit event LogConfigureFeeRecipient
         emit LogConfigureFeeRecipient(feeRecipient, share);
@@ -496,7 +529,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         UsdTokenSwap.update(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
-
 
     /// @notice Returns the fees associated with the USD token swap.
     /// @return swapSettlementFeeBps The swap settlement fee in basis points.

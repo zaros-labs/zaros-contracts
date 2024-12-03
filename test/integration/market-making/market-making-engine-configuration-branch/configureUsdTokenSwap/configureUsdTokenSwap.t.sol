@@ -46,9 +46,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureUsdTokenSwap_Integration
         changePrank({ msgSender: users.owner.account });
 
         // it should revert
-        vm.expectRevert({
-            revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxExecutionTime")
-        });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxExecutionTime") });
 
         marketMakingEngine.configureUsdTokenSwap(baseFeeUsd, swapSettlementFeeBps, 0);
     }

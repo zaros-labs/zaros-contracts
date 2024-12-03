@@ -327,7 +327,7 @@ contract StabilityBranch is EngineAccessControl {
 
         // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
         // recipients' share.
-        ctx.protocolSwapFeeX18 = ctx.swapFeeX18.mul(marketMakingEngineConfiguration.getTotalFeeRecipientsShares());
+        ctx.protocolSwapFeeX18 = ctx.swapFeeX18.mul(ud60x18(marketMakingEngineConfiguration.totalFeeRecipientsShares));
         // the protocol reward amount is the sum of the base fee and the protocol's share of the swap fee
         ctx.protocolReward = collateral.convertUd60x18ToTokenAmount(ctx.baseFeeX18.add(ctx.protocolSwapFeeX18));
 
@@ -338,6 +338,8 @@ contract StabilityBranch is EngineAccessControl {
         ctx.usdToken.burn(request.amountIn);
 
         // transfer the required assets from the vault to the mm engine contract before distributions
+        // note: as the swap fee stays in the ZLP Vault, it is technically a net gain to share holders, i.e it is auto
+        // accumulated to the contract
         IERC20(ctx.asset).safeTransferFrom(vault.indexToken, address(this), ctx.amountOut + ctx.protocolReward);
 
         // distribute protocol reward value

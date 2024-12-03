@@ -2,11 +2,11 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { AssetToAmountMap } from "@zaros/utils/libraries/AssetToAmountMap.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
-import { CreditDeposit } from "@zaros/market-making/leaves/CreditDeposit.sol";
 import { Distribution } from "./Distribution.sol";
 import { LiveMarkets } from "@zaros/market-making/leaves/LiveMarkets.sol";
 
@@ -16,17 +16,13 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
-import { UD60x18, ud60x18, UNIT as UD60x18_UNIT } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18, UNIT as UD60x18_UNIT, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 /// @dev NOTE: unrealized debt (from market) -> realized debt (market) -> unsettled debt (vaults) -> settled
 /// debt (vaults)'
-/// todo: create and update functions
-// todo: next, review market's and vault's updated natspec and finish removing old flow functions to wrap up the new
-// flow.
 library Market {
     using Collateral for Collateral.Data;
-    using CreditDeposit for CreditDeposit.Data;
     using Distribution for Distribution.Data;
     using LiveMarkets for LiveMarkets.Data;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -49,44 +45,48 @@ library Market {
     /// the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleveragePowerScale An admin configurable exponent used to determine the acceleration of the
     /// ADL polynomial regression curve.
-    /// @param realizedDebtUsd Stores the market's latest realized debt value in USD, taking into account usd tokens
+    /// @param netUsdTokenIssuance The net value of usd tokens minted and burned by this market, mints add while burns
+    /// subtract from this variable.
     /// that have been directly minted or burned by the market's engine, and the net sum of all credit deposits.
-    /// @param lastRealizedDebtUpdateTime The last `block.timestamp` value where the `realizedDebtUsd` value has been
-    /// updated.
-    /// @param lastDistributedRealizedDebtUsd The last realized debt in USD distributed as unsettled debt to connected
-    /// vaults.
-    /// @param lastDistributedUnrealizedDebtUsd The last unrealized debt in USD distributed as `value` to the vaults
-    /// debt distribution.
-    /// @param vaultsWethReward The all time amount of weth rewards accumulated by the market, paid by its engine,
-    /// which are constantly distributed to vaults following the `vaultsDebtDistribution`.
-    /// @param pendingProtocolWethReward The amount of weth available to be sent to the protocol fee recipients, in 18
-    /// decimals.
-    /// @param engine The address of the market's connected engine, used to fetch the market's unrealized debt and
-    /// system validations.
-    /// @param depositedCollateralTypes Stores the set of addresses of collateral assets used for credit deposits to a
-    /// market.
+    /// @param creditDepositsValueCacheUsd The last USD value that accounts for the sum of all credit deposited by the
+    /// engine to this market in form of `n` assets.
+    /// @param lastCreditDepositsValueRehydration The last timestamp where `creditDepositsValueCacheUsd` has been
+    /// updated, avoids wasting gas.
+    /// @param realizedDebtUsdPerVaultShare The market's latest net realized debt per vault delegated credit (share)
+    /// in USD.
+    /// @param unrealizedDebtUsdPerVaultShare The market's latest net unrealized debt per vault delegated credit
+    /// (share) in USD.
+    /// NOTE: The next three variables use 18 decimals to account for USDC credit and WETH reward per share values.
+    /// @param usdcCreditPerVaultShare The amount of usdc credit accumulated by the market per vault delegated credit
+    /// (share), using assets deposited by its engine as credit which are at some point swapped for USDC.
+    /// @param wethRewardPerVaultShare The  amount of weth reward accumulated by the market per vault delegated credit
+    /// (share).
+    /// @param availableProtocolWethReward The amount of weth available to be sent to the protocol fee recipients.
+    /// @param totalDelegatedCreditUsd The total credit delegated by connected vaults in USD, using 18 decimals.
+    /// @param engine The address of the market's connected engine.
+    /// @param creditDeposits The map that stores the amount of collateral assets deposited in the market as credit.
+    /// @param receivedFees An enumerable map that stores the amount of fees received from the engine per asset,
+    /// available to be converted to weth.
     /// @param connectedVaults The list of vaults ids delegating credit to this market. Whenever there's an update,
     /// a new `EnumerableSet.UintSet` is created.
-    /// @param receivedMarketFees An enumerable map that stores the amount of fees received from the engine per asset,
-    /// available to be converted to weth.
-    /// @param vaultsDebtDistribution `actor`: Vaults, `shares`: USD denominated credit delegated,
-    /// `valuePerShare`: USD denominated market debt or credit per share.
     struct Data {
         uint128 id;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
         uint128 autoDeleveragePowerScale;
-        int128 realizedDebtUsd;
-        uint128 lastRealizedDebtUpdateTime;
-        int128 lastDistributedRealizedDebtUsd;
-        int128 lastDistributedUnrealizedDebtUsd;
-        uint128 vaultsWethReward;
-        uint128 pendingProtocolWethReward;
+        int128 netUsdTokenIssuance;
+        uint128 creditDepositsValueCacheUsd;
+        uint128 lastCreditDepositsValueRehydration;
+        int128 realizedDebtUsdPerVaultShare;
+        int128 unrealizedDebtUsdPerVaultShare;
+        uint128 usdcCreditPerVaultShare;
+        uint128 wethRewardPerVaultShare;
+        uint128 availableProtocolWethReward;
+        uint128 totalDelegatedCreditUsd;
         address engine;
-        EnumerableMap.AddressToUintMap receivedMarketFees;
-        EnumerableSet.AddressSet depositedCollateralTypes;
+        EnumerableMap.AddressToUintMap receivedFees;
+        EnumerableMap.AddressToUintMap creditDeposits;
         EnumerableSet.UintSet[] connectedVaults;
-        Distribution.Data vaultsDebtDistribution;
     }
 
     /// @notice Loads a {Market} namespace.
@@ -135,7 +135,7 @@ library Market {
     /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
-    /// marketDebtRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedDebtUsd) /
+    /// marketDebtRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedUsdTokenDebt) /
     /// Market::getCreditCapacityUsd
     /// @param self The market storage pointer.
     /// @param delegatedCreditUsdX18 The market's credit delegated by vaults in USD, used to determine the ADL state.
@@ -175,14 +175,10 @@ library Market {
         autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleveragePowerScaleX18);
     }
 
-    /// @notice Returns a memory array containing the vaults delegating credit to the market.
+    /// @notice Builds and returns a memory array containing the vaults delegating credit to the market.
     /// @param self The market storage pointer.
     /// @return connectedVaults The vaults ids delegating credit to the market.
     function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaults) {
-        if (self.connectedVaults.length == 0) {
-            return connectedVaults;
-        }
-
         connectedVaults = self.connectedVaults[self.connectedVaults.length].values();
     }
 
@@ -209,67 +205,48 @@ library Market {
         view
         returns (UD60x18 totalDelegatedCreditUsdX18)
     {
-        // the market's total delegated credit equals the total shares of the vaults debt distribution, as 1 share
-        // equals 1 USD of vault-delegated credit
-        totalDelegatedCreditUsdX18 = ud60x18(self.vaultsDebtDistribution.totalShares);
+        totalDelegatedCreditUsdX18 = ud60x18(self.totalDelegatedCreditUsd);
     }
 
-    // todo: see if this function will be actually needed
-    function getInRangeVaultsIds(Data storage self) internal returns (uint128[] memory inRangeVaultsIds) { }
-
-    /// @notice Returns the market's realized debt in USD.
-    /// @dev `updateRealizedDebt` uses this method to update the stored value and the last update timestamp.
+    /// @notice Loops over each credit deposit made by the market's engine and calculates the net usd value of all
+    /// underlying assets summed.
     /// @param self The market storage pointer.
-    /// @return realizedDebtUsdX18 The market's total realized debt in USD.
-    function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) {
-        // if the realized debt is up to date, return the stored value
-        if (block.timestamp <= self.lastRealizedDebtUpdateTime) {
-            return sd59x18(self.realizedDebtUsd);
-        }
-        // otherwise, we'll need to recalculate the realized debt value
+    /// @return creditDepositsValueUsdX18 The 18 decimals, USD value of all credit deposits summed.
+    function getCreditDepositsValueUsd(Data storage self) internal view returns (UD60x18 creditDepositsValueUsdX18) {
+        // load the map of credit deposits' pointer
+        EnumerableMap.AddressToUintMap storage creditDeposits = self.creditDeposits;
 
-        // load the deposited collateral types address set storage pointer
-        EnumerableSet.AddressSet storage depositedCollateralTypes = self.depositedCollateralTypes;
-
-        for (uint256 i; i < depositedCollateralTypes.length(); i++) {
-            address collateralType = depositedCollateralTypes.at(i);
+        for (uint256 i; i < creditDeposits.length(); i++) {
+            // load the credit deposit data
+            (address asset, uint256 value) = creditDeposits.at(i);
             // load the configured collateral type storage pointer
-            Collateral.Data storage collateral = Collateral.load(collateralType);
-            // load the credit deposit storage pointer
-            CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.id, collateralType);
+            Collateral.Data storage collateral = Collateral.load(asset);
 
-            // add the credit deposit usd value to the realized debt return value
-            realizedDebtUsdX18 = realizedDebtUsdX18.add(
-                (collateral.getAdjustedPrice().mul(ud60x18(creditDeposit.value))).intoSD59x18()
-            );
+            // update the total credit deposits value
+            creditDepositsValueUsdX18 =
+                creditDepositsValueUsdX18.add((collateral.getAdjustedPrice().mul(ud60x18(value))));
         }
-
-        // finally after looping over the credit deposits, add the realized usdToken debt to the realized debt to be
-        // returned
-        realizedDebtUsdX18 = realizedDebtUsdX18.add(sd59x18(self.realizedDebtUsd));
     }
 
-    /// @notice Returns the credit delegated by a vault to the market in USD.
-    /// @dev A vault's usd credit delegated to the market is represented by its shares in the
-    /// `Market.Data.vaultsDebtDistribution`.
+    /// @notice Returns the market's net realized debt in USD.
     /// @param self The market storage pointer.
-    /// @param vaultId The id of the vault to get the delegated credit from.
-    /// @return vaultDelegatedCreditUsdX18 The vault's delegated credit in USD.
-    function getVaultDelegatedCreditUsd(
-        Data storage self,
-        uint128 vaultId
-    )
-        internal
-        view
-        returns (UD60x18 vaultDelegatedCreditUsdX18)
-    {
-        // loads the vaults unrealized debt distribution storage pointer
-        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
-        // uint128 -> bytes32
-        bytes32 actorId = bytes32(uint256(vaultId));
+    /// @return realizedDebtUsdX18 The market's net realized debt in USD as SD59x18.
+    function getRealizedDebtUsd(Data storage self) internal view returns (SD59x18 realizedDebtUsdX18) {
+        // prepare the credit deposits usd value variable;
+        UD60x18 creditDepositsValueUsdX18;
 
-        // gets the vault's delegated credit in USD as its distribution shares
-        vaultDelegatedCreditUsdX18 = vaultsDebtDistribution.getActorShares(actorId);
+        // if the credit deposits usd value cache is up to date, return the stored value
+        if (block.timestamp <= self.lastCreditDepositsValueRehydration) {
+            creditDepositsValueUsdX18 = ud60x18(self.creditDepositsValueCacheUsd);
+        } else {
+            // otherwise, we'll need to loop over credit deposits to calculate it
+            creditDepositsValueUsdX18 = getCreditDepositsValueUsd(self);
+        }
+
+        // finally after determining the market's latest credit deposits usd value, sum it with the stored net usd
+        // token issuance to return the net realized debt usd value
+        realizedDebtUsdX18 =
+            realizedDebtUsdX18.add(creditDepositsValueUsdX18.intoSD59x18()).add(sd59x18(self.netUsdTokenIssuance));
     }
 
     /// @notice Returns the market's total unrealized debt in USD.
@@ -279,6 +256,62 @@ library Market {
     /// @return unrealizedDebtUsdX18 The market's total unrealized debt in USD.
     function getUnrealizedDebtUsd(Data storage self) internal view returns (SD59x18 unrealizedDebtUsdX18) {
         unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.id));
+    }
+
+    /// @notice Calculates the latest debt, usdc credit and weth reward values a vault is entitled to receive from the
+    /// market since its last accumulation event.
+    /// @param self The market storage pointer.
+    /// @param vaultDelegatedCreditUsdX18 The vault's delegated credit in USD.
+    /// @param lastVaultDistributedRealizedDebtUsdPerShareX18 The vault's last distributed realized debt per credit
+    /// share.
+    /// @param lastVaultDistributedUnrealizedDebtUsdPerShareX18 The vault's last distributed unrealized debt per
+    /// credit share.
+    /// @param lastVaultDistributedUsdcCreditPerShareX18 The vault's last distributed USDC credit per credit share.
+    /// @param lastVaultDistributedWethRewardPerShareX18 The vault's last distributed WETH reward per credit share.
+    function getVaultAccumulatedValues(
+        Data storage self,
+        UD60x18 vaultDelegatedCreditUsdX18,
+        SD59x18 lastVaultDistributedRealizedDebtUsdPerShareX18,
+        SD59x18 lastVaultDistributedUnrealizedDebtUsdPerShareX18,
+        UD60x18 lastVaultDistributedUsdcCreditPerShareX18,
+        UD60x18 lastVaultDistributedWethRewardPerShareX18
+    )
+        internal
+        view
+        returns (
+            SD59x18 realizedDebtChangeUsdX18,
+            SD59x18 unrealizedDebtChangeUsdX18,
+            UD60x18 usdcCreditChangeX18,
+            UD60x18 wethRewardChangeX18
+        )
+    {
+        // calculate the vault's share of the total delegated credit, from 0 to 1
+        UD60x18 vaultCreditShareX18 = vaultDelegatedCreditUsdX18.div(getTotalDelegatedCreditUsd(self));
+
+        // calculate the vault's value changes since its last accumulation
+        // note: if the last distributed value is zero, we assume it's the first time the vault is accumulating
+        // values, thus, it needs to return zero changes
+
+        realizedDebtChangeUsdX18 = !lastVaultDistributedRealizedDebtUsdPerShareX18.isZero()
+            ? sd59x18(self.realizedDebtUsdPerVaultShare).sub(lastVaultDistributedRealizedDebtUsdPerShareX18).mul(
+                vaultCreditShareX18.intoSD59x18()
+            )
+            : SD59x18_ZERO;
+        unrealizedDebtChangeUsdX18 = !lastVaultDistributedUnrealizedDebtUsdPerShareX18.isZero()
+            ? sd59x18(self.unrealizedDebtUsdPerVaultShare).sub(lastVaultDistributedUnrealizedDebtUsdPerShareX18).mul(
+                vaultCreditShareX18.intoSD59x18()
+            )
+            : SD59x18_ZERO;
+        usdcCreditChangeX18 = !lastVaultDistributedUsdcCreditPerShareX18.isZero()
+            ? ud60x18(self.usdcCreditPerVaultShare).sub(lastVaultDistributedUsdcCreditPerShareX18).mul(
+                vaultCreditShareX18
+            )
+            : UD60x18_ZERO;
+        wethRewardChangeX18 = !lastVaultDistributedWethRewardPerShareX18.isZero()
+            ? ud60x18(self.wethRewardPerVaultShare).sub(lastVaultDistributedWethRewardPerShareX18).mul(
+                vaultCreditShareX18
+            )
+            : UD60x18_ZERO;
     }
 
     /// @notice Returns whether the market has reached the auto deleverage start threshold, i.e, if the ADL system
@@ -308,11 +341,12 @@ library Market {
         return marketDebtRatio.gte(autoDeleverageStartThresholdX18);
     }
 
-    /// @notice Returns whether the market's realized debt value is outdated or not.
-    /// @dev Functions that require the updated market realized debt value must use this method to understand whether
-    /// they should call `getRealizedDebtUsd`, which is an expensive operation, o
-    function isRealizedDebtUpdateRequired(Data storage self) internal view returns (bool) {
-        return block.timestamp > self.lastRealizedDebtUpdateTime;
+    /// @notice Returns whether the market's credit deposits value cache needs to be rehydrated.
+    /// @dev Caching the credit deposits value will save gas in some cases by avoiding looping multiple times over the
+    /// credit deposits map, as assets backing those deposits are volatile.
+    /// @dev It's assumed that assets' oracle prices are always equal in a same `block.timestamp`.
+    function shouldRehydrateCreditDepositsValueCache(Data storage self) internal view returns (bool) {
+        return block.timestamp > self.lastCreditDepositsValueRehydration;
     }
 
     /// @notice Updates the market's configuration parameters.
@@ -347,28 +381,30 @@ library Market {
         }
     }
 
-    /// @notice Deposits collateral to the market as credit.
+    /// @notice Deposits assets to the market as additional credit.
     /// @dev This function assumes the collateral type address is configured in the protocol and has been previously
     /// verified.
     /// @param self The market storage pointer.
-    /// @param collateralType The address of the collateral type to deposit.
-    /// @param amountX18 The amount of collateral to deposit in the market in 18 decimals.
-    function depositCollateral(Data storage self, address collateralType, UD60x18 amountX18) internal {
-        EnumerableSet.AddressSet storage depositedCollateralTypes = self.depositedCollateralTypes;
+    /// @param asset The address of the collateral type being deposited.
+    /// @param amountX18 The amount of assets to deposit in the market in 18 decimals.
+    function depositCredit(Data storage self, address asset, UD60x18 amountX18) internal {
+        AssetToAmountMap.update(self.creditDeposits, asset, amountX18, true);
+    }
 
-        // adds the collateral type address to the address set if it's not already there
-        // NOTE: we don't need to check with `EnumerableSet::contains` as the following function already performs this
-        depositedCollateralTypes.add(collateralType);
-
-        // loads the credit deposit storage pointer
-        CreditDeposit.Data storage creditDeposit = CreditDeposit.load(self.id, collateralType);
-        // adds the amount of deposited collateral
-        creditDeposit.add(amountX18);
+    /// @notice Deposits assets to the market as additional received fees.
+    /// @dev This function assumes the collateral type address is configured in the protocol and has been previously
+    /// verified.
+    /// @param self The market storage pointer.
+    /// @param asset The address of the collateral type being deposited..
+    /// @param amountX18 The amount of assets to deposit in the market in 18 decimals.
+    function depositFee(Data storage self, address asset, UD60x18 amountX18) internal {
+        AssetToAmountMap.update(self.receivedFees, asset, amountX18, true);
     }
 
     /// @notice Distributes the market's unrealized and realized debt to the connected vaults.
-    /// @dev `Market::accumulateVaultDebtAndReward` must be called after this function to update the vault's owned
-    /// unrealized and realized credit or debt.
+    /// @dev `Market::getVaultAccumulatedValues` must be called after this function to return the vault's latest
+    /// rewards, debt and
+    /// credit values, so vaults can update their accounting state variables accordingly.
     /// @param self The market storage pointer.
     /// @param newUnrealizedDebtUsdX18 The latest unrealized debt in USD.
     /// @param newRealizedDebtUsdX18 The latest realized debt in USD.
@@ -379,162 +415,72 @@ library Market {
     )
         internal
     {
-        // int128 -> SD59x18
-        SD59x18 lastDistributedUnrealizedDebtUsdX18 = sd59x18(self.lastDistributedUnrealizedDebtUsd);
-        // int128 -> SD59x18
-        SD59x18 lastDistributedRealizedDebtUsdX18 = sd59x18(self.lastDistributedRealizedDebtUsd);
+        // cache the total vault's shares as SD59x18
+        SD59x18 totalVaultSharesX18 = ud60x18(self.totalDelegatedCreditUsd).intoSD59x18();
+
+        // if there is zero delegated credit and we're trying to distribute debt to vaults, we should revert and the
+        // market is considered to be in a panic state
+        if (totalVaultSharesX18.isZero()) {
+            revert Errors.NoDelegatedCredit(self.id);
+        }
 
         // update storage values
-        self.lastDistributedRealizedDebtUsd = newRealizedDebtUsdX18.intoInt256().toInt128();
-        self.lastDistributedUnrealizedDebtUsd = newUnrealizedDebtUsdX18.intoInt256().toInt128();
-
-        // loads the vaults unrealized and realized debt distributions storage pointers
-        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
-
-        // stores the return values representing the unrealized and realized debt fluctuations
-        SD59x18 unrealizedDebtChangeUsdX18 = newUnrealizedDebtUsdX18.sub(lastDistributedUnrealizedDebtUsdX18);
-        SD59x18 realizedDebtChangeUsdX18 = newRealizedDebtUsdX18.sub(lastDistributedRealizedDebtUsdX18);
-        SD59x18 totalDebtUsdX18 = unrealizedDebtChangeUsdX18.add(realizedDebtChangeUsdX18);
-
-        // distributes the unrealized and realized debt as value to each vaults debt distribution
-        // NOTE: Each vault will need to call `Distribution::accumulateActor` through
-        // `Market::accumulateVaultDebtAndReward`, and use the return values from that function to update its owned
-        // unrealized and realized debt storage values.
-
-        if (!ud60x18(vaultsDebtDistribution.totalShares).isZero()) {
-            vaultsDebtDistribution.distributeValue(totalDebtUsdX18);
-        }
+        self.realizedDebtUsdPerVaultShare = newRealizedDebtUsdX18.div(totalVaultSharesX18).intoInt256().toInt128();
+        self.unrealizedDebtUsdPerVaultShare = newUnrealizedDebtUsdX18.div(totalVaultSharesX18).intoInt256().toInt128();
     }
 
-    /// @notice Accumulates a vault's share of the market's unrealized and realized debt since the last distribution,
-    /// and calculates the vault's debt changes in USD.
+    /// @notice Updates the amount of usdc available to be distributed to vaults delegating credit to this market.
+    /// @dev This function must be called whenever a credit deposit asset is fully swapped for usdc.
     /// @param self The market storage pointer.
-    /// @param vaultId The vault id to accumulate the debt for.
-    /// @param lastVaultDistributedWethRewardX18 The last distributed WETH reward for the given credit delegation (by
-    /// the vault).
-    /// @param lastVaultDistributedUnrealizedDebtUsdX18 The last distributed unrealized debt in USD for the given
-    /// credit delegation (by the vault).
-    /// @param lastVaultDistributedRealizedDebtUsdX18 The last distributed realized debt in USD for the given credit
-    /// delegation (by the vault).
-    function accumulateVaultDebtAndReward(
-        Data storage self,
-        uint128 vaultId,
-        UD60x18 lastVaultDistributedWethRewardX18,
-        SD59x18 lastVaultDistributedUnrealizedDebtUsdX18,
-        SD59x18 lastVaultDistributedRealizedDebtUsdX18
-    )
+    /// @param settledAsset The credit deposit asset that has just been settled for usdc.
+    /// @param netUsdcReceivedX18 The net amount of usdc bought from onchain markets as UD60x18.
+    function settleCreditDeposit(Data storage self, address settledAsset, UD60x18 netUsdcReceivedX18) internal {
+        // removes the credit deposit asset that has just been settled for usdc
+        self.creditDeposits.remove(settledAsset);
+
+        // calculate the usdc that has been accumulated per usd of credit delegated to the market
+        UD60x18 addedUsdcPerCreditShareX18 = netUsdcReceivedX18.div(ud60x18(self.totalDelegatedCreditUsd));
+
+        // add the usdc acquired to the accumulated usdc credit variable
+        self.usdcCreditPerVaultShare =
+            ud60x18(self.usdcCreditPerVaultShare).add(addedUsdcPerCreditShareX18).intoUint128();
+    }
+
+    /// @notice Updates the net amount of usd tokens minted and burned by this market.
+    /// @param self The market storage pointer.
+    /// @param usdTokensIssued The amount of usd tokens being issued in the parent context.
+    function updateNetUsdTokenIssuance(Data storage self, SD59x18 usdTokensIssued) internal {
+        self.netUsdTokenIssuance = sd59x18(self.netUsdTokenIssuance).add(usdTokensIssued).intoInt256().toInt128();
+    }
+
+    /// @notice Updates the total credit value delegated by the market's connected vaults.
+    /// @param self The market storage pointer.
+    /// @param creditDeltaUsdX18 The credit value update that is happening in the parent context, to be applied to
+    /// the market.
+    function updateTotalDelegatedCredit(Data storage self, UD60x18 creditDeltaUsdX18) internal {
+        self.totalDelegatedCreditUsd = ud60x18(self.totalDelegatedCreditUsd).add(creditDeltaUsdX18).intoUint128();
+    }
+
+    /// @notice Rehydrates the credit deposits usd value cache and returns its latest value to the caller.
+    /// @param self The market storage pointer.
+    /// @return creditDepositsValueUsdX18 The market's credit deposits value in USD.
+    function rehydrateCreditDepositsValueCache(Data storage self)
         internal
-        returns (UD60x18 wethRewardChangeX18, SD59x18 unrealizedDebtChangeUsdX18, SD59x18 realizedDebtChangeUsdX18)
+        returns (UD60x18 creditDepositsValueUsdX18)
     {
-        // loads the vaults unrealized debt distribution storage pointer
-        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
-
-        if (!ud60x18(vaultsDebtDistribution.totalShares).isZero()) {
-            // uint128 -> bytes32
-            bytes32 actorId = bytes32(uint256(vaultId));
-            // calculate the given vault's ratio of the total delegated credit => actor shares / distribution total
-            // shares => then convert it to SD59x18
-            // NOTE: `div` rounds down by default, which would lead to a small loss to vaults in a
-            // credit state, but a small gain in a debt state. We assume this behavior to be negligible in the
-            // protocol's
-            // context since the diff is minimal and there are risk parameters ensuring debt settlement happens in a
-            // timely manner.
-            UD60x18 vaultCreditRatioX18 =
-                vaultsDebtDistribution.getActorShares(actorId).div(ud60x18(vaultsDebtDistribution.totalShares));
-
-            // accumulates the vault's share of the market's total weth reward since the last interaction
-            if (lastVaultDistributedWethRewardX18.isZero()) {
-                wethRewardChangeX18 = vaultCreditRatioX18.mul(ud60x18(self.vaultsWethReward));
-            } else {
-                wethRewardChangeX18 =
-                    vaultCreditRatioX18.mul(lastVaultDistributedWethRewardX18.sub(ud60x18(self.vaultsWethReward)));
-            }
-
-            // cache UD60x18 -> SD59x18 for gas savings
-            SD59x18 vaultCreditRatioSdX18 = vaultCreditRatioX18.intoSD59x18();
-
-            // accumulates the vault's share of the debt since the last distribution, ignoring the return value as
-            // it's
-            // not needed in this context
-            vaultsDebtDistribution.accumulateActor(actorId);
-            // multiplies the vault's credit ratio by the change of the market's unrealized debt since the last
-            // distribution to determine its share of the unrealized debt change
-            unrealizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
-                lastVaultDistributedUnrealizedDebtUsdX18.sub(sd59x18(self.lastDistributedUnrealizedDebtUsd))
-            );
-            // multiplies the vault's credit ratio by the change of the market's realized debt since the last
-            // distribution to determine its share of the realized debt change
-            realizedDebtChangeUsdX18 = vaultCreditRatioSdX18.mul(
-                lastVaultDistributedRealizedDebtUsdX18.sub(sd59x18(self.lastDistributedRealizedDebtUsd))
-            );
-        }
+        creditDepositsValueUsdX18 = getCreditDepositsValueUsd(self);
+        self.creditDepositsValueCacheUsd = creditDepositsValueUsdX18.intoUint128();
+        self.lastCreditDepositsValueRehydration = block.timestamp.toUint128();
     }
 
-    /// @notice Realizes the minted or burned usdToken debt updating the market's realized debt value.
+    /// @notice Updates the market's total credit value delegated by its connected vaults.
+    /// @dev This function must be called whenever a vault's credit delegation is updated.
     /// @param self The market storage pointer.
-    /// @param debtToRealizeUsdX18 The amount of debt to realize in USD.
-    function realizeUsdTokenDebt(Data storage self, SD59x18 debtToRealizeUsdX18) internal {
-        self.realizedDebtUsd = sd59x18(self.realizedDebtUsd).add(debtToRealizeUsdX18).intoInt256().toInt128();
-    }
-
-    /// @notice Updates the market's realized debt usd value by taking into account the market's credit deposits.
-    /// @dev If this function is called when a market doesn't need to update its realized debt, it will still work as
-    /// `getRealizedDebtUsd` will simply return the stored value, but we want to avoid this scenario to avoid wasting
-    /// gas.
-    /// @param self The market storage pointer.
-    /// @return marketRealizedDebtUsdX18 The market's total realized debt in USD.
-    function updateRealizedDebt(Data storage self) internal returns (SD59x18 marketRealizedDebtUsdX18) {
-        marketRealizedDebtUsdX18 = getRealizedDebtUsd(self);
-        self.realizedDebtUsd = marketRealizedDebtUsdX18.intoInt256().toInt128();
-        self.lastRealizedDebtUpdateTime = block.timestamp.toUint128();
-    }
-
-    /// @notice Updates a vault's credit delegation to a market, updating each vault's unrealized and realized debt
-    /// distributions.
-    /// @dev These functions interacting with `Distribution` pointers serve as helpers to avoid external contracts or
-    /// libraries to incorrectly handle state updates, as there are insensitive invariants involved, mainly having to
-    /// enforce that the vault's shares and the distribution's total shares are always equal.
-    /// @param self The market storage pointer.
-    /// @param vaultId The vault id to update have its credit delegation shares updated.
-    /// @param creditDelegationChangeUsdX18 The USD change of the vault's credit delegation to the market.
-    function updateVaultCreditDelegation(
-        Data storage self,
-        uint128 vaultId,
-        UD60x18 newCreditDelegationUsdX18
-    )
-        internal
-        returns (SD59x18 creditDelegationChangeUsdX18)
-    {
-        // loads the vaults debt distribution storage pointers
-        Distribution.Data storage vaultsDebtDistribution = self.vaultsDebtDistribution;
-
-        // uint128 -> bytes32
-        bytes32 actorId = bytes32(uint256(vaultId));
-
-        // updates the vault's credit delegation in USD in both distributions as its shares MUST always be equal,
-        // otherwise the system will produce unexpected outputs.
-        creditDelegationChangeUsdX18 = vaultsDebtDistribution.setActorShares(actorId, newCreditDelegationUsdX18);
-    }
-
-    /// @notice Support function to increment the received fees for a specific asset
-    /// @param self The fee storage pointer
-    /// @param asset The asset address
-    /// @param amountX18 The amount to be incremented
-    function incrementReceivedMarketFees(Data storage self, address asset, UD60x18 amountX18) internal {
-        // declare newAmount variable
-        UD60x18 newAmount;
-
-        // check if the asset is already in the receivedMarketFees map
-        if (self.receivedMarketFees.contains(asset)) {
-            // if it is, increment the amount
-            newAmount = amountX18.add(ud60x18(self.receivedMarketFees.get(asset)));
-        } else {
-            // if it's not, set the amount
-            newAmount = amountX18;
-        }
-
-        // set the new amount in the receivedMarketFees map
-        self.receivedMarketFees.set(asset, newAmount.intoUint256());
+    /// @param creditDeltaUsdX18 The credit value update that is happening in the parent context, to be applied to
+    /// the market.
+    function updateTotalDelegatedCredit(Data storage self, SD59x18 creditDeltaUsdX18) internal {
+        self.totalDelegatedCreditUsd =
+            ud60x18(self.totalDelegatedCreditUsd).intoSD59x18().add(creditDeltaUsdX18).intoUD60x18().intoUint128();
     }
 
     /// @notice Adds the received weth rewards to the stored values of pending protocol weth rewards and vaults' total
@@ -554,29 +500,13 @@ library Market {
     {
         // removes the given asset from the received market fees enumerable map as we assume it's been fully swapped
         // to weth
-        self.receivedMarketFees.remove(asset);
+        self.receivedFees.remove(asset);
 
-        self.pendingProtocolWethReward =
-            ud60x18(self.pendingProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();
-
+        // increment the amount o pending weth reward to be distributed to fee recipients
+        self.availableProtocolWethReward =
+            ud60x18(self.availableProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();
         // increment the all time weth reward storage
-        self.vaultsWethReward = ud60x18(self.vaultsWethReward).add(receivedVaultsWethRewardX18).intoUint128();
-    }
-
-    /// @notice Support function to calculate the accumulated wEth allocated for the beneficiary
-    /// @param totalAmountX18 The total amount or value to be distributed
-    /// @param shareX18 The share that needs to be calculated
-    /// @param denominatorX18 The denominator representing the total divisions or base value
-    /// @return amountX18 The calculated amount to be distributed
-    function calculateFees(
-        UD60x18 totalAmountX18,
-        UD60x18 shareX18,
-        UD60x18 denominatorX18
-    )
-        internal
-        pure
-        returns (UD60x18 amountX18)
-    {
-        amountX18 = (totalAmountX18.mul(shareX18)).div(denominatorX18);
+        self.wethRewardPerVaultShare =
+            ud60x18(self.wethRewardPerVaultShare).add(receivedVaultsWethRewardX18).intoUint128();
     }
 }

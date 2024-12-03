@@ -206,7 +206,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         changePrank({ msgSender: usdTokenSwapKeeper });
 
-        UD60x18 protocolSwapFee = swapFeeX18.mul(marketMakingEngine.exposed_getTotalFeeRecipientsShares());
+        UD60x18 protocolSwapFee = swapFeeX18.mul(ud60x18(marketMakingEngine.exposed_getTotalFeeRecipientsShares()));
         uint256 protocolReward = convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, baseFeeX18.add(protocolSwapFee));
 
         // it should emit {LogFulfillSwap} event

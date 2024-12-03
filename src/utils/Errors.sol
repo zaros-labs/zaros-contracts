@@ -12,7 +12,12 @@ library Errors {
     /// @notice Thrown when two or more array parameters are expected to have the same length, but they don't.
     error ArrayLengthMismatch(uint256 expected, uint256 actual);
 
-    /// @notice Router errors.
+    /// @notice AssetToAmountMap utility errors.
+
+    /// @notice Thrown when trying to decrement an asset that is not in the map.
+    error InvalidAssetToAmountMapUpdate();
+
+    /// @notice RootProxy errors.
     error UnsupportedFunction(bytes4 functionSignature);
 
     /// @notice RootUpgrade errors.
@@ -170,7 +175,7 @@ library Errors {
     /// @notice MarketMakingEngine.MarketMakingEngineBranch errors.
 
     /// @notice Thrown when the total of protocol fee recipient share exceeds 1e18
-    error FeeRecipientShareExceedsOne();
+    error FeeRecipientShareExceedsLimit();
 
     /// @notice MarketMakingEngine.CreditDelegationBranch errors.
 
@@ -184,6 +189,11 @@ library Errors {
     /// NOTE: This error must be unreachable as the system enforces market to have a minimum delegated credit through
     /// Vault.Data.lockedCreditRatio.
     error NoDelegatedCredit(uint128 marketId);
+    /// @notice Thrown when there aren't enough assets to cover the settlement base fee.
+    error FailedToPaySettlementBaseFee();
+    /// @notice Thrown when trying to settle vaults debt using a usd token but one of the vaults involved are in an
+    /// unexpected credit / debt state.
+    error InvalidVaultDebtSettlementRequest();
 
     /// @notice MarketMakingEngine.Collateral errors.
     error CollateralDisabled(address collateralType);

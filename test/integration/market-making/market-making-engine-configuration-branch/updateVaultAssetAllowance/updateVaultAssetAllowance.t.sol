@@ -13,7 +13,6 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 contract MarketMakingEngineConfigurationBranch_UpdateVaultAssetAllowance_Integration_Test is Base_Test {
-
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
@@ -43,7 +42,8 @@ contract MarketMakingEngineConfigurationBranch_UpdateVaultAssetAllowance_Integra
 
         // it should update allowance
 
-        uint256 actualAllowance = IERC20(fuzzVaultConfig.asset).allowance(fuzzVaultConfig.indexToken, address(marketMakingEngine));
+        uint256 actualAllowance =
+            IERC20(fuzzVaultConfig.asset).allowance(fuzzVaultConfig.indexToken, address(marketMakingEngine));
         assertEq(actualAllowance, allowance);
     }
 }

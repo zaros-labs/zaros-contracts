@@ -2,6 +2,9 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { Constants } from "@zaros/utils/Constants.sol";
+import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
+import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
@@ -10,9 +13,6 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Market } from "src/market-making/leaves/Market.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
-import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
-import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -96,7 +96,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
         // increment received fees amount
-        market.incrementReceivedMarketFees(asset, amountX18);
+        market.depositFee(asset, amountX18);
 
         // transfer fee amount
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
@@ -147,13 +147,13 @@ contract FeeDistributionBranch is EngineAccessControl {
         Market.Data storage market = Market.loadExisting(marketId);
 
         // reverts if the market hasn't received any fees for the given asset
-        if (!market.receivedMarketFees.contains(asset)) revert Errors.MarketDoesNotContainTheAsset(asset);
+        if (!market.receivedFees.contains(asset)) revert Errors.MarketDoesNotContainTheAsset(asset);
 
         // working data
         ConvertAccumulatedFeesToWethContext memory ctx;
 
         // get the amount of asset received as fees
-        ctx.assetAmountX18 = ud60x18(market.receivedMarketFees.get(asset));
+        ctx.assetAmountX18 = ud60x18(market.receivedFees.get(asset));
 
         // reverts if the amount is zero
         if (ctx.assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
@@ -220,7 +220,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         }
 
         // get the total fee recipients shares
-        ctx.feeRecipientsSharesX18 = MarketMakingEngineConfiguration.load().getTotalFeeRecipientsShares();
+        ctx.feeRecipientsSharesX18 = ud60x18(MarketMakingEngineConfiguration.load().totalFeeRecipientsShares);
 
         // calculate the weth rewards for protocol and vaults
         ctx.receivedProtocolWethRewardX18 = ctx.receivedWethX18.mul(ctx.feeRecipientsSharesX18);
@@ -243,7 +243,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         Market.Data storage market = Market.loadExisting(marketId);
 
         // reverts if no protocol weth rewards have been collected
-        if (market.pendingProtocolWethReward == 0) revert Errors.NoWethFeesCollected();
+        if (market.availableProtocolWethReward == 0) revert Errors.NoWethFeesCollected();
 
         // loads the market making engine configuration data storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
@@ -257,11 +257,11 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         // convert collected fees to UD60x18 and convert decimals if needed, to ensure it's using the network's weth
         // decimals value
-        uint256 pendingProtocolWethReward =
-            wethCollateralData.convertUd60x18ToTokenAmount(ud60x18(market.pendingProtocolWethReward));
+        uint256 availableProtocolWethReward =
+            wethCollateralData.convertUd60x18ToTokenAmount(ud60x18(market.availableProtocolWethReward));
 
         // get total shares
-        UD60x18 totalShares = marketMakingEngineConfiguration.getTotalFeeRecipientsShares();
+        UD60x18 totalShares = ud60x18(marketMakingEngineConfiguration.totalFeeRecipientsShares);
 
         if (totalShares.isZero()) {
             // if total shares is zero, revert
@@ -269,13 +269,13 @@ contract FeeDistributionBranch is EngineAccessControl {
         }
 
         // set to zero the amount of pending weth to be distributed
-        market.pendingProtocolWethReward = 0;
+        market.availableProtocolWethReward = 0;
 
         // sends the accumulated protocol weth reward to the configured fee recipients
-        marketMakingEngineConfiguration.distributeProtocolAssetReward(weth, pendingProtocolWethReward);
+        marketMakingEngineConfiguration.distributeProtocolAssetReward(weth, availableProtocolWethReward);
 
         // emit event to log the weth sent to fee recipients
-        emit LogSendWethToFeeRecipients(marketId, pendingProtocolWethReward);
+        emit LogSendWethToFeeRecipients(marketId, availableProtocolWethReward);
     }
 
     /// @notice allows user to claim their share of fees
@@ -347,7 +347,7 @@ contract FeeDistributionBranch is EngineAccessControl {
     {
         Market.Data storage market = Market.loadExisting(marketId);
 
-        EnumerableMap.AddressToUintMap storage receivedMarketFees = market.receivedMarketFees;
+        EnumerableMap.AddressToUintMap storage receivedMarketFees = market.receivedFees;
         uint256 length = receivedMarketFees.length();
 
         assets = new address[](length);

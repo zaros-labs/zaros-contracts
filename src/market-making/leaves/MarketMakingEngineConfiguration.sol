@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-// Zaros dependencies
-import { Errors } from "@zaros/utils/Errors.sol";
-
 // PRB Math dependencies
-import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
+import { ud60x18 } from "@prb-math/UD60x18.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
@@ -27,6 +24,8 @@ library MarketMakingEngineConfiguration {
         address weth;
         address feeDistributor;
         address referralModule;
+        uint128 settlementBaseFeeUsdX18;
+        uint128 totalFeeRecipientsShares;
         EnumerableMap.AddressToUintMap protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
@@ -40,30 +39,6 @@ library MarketMakingEngineConfiguration {
         bytes32 slot = MARKET_MAKING_ENGINE_CONFIGURATION_LOCATION;
         assembly {
             marketMakingEngineConfiguration.slot := slot
-        }
-    }
-
-    /// @notice calculate the total fee recipients shares
-    /// @param self The {MarketMakingEngineConfiguration} storage pointer.
-    /// @return totalFeeRecipientsSharesX18 The total fee recipients shares.
-    function getTotalFeeRecipientsShares(Data storage self)
-        internal
-        view
-        returns (UD60x18 totalFeeRecipientsSharesX18)
-    {
-        // Initialize the total fee recipients shares to zero.
-        totalFeeRecipientsSharesX18 = UD60x18_ZERO;
-
-        // Cache the length of the protocol fee recipients
-        uint256 feeRecipientsLength = self.protocolFeeRecipients.length();
-
-        // Iterate over the protocol fee recipients
-        for (uint256 i = 0; i < feeRecipientsLength; i++) {
-            // Load the shares of the fee recipient
-            (, uint256 shares) = self.protocolFeeRecipients.at(i);
-
-            // Add the shares to the total fee recipients shares
-            totalFeeRecipientsSharesX18 = totalFeeRecipientsSharesX18.add(ud60x18(shares));
         }
     }
 
@@ -82,7 +57,7 @@ library MarketMakingEngineConfiguration {
 
             // Calculate the fee recipient reward
             uint256 feeRecipientReward =
-                ud60x18(amount).mul(ud60x18(shares).div(getTotalFeeRecipientsShares(self))).intoUint256();
+                ud60x18(amount).mul(ud60x18(shares).div(ud60x18(self.totalFeeRecipientsShares))).intoUint256();
 
             // Transfer the fee recipient reward
             IERC20(asset).safeTransfer(feeRecipient, feeRecipientReward);

@@ -9,7 +9,6 @@ import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol
 import { Base_Test } from "test/Base.t.sol";
 
 contract MarketMakingEngineConfigurationBranch_GetDexSwapStrategy_Integration_Test is Base_Test {
-
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });

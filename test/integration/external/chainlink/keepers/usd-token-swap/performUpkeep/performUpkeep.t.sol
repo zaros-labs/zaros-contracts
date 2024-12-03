@@ -94,7 +94,7 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
         ctx.amountOutAfterFee =
             convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, ctx.amountOut.sub(ctx.baseFeeX18.add(ctx.swapFeeX18)));
 
-        ctx.protocolSwapFee = ctx.swapFeeX18.mul(marketMakingEngine.exposed_getTotalFeeRecipientsShares());
+        ctx.protocolSwapFee = ctx.swapFeeX18.mul(ud60x18(marketMakingEngine.exposed_getTotalFeeRecipientsShares()));
         ctx.protocolReward =
             convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, ctx.baseFeeX18.add(ctx.protocolSwapFee));
 

@@ -84,7 +84,7 @@ library Collateral {
     /// @param self The collateral type storage pointer.
     /// @param amountX18 The 18 decimals normalized amount.
     /// @return amount The denormalized amount using the ERC20 token's decimals.
-    function convertUd59x18ToTokenAmount(Data storage self, SD59x18 amountX18) internal view returns (uint256) {
+    function convertSd59x18ToTokenAmount(Data storage self, SD59x18 amountX18) internal view returns (uint256) {
         return Math.convertSd59x18ToTokenAmount(self.decimals, amountX18);
     }
 

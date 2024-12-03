@@ -34,6 +34,10 @@ library Constants {
     /// @dev This is used to avoid overflows when calculating shares.
     uint256 internal constant MAX_SHARES = 1e18;
 
+    /// @notice Sanity value used to ensure that a protocol admin never sets 100% of fees to protocol fee recipients,
+    /// avoiding bugs which may happen in that state.
+    uint256 internal constant MAX_CONFIGURABLE_PROTOCOL_FEE_SHARES = 0.9e18;
+
     /// @notice Minimum value for stake shares.
     uint256 internal constant MIN_OF_SHARES_TO_STAKE = 1e5;
 }

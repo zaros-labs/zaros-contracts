@@ -78,7 +78,7 @@ contract UsdTokenSwapKeeper is ILogAutomation, IStreamsLookupCompatible, BaseKee
     /// @inheritdoc ILogAutomation
     function checkLog(
         AutomationLog calldata log,
-        bytes memory /**/
+        bytes memory
     )
         external
         view
