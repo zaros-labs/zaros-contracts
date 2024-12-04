@@ -65,24 +65,18 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
         uint256 initialMarginRate = fuzzMarketConfig.imr;
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
 
-        openPosition(
-              fuzzMarketConfig,
-              tradingAccountId,
-              initialMarginRate,
-              amountToDeposit,
-              isLong
-        );
+        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, amountToDeposit, isLong);
 
-        (
-            SD59x18 marginBalanceUsdX18,
-            UD60x18 initialMarginUsdX18,
-            UD60x18 maintenanceMarginUsdX18,
-            SD59x18 availableBalance
-        ) = perpsEngine.getAccountMarginBreakdown({ tradingAccountId: tradingAccountId });
+        (SD59x18 marginBalanceUsdX18, UD60x18 initialMarginUsdX18,, SD59x18 availableBalance) =
+            perpsEngine.getAccountMarginBreakdown({ tradingAccountId: tradingAccountId });
 
         SD59x18 availableMarginSubByInitialMargin = marginBalanceUsdX18.sub((initialMarginUsdX18).intoSD59x18());
 
-        assertGt(availableBalance.intoInt256(), availableMarginSubByInitialMargin.intoInt256(), "marginBalance substracted by maintenance margin > marginBalance substracted by initial margin");
+        assertGt(
+            availableBalance.intoInt256(),
+            availableMarginSubByInitialMargin.intoInt256(),
+            "marginBalance substracted by maintenance margin > marginBalance substracted by initial margin"
+        );
     }
 
     function testFuzz_GetAccountMarginMultipleCollateral(
