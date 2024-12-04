@@ -484,17 +484,25 @@ contract VaultRouterBranch {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
+
+        // updates the vault's credit capacity and perform all vault state transitions before updating `msg.sender`'s
+        // staked shares
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
+
         // get vault staking fee distribution data
-        Distribution.Data storage distributionData = vault.wethRewardDistribution;
+        Distribution.Data storage wethRewardDistribution = vault.wethRewardDistribution;
 
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
-        // Accumulate shares before unstake
-        distributionData.accumulateActor(actorId);
+        // Accumulate shares before unstaking
+        wethRewardDistribution.accumulateActor(actorId);
 
         // get acctor staked shares
-        UD60x18 actorShares = distributionData.getActorShares(actorId);
+        UD60x18 actorShares = wethRewardDistribution.getActorShares(actorId);
 
         // verify actora has shares amount
         if (actorShares.lt(ud60x18(shares))) revert Errors.NotEnoughShares();
@@ -503,13 +511,6 @@ contract VaultRouterBranch {
 
         // update actor shares
         distributionData.setActorShares(actorId, updatedActorShares);
-
-        // cast actor vault it to bytes 32
-        bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
-
-        // update actor shares of connected markets
-        // todo: rework unstake on a separate pr, we need to handle credit updates at redeem
-        // vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, false);
 
         // transfer shares to user
         IERC20(vault.indexToken).safeTransfer(msg.sender, shares);
