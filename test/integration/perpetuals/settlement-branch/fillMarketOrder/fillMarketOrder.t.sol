@@ -1335,11 +1335,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         ctx.marginValueUsd = 100_000e18;
         ctx.userPositionSizeDelta = 10e18;
 
-        deal({ token: address(usdz), to: users.naruto.account, give: ctx.marginValueUsd });
+        deal({ token: address(usdToken), to: users.naruto.account, give: ctx.marginValueUsd });
 
         ctx.fuzzMarketConfig = getFuzzMarketConfig(ctx.marketId);
         ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
-        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdz));
+        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdToken));
 
         perpsEngine.createMarketOrder(
             OrderBranch.CreateMarketOrderParams({
