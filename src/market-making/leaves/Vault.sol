@@ -251,8 +251,6 @@ library Vault {
         UD60x18 wethRewardChangeX18;
     }
 
-    // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
-    // testability / visibility
     /// @notice Recalculates the latest debt of each market connected to a vault, distributing its total debt to it.
     /// @param self The vault storage pointer.
     /// @param connectedMarketsIdsCache The cached connected markets ids.
@@ -262,12 +260,12 @@ library Vault {
     /// @return vaultTotalUnrealizedDebtChangeUsdX18 The vault's total unrealized debt change in USD.
     /// @return vaultTotalUsdcCreditChangeX18 The vault's total USDC credit change.
     /// @return vaultTotalWethRewardChangeX18 The vault's total WETH reward change.
-    function recalculateConnectedMarketsState(
+    function _recalculateConnectedMarketsState(
         Data storage self,
         uint128[] memory connectedMarketsIdsCache,
         bool shouldRehydrateCache
     )
-        internal
+        private
         returns (
             uint128[] memory rehydratedConnectedMarketsIdsCache,
             SD59x18 vaultTotalRealizedDebtChangeUsdX18,
@@ -371,7 +369,7 @@ library Vault {
             EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
             // cache the connected markets ids to avoid multiple storage reads, as we're going to loop over them twice
-            // at `recalculateConnectedMarketsDebt` and `updateCreditDelegations`
+            // at `_recalculateConnectedMarketsState` and `_updateCreditDelegations`
             uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
 
             // iterate over each connected market id and distribute its debt so we can have the latest credit
@@ -382,7 +380,7 @@ library Vault {
                 SD59x18 vaultTotalUnrealizedDebtChangeUsdX18,
                 UD60x18 vaultTotalUsdcCreditChangeX18,
                 UD60x18 vaultTotalWethRewardChangeX18
-            ) = recalculateConnectedMarketsState(self, connectedMarketsIdsCache, true);
+            ) = _recalculateConnectedMarketsState(self, connectedMarketsIdsCache, true);
 
             // updates the vault's stored unsettled realized debt distributed from markets
             self.marketsRealizedDebtUsd =
@@ -403,7 +401,7 @@ library Vault {
 
             // update the vault's credit delegations
             (, SD59x18 vaultNewCreditCapacityUsdX18) =
-                updateCreditDelegations(self, updatedConnectedMarketsIdsCache, false);
+                _updateCreditDelegations(self, updatedConnectedMarketsIdsCache, false);
 
             emit LogUpdateVaultCreditCapacity(
                 vaultId,
@@ -474,7 +472,6 @@ library Vault {
         self.swapStrategy.usdcDexSwapStrategyId = usdcDexSwapStrategyId;
     }
 
-    // todo: we may need to remove the return value to save gas / remove if not needed
     /// @notice Updates the vault's credit delegations to its connected markets, using the provided cache of connected
     /// markets ids.
     /// @dev This function assumes that the connected markets ids cache is up to date with the stored markets ids. If
@@ -485,12 +482,12 @@ library Vault {
     /// @param connectedMarketsIdsCache The cached connected markets ids.
     /// @param shouldRehydrateCache Whether the connected markets ids cache should be rehydrated or not.
     /// @return rehydratedConnectedMarketsIdsCache The potentially rehydrated connected markets ids cache.
-    function updateCreditDelegations(
+    function _updateCreditDelegations(
         Data storage self,
         uint128[] memory connectedMarketsIdsCache,
         bool shouldRehydrateCache
     )
-        internal
+        private
         returns (uint128[] memory rehydratedConnectedMarketsIdsCache, SD59x18 vaultCreditCapacityUsdX18)
     {
         rehydratedConnectedMarketsIdsCache = new uint128[](connectedMarketsIdsCache.length);
