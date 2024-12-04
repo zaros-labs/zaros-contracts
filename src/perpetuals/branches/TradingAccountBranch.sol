@@ -12,6 +12,7 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -402,6 +403,8 @@ contract TradingAccountBranch {
             marketOrder.checkPendingOrder();
             // cancel pending order
             marketOrder.clear();
+
+            emit OrderBranch.LogCancelMarketOrder(msg.sender, tradingAccountId);
         }
 
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
