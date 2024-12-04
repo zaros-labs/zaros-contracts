@@ -181,9 +181,19 @@ library Vault {
     /// @notice Returns the vault's minimum credit capacity allocated to the connected markets.
     /// @dev Prevents the vault's LPs from withdrawing more collateral than allowed, leading to potential liquidity
     /// issues to connected markets.
+    /// @dev If the credit capacity goes to zero or below, meaning the vault is insolvent, the locked capacity will be
+    /// zero, so functions using this method must ensure funds can't be withdrawn in that state.
     /// @param self The vault storage pointer.
-    function getLockedCreditCapacityUsd(Data storage self) internal view returns (SD59x18) {
-        return getTotalCreditCapacityUsd(self).mul(ud60x18(self.lockedCreditRatio).intoSD59x18());
+    /// @return lockedCreditCapacityUsdX18 The vault's minimum credit capacity in USD.
+    function getLockedCreditCapacityUsd(Data storage self)
+        internal
+        view
+        returns (UD60x18 lockedCreditCapacityUsdX18)
+    {
+        SD59x18 creditCapacityUsdX18 = getTotalCreditCapacityUsd(self);
+        lockedCreditCapacityUsdX18 = creditCapacityUsdX18.lte(SD59x18_ZERO)
+            ? UD60x18_ZERO
+            : creditCapacityUsdX18.intoUD60x18().mul(ud60x18(self.lockedCreditRatio));
     }
 
     /// @notice Returns the vault's total credit capacity allocated to the connected markets.
@@ -241,8 +251,6 @@ library Vault {
         UD60x18 wethRewardChangeX18;
     }
 
-    // TODO: see if this function will be used elsewhere or if we can turn it into a private function for better
-    // testability / visibility
     /// @notice Recalculates the latest debt of each market connected to a vault, distributing its total debt to it.
     /// @param self The vault storage pointer.
     /// @param connectedMarketsIdsCache The cached connected markets ids.
@@ -252,12 +260,12 @@ library Vault {
     /// @return vaultTotalUnrealizedDebtChangeUsdX18 The vault's total unrealized debt change in USD.
     /// @return vaultTotalUsdcCreditChangeX18 The vault's total USDC credit change.
     /// @return vaultTotalWethRewardChangeX18 The vault's total WETH reward change.
-    function recalculateConnectedMarketsState(
+    function _recalculateConnectedMarketsState(
         Data storage self,
         uint128[] memory connectedMarketsIdsCache,
         bool shouldRehydrateCache
     )
-        internal
+        private
         returns (
             uint128[] memory rehydratedConnectedMarketsIdsCache,
             SD59x18 vaultTotalRealizedDebtChangeUsdX18,
@@ -361,7 +369,7 @@ library Vault {
             EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
 
             // cache the connected markets ids to avoid multiple storage reads, as we're going to loop over them twice
-            // at `recalculateConnectedMarketsDebt` and `updateCreditDelegations`
+            // at `_recalculateConnectedMarketsState` and `_updateCreditDelegations`
             uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
 
             // iterate over each connected market id and distribute its debt so we can have the latest credit
@@ -372,7 +380,7 @@ library Vault {
                 SD59x18 vaultTotalUnrealizedDebtChangeUsdX18,
                 UD60x18 vaultTotalUsdcCreditChangeX18,
                 UD60x18 vaultTotalWethRewardChangeX18
-            ) = recalculateConnectedMarketsState(self, connectedMarketsIdsCache, true);
+            ) = _recalculateConnectedMarketsState(self, connectedMarketsIdsCache, true);
 
             // updates the vault's stored unsettled realized debt distributed from markets
             self.marketsRealizedDebtUsd =
@@ -393,7 +401,7 @@ library Vault {
 
             // update the vault's credit delegations
             (, SD59x18 vaultNewCreditCapacityUsdX18) =
-                updateCreditDelegations(self, updatedConnectedMarketsIdsCache, false);
+                _updateCreditDelegations(self, updatedConnectedMarketsIdsCache, false);
 
             emit LogUpdateVaultCreditCapacity(
                 vaultId,
@@ -464,7 +472,6 @@ library Vault {
         self.swapStrategy.usdcDexSwapStrategyId = usdcDexSwapStrategyId;
     }
 
-    // todo: we may need to remove the return value to save gas / remove if not needed
     /// @notice Updates the vault's credit delegations to its connected markets, using the provided cache of connected
     /// markets ids.
     /// @dev This function assumes that the connected markets ids cache is up to date with the stored markets ids. If
@@ -475,12 +482,12 @@ library Vault {
     /// @param connectedMarketsIdsCache The cached connected markets ids.
     /// @param shouldRehydrateCache Whether the connected markets ids cache should be rehydrated or not.
     /// @return rehydratedConnectedMarketsIdsCache The potentially rehydrated connected markets ids cache.
-    function updateCreditDelegations(
+    function _updateCreditDelegations(
         Data storage self,
         uint128[] memory connectedMarketsIdsCache,
         bool shouldRehydrateCache
     )
-        internal
+        private
         returns (uint128[] memory rehydratedConnectedMarketsIdsCache, SD59x18 vaultCreditCapacityUsdX18)
     {
         rehydratedConnectedMarketsIdsCache = new uint128[](connectedMarketsIdsCache.length);
@@ -543,46 +550,4 @@ library Vault {
             }
         }
     }
-
-    // todo: rework this on a separate PR
-    // /// @notice Updates the vault shares of the connected markets
-    // /// @param self The vault storage pointer.
-    // /// @param actorId The actor id (vault id) to update the shares.
-    // /// @param updatedActorShares The updated actor shares.
-    // /// @param shouldIncrement Whether the shares should be incremented or decremented.
-    // function updateSharesOfConnectedMarkets(
-    //     Data storage self,
-    //     bytes32 actorId,
-    //     UD60x18 updatedActorShares,
-    //     bool shouldIncrement
-    // )
-    //     internal
-    // {
-    //     // loads the connected markets storage pointer by taking the last configured market ids uint set
-    //     EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
-
-    //     // cache the connected markets ids
-    //     uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
-
-    //     // iterate over each connected market id
-    //     for (uint256 i; i < connectedMarketsIdsCache.length; i++) {
-    //         // loads the memory cached market id
-    //         uint128 connectedMarketId = connectedMarkets.at(i).toUint128();
-
-    //         // loads the market storage pointer
-    //         Market.Data storage market = Market.load(connectedMarketId);
-
-    //         // update the market's shares of the actor
-    //         UD60x18 totalSharesX18 = ud60x18(market.vaultsDebtDistribution.totalShares);
-    //         UD60x18 updatedSharesX18;
-
-    //         if (shouldIncrement) {
-    //             updatedSharesX18 = totalSharesX18.add(updatedActorShares);
-    //         } else {
-    //             updatedSharesX18 = totalSharesX18.sub(updatedActorShares);
-    //         }
-
-    //         market.vaultsDebtDistribution.setActorShares(actorId, updatedSharesX18);
-    //     }
-    // }
 }

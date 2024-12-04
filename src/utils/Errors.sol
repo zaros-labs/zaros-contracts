@@ -255,7 +255,13 @@ library Errors {
     /// @notice Thrown when the quantity of shares is less than the minimum allowed.
     error QuantityOfSharesLessThanTheMinimumAllowed(uint256 minimumAllowed, uint256 quantity);
 
+    /// @notice Thrown when trying to redeem shares for vault assets but it has insufficient available credit capacity
+    /// to fulfill the request.
+    error NotEnoughUnlockedCreditCapacity();
+
     /// @notice MarketMakingEngine.Vault errors.
+
+    /// @notice Thrown when the vault is not connected to any market.
     error NoMarketsConnectedToVault(uint128 vaultId);
 
     /// @notice Dex Swap Strategy errors.

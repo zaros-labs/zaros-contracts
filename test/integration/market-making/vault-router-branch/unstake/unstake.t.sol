@@ -52,7 +52,7 @@ contract Unstake_Integration_Test is Base_Test {
         depositAndStakeInVault(fuzzVaultConfig.vaultId, uint128(depositAmount));
 
         uint256 actorShares =
-            marketMakingEngine.getVaultSharesOfAccount(fuzzVaultConfig.vaultId, users.naruto.account);
+            marketMakingEngine.getStakedSharesOfAccount(fuzzVaultConfig.vaultId, users.naruto.account);
 
         // it should log unstake event
         vm.expectEmit();

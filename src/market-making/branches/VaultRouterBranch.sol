@@ -23,7 +23,6 @@ import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/I
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-// TODO: think about referrals
 contract VaultRouterBranch {
     using SafeERC20 for IERC20;
     using Collateral for Collateral.Data;
@@ -62,6 +61,38 @@ contract VaultRouterBranch {
     /// @param user The user that deposits the assets.
     /// @param shares The shares amount being redeemed.
     event LogRedeem(uint256 indexed vaultId, address indexed user, uint256 shares);
+
+    /// @notice Returns the net credit capacity of the given vault, taking into account its underlying assets and
+    /// debt.
+    /// @dev The net credit capacity is the total assets value minus the total debt value.
+    /// @param vaultId The vault identifier.
+    /// @return totalAssetsMinusVaultDebt The net credit capacity of the vault.
+    function getVaultCreditCapacity(uint128 vaultId) public view returns (uint256) {
+        // fetch storage slot for vault by id
+        Vault.Data storage vault = Vault.loadExisting(vaultId);
+
+        // fetch the vault's total assets
+        SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
+
+        // we use the vault's net sum of all debt types coming from its connected markets to determine the swap rate
+        SD59x18 vaultDebtUsdX18 = vault.getTotalDebt();
+
+        // get collateral asset price
+        UD60x18 assetPriceX18 = vault.collateral.getPrice();
+
+        // convert the vault debt value in USD to the equivalent amount of assets to be credited or debited
+        SD59x18 vaultDebtInAssetsX18 = vaultDebtUsdX18.div(assetPriceX18.intoSD59x18());
+
+        // subtract the vault's debt from the total assets
+        // NOTE: we add 1 to the total assets to avoid division by zero
+        // NOTE: credit is accounted as negative debt, so it would be added to the total assets
+        SD59x18 totalAssetsMinusVaultDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(vaultDebtInAssetsX18);
+
+        // sd59x18 -> uint256
+        uint256 totalAssetsMinusVaultDebt = totalAssetsMinusVaultDebtX18.intoUint256();
+
+        return totalAssetsMinusVaultDebt;
+    }
 
     /// @notice Returns the data and state of a given vault.
     /// @dev Invariants:
@@ -119,37 +150,19 @@ contract VaultRouterBranch {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadExisting(vaultId);
 
-        // fetch the vault's total assets
-        SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
-
-        // get the vault's total unsettled debt, taking into account both the markets' reported unrealized debt + the
-        // realized, but still unsettled (i.e to be settled) debt
-        // todo: this needs to be the total debt
-        SD59x18 unsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
+        // get the vault's net credit capacity, i.e its total assets usd value minus its total debt (or adding its
+        // credit if debt is negative)
+        uint256 totalAssetsMinusVaultDebt = getVaultCreditCapacity(vaultId);
 
         // get decimal offset
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
 
-        // get collateral asset price
-        UD60x18 assetPriceX18 = vault.collateral.getPrice();
-
-        // convert the unsettled debt value in USD to the equivalent amount of assets to be credited or debited
-        SD59x18 unsettledDebtInAssetsX18 = unsettledRealizedDebtUsdX18.div(assetPriceX18.intoSD59x18());
-
-        // subtract the unsettled debt from the total assets
-        // NOTE: we add 1 to the total assets to avoid division by zero
-        // NOTE: credit is accounted as negative debt, so it would be added to the total assets
-        SD59x18 totalAssetsMinusUnsettledDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(unsettledDebtInAssetsX18);
-
-        // sd59x18 -> uint256
-        uint256 totalAssetsMinusUnsettledDebt = totalAssetsMinusUnsettledDebtX18.intoUint256();
-
-        // Get the asset amount out for the input amount of shares, taking into account the unsettled debt
+        // Get the asset amount out for the input amount of shares, taking into account the vault's debt
         // See {IERC4626-previewRedeem}
         // TODO: check with Cyfrin if the potentially added dust value to assets out due to
         // `IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset` could lead to problems
         uint256 previewAssetsOut = sharesIn.mulDiv(
-            totalAssetsMinusUnsettledDebt,
+            totalAssetsMinusVaultDebt,
             IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
             MathOpenZeppelin.Rounding.Floor
         );
@@ -184,30 +197,12 @@ contract VaultRouterBranch {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadExisting(vaultId);
 
-        // fetch the vault's total assets
-        SD59x18 totalAssetsX18 = sd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
-
-        // get the vault's total unsettled debt, taking into account both the markets' reported unrealized debt + the
-        // realized, but still unsettled (i.e to be settled) debt
-        // todo: this needs to be the total debt
-        SD59x18 unsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
+        // get the vault's net credit capacity, i.e its total assets usd value minus its total debt (or adding its
+        // credit if debt is negative)
+        uint256 totalAssetsMinusVaultDebt = getVaultCreditCapacity(vaultId);
 
         // get decimal offset
         uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
-
-        // get collateral asset price
-        UD60x18 assetPriceX18 = vault.collateral.getPrice();
-
-        // convert the unsettled debt value in USD to the equivalent amount of assets to be credited or debited
-        SD59x18 unsettledDebtInAssetsX18 = unsettledRealizedDebtUsdX18.div(assetPriceX18.intoSD59x18());
-
-        // subtract the unsettled debt from the total assets
-        // NOTE: we add 1 to the total assets to avoid division by zero
-        // NOTE: credit is accounted as negative debt, so it would be added to the total assets
-        SD59x18 totalAssetsMinusUnsettledDebtX18 = totalAssetsX18.add(sd59x18(1)).sub(unsettledDebtInAssetsX18);
-
-        // sd59x18 -> uint256
-        uint256 totalAssetsMinusUnsettledDebt = totalAssetsMinusUnsettledDebtX18.intoUint256();
 
         // Get the shares amount out for the input amount of tokens, taking into account the unsettled debt
         // See {IERC4626-previewDeposit}.
@@ -215,7 +210,7 @@ contract VaultRouterBranch {
         // `IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset` could lead to problems
         uint256 previewSharesOut = assetsIn.mulDiv(
             IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
-            totalAssetsMinusUnsettledDebt,
+            totalAssetsMinusVaultDebt,
             MathOpenZeppelin.Rounding.Floor
         );
 
@@ -237,7 +232,17 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
-    function deposit(uint128 vaultId, uint128 assets, uint128 minShares) external {
+    /// @param referralCode The referral code to use.
+    /// @param isCustomReferralCode True if the referral code is a custom referral code.
+    function deposit(
+        uint128 vaultId,
+        uint128 assets,
+        uint128 minShares,
+        bytes memory referralCode,
+        bool isCustomReferralCode
+    )
+        external
+    {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
@@ -247,14 +252,32 @@ contract VaultRouterBranch {
         // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
+
+        // recalculates the vault's credit capacity
+        // note: we need to update the vaults credit capacity before depositing new assets in order to calculate the
+        // correct conversion rate between assets and shares, and to validate the involved invariants accurately
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
+
+        // load the mm engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // load the referral module contract
+        IReferral referralModule = IReferral(marketMakingEngineConfiguration.referralModule);
+
+        // register the given referral code
+        if (referralCode.length != 0) {
+            referralModule.registerReferral(abi.encode(msg.sender), msg.sender, referralCode, isCustomReferralCode);
+        }
+
+        // cache the vault assets decimals value for gas savings
         uint8 vaultAssetDecimals = vault.collateral.decimals;
 
         // uint256 -> ud60x18 18 decimals
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(vaultAssetDecimals, assets);
-
-        // load the perps engine configuration from storage
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
 
         // calculate the collateral fees
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(vault.depositFee));
@@ -265,10 +288,6 @@ contract VaultRouterBranch {
         // ud60x18 -> uint256 asset decimals
         uint256 assetFees = Math.convertUd60x18ToTokenAmount(vaultAssetDecimals, assetFeesX18);
         uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(vaultAssetDecimals, assetsMinusFeesX18);
-
-        // prepare the `Vault::recalculateVaultsCreditCapacity` call
-        uint256[] memory vaultsIds = new uint256[](1);
-        vaultsIds[0] = uint256(vaultId);
 
         // get the tokens
         IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assetsMinusFees);
@@ -301,9 +320,7 @@ contract VaultRouterBranch {
     /// The Vault MUST be live.
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to stake, in 18 decimals.
-    /// @param referralCode The referral code to use.
-    /// @param isCustomReferralCode True if the referral code is a custom referral code.
-    function stake(uint128 vaultId, uint128 shares, bytes memory referralCode, bool isCustomReferralCode) external {
+    function stake(uint128 vaultId, uint128 shares) external {
         // to prevent safe cast overflow errors
         if (shares < Constants.MIN_OF_SHARES_TO_STAKE) {
             revert Errors.QuantityOfSharesLessThanTheMinimumAllowed(Constants.MIN_OF_SHARES_TO_STAKE, uint256(shares));
@@ -312,44 +329,28 @@ contract VaultRouterBranch {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
+
+        // updates the vault's credit capacity and perform all vault state transitions before updating `msg.sender`'s
+        // staked shares
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
+
         // load distribution data
-        Distribution.Data storage distributionData = vault.wethRewardDistribution;
+        Distribution.Data storage wethRewardDistribution = vault.wethRewardDistribution;
 
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
         // load actor distribution data
-        Distribution.Actor storage actor = distributionData.actor[actorId];
+        Distribution.Actor storage actor = wethRewardDistribution.actor[actorId];
 
         // calculate actor updated shares amount
         UD60x18 updatedActorShares = ud60x18(actor.shares).add(ud60x18(shares));
 
         // update actor staked shares
-        distributionData.setActorShares(actorId, updatedActorShares);
-
-        // cast actor vault it to bytes 32
-        bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
-
-        // update actor shares of connected markets
-        // todo: rework unstake on a separate pr, we need to handle credit updates at deposit
-        // vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, true);
-
-        // prepare the `Vault::recalculateVaultsCreditCapacity` call
-        uint256[] memory vaultsIds = new uint256[](1);
-        vaultsIds[0] = uint256(vaultId);
-
-        // updates the vault's credit capacity
-        Vault.recalculateVaultsCreditCapacity(vaultsIds);
-
-        // load the perps engine configuration from storage
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-
-        IReferral referralModule = IReferral(marketMakingEngineConfiguration.referralModule);
-
-        if (referralCode.length != 0) {
-            referralModule.registerReferral(abi.encode(msg.sender), msg.sender, referralCode, isCustomReferralCode);
-        }
+        wethRewardDistribution.setActorShares(actorId, updatedActorShares);
 
         // transfer shares from actor
         IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
@@ -359,6 +360,9 @@ contract VaultRouterBranch {
     }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
+    /// @dev Even if the vault doesn't have enough unlocked credit capacity to fulfill the withdrawal request, the
+    /// user can still initiate it, wait for the withdrawal delay period to elapse, and redeem the shares when
+    /// liquidity is available.
     /// @dev Invariants involved in the call:
     /// The shares to withdraw MUST be greater than zero.
     /// The user MUST have enough shares in their balance to initiate the withdrawal.
@@ -376,8 +380,6 @@ contract VaultRouterBranch {
 
         // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
-
-        // todo: validate the vault.lockedCreditRatio invariant
 
         // increment withdrawal request counter and set withdrawal request id
         uint128 withdrawalRequestId = ++vault.withdrawalRequestIdCounter[msg.sender];
@@ -436,7 +438,7 @@ contract VaultRouterBranch {
         // get shares -> assets
         UD60x18 expectedAssetsX18 = getIndexTokenSwapRate(vaultId, withdrawalRequest.shares, false);
 
-        // load the perps engine configuration from storage
+        // load the mm engine configuration from storage
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
@@ -451,6 +453,12 @@ contract VaultRouterBranch {
         // get the shares to send to the vault deposit and redeem fee recipient
         uint256 sharesFees = withdrawalRequest.shares - sharesMinusRedeemFeesX18.intoUint256();
 
+        // cache the vault's credit capacity before redeeming
+        SD59x18 creditCapacityBeforeRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
+
+        // cache the locked credit capacity before redeeming
+        UD60x18 lockedCreditCapacityBeforeRedeemUsdX18 = vault.getLockedCreditCapacityUsd();
+
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
         uint256 assets =
             IERC4626(vault.indexToken).redeem(sharesMinusRedeemFeesX18.intoUint256(), msg.sender, address(this));
@@ -462,6 +470,18 @@ contract VaultRouterBranch {
 
         // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed(minAssets, assets);
+
+        // cache the vault's credit capacity after redeeming
+        SD59x18 creditCapacityAfterRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
+
+        // if the credit capacity delta is greater than the locked credit capacity before the state transition, revert
+        if (
+            creditCapacityBeforeRedeemUsdX18.sub(creditCapacityAfterRedeemUsdX18).lte(
+                lockedCreditCapacityBeforeRedeemUsdX18.intoSD59x18()
+            )
+        ) {
+            revert Errors.NotEnoughUnlockedCreditCapacity();
+        }
 
         // set withdrawal request to fulfilled
         withdrawalRequest.fulfilled = true;
@@ -482,17 +502,25 @@ contract VaultRouterBranch {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
+
+        // updates the vault's credit capacity and perform all vault state transitions before updating `msg.sender`'s
+        // staked shares
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
+
         // get vault staking fee distribution data
-        Distribution.Data storage distributionData = vault.wethRewardDistribution;
+        Distribution.Data storage wethRewardDistribution = vault.wethRewardDistribution;
 
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
-        // Accumulate shares before unstake
-        distributionData.accumulateActor(actorId);
+        // Accumulate shares before unstaking
+        wethRewardDistribution.accumulateActor(actorId);
 
         // get acctor staked shares
-        UD60x18 actorShares = distributionData.getActorShares(actorId);
+        UD60x18 actorShares = wethRewardDistribution.getActorShares(actorId);
 
         // verify actora has shares amount
         if (actorShares.lt(ud60x18(shares))) revert Errors.NotEnoughShares();
@@ -500,14 +528,7 @@ contract VaultRouterBranch {
         UD60x18 updatedActorShares = actorShares.sub(ud60x18(shares));
 
         // update actor shares
-        distributionData.setActorShares(actorId, updatedActorShares);
-
-        // cast actor vault it to bytes 32
-        bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
-
-        // update actor shares of connected markets
-        // todo: rework unstake on a separate pr, we need to handle credit updates at redeem
-        // vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, false);
+        wethRewardDistribution.setActorShares(actorId, updatedActorShares);
 
         // transfer shares to user
         IERC20(vault.indexToken).safeTransfer(msg.sender, shares);
@@ -516,7 +537,11 @@ contract VaultRouterBranch {
         emit LogUnstake(vaultId, msg.sender, shares);
     }
 
-    function getVaultSharesOfAccount(uint128 vaultId, address account) public view returns (uint256) {
+    /// @notice Returns the amount of shares staked by a given account in the provided vault.
+    /// @param vaultId The vault identifier.
+    /// @param account The address of the account to query.
+    /// @return The amount of shares staked by the account.
+    function getStakedSharesOfAccount(uint128 vaultId, address account) public view returns (uint256) {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
