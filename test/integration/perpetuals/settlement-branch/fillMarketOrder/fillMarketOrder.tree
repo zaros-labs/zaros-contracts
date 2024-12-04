@@ -43,6 +43,8 @@ FillMarketOrder_Integration_Test
                                     │   ├── it should add the pnl into the account's margin
                                     │   ├── it should emit a {LogFillOrder} event
                                     │   └── it should delete the market order
+                                    ├── given the user account will be liquidated after creating market order
+                                    │   └── it should revert
                                     └── given the user has an open position
                                         └── given the user will reduce the position
                                             └── given the margin balance usd is under the initial margin usd required
