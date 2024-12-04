@@ -470,7 +470,8 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.configureAssetCustomSwapPath.selector;
     marketMakingEngineConfigBranchSelectors[22] = MarketMakingEngineConfigurationBranch.getAssetSwapPath.selector;
     marketMakingEngineConfigBranchSelectors[23] = MarketMakingEngineConfigurationBranch.getUsdTokenSwapFees.selector;
-    marketMakingEngineConfigBranchSelectors[24] = MarketMakingEngineConfigurationBranch.configureDepositAndRedeemFees.selector;
+    marketMakingEngineConfigBranchSelectors[24] =
+        MarketMakingEngineConfigurationBranch.configureDepositAndRedeemFees.selector;
     marketMakingEngineConfigBranchSelectors[25] =
         MarketMakingEngineConfigurationBranch.configureVaultDepositAndRedeemFeeRecipient.selector;
 

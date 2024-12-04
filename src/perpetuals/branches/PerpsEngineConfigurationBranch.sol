@@ -524,7 +524,7 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("maxFundingVelocity");
         }
 
-        perpMarket.updateFunding(sd59x18(perpMarket.lastFundingRate), sd59x18(perpMarket.lastFundingFeePerUnit)); 
+        perpMarket.updateFunding(sd59x18(perpMarket.lastFundingRate), sd59x18(perpMarket.lastFundingFeePerUnit));
 
         perpMarketConfiguration.update(
             MarketConfiguration.Data({

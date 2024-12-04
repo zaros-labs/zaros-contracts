@@ -617,9 +617,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @notice Configure the vault deposit and redeem fee recipient
     /// @dev Only owner can call this function
     /// @param vaultDepositAndRedeemFeeRecipient The vault deposit and redeem fee recipient
-    function configureVaultDepositAndRedeemFeeRecipient(
-        address vaultDepositAndRedeemFeeRecipient
-    )
+    function configureVaultDepositAndRedeemFeeRecipient(address vaultDepositAndRedeemFeeRecipient)
         external
         onlyOwner
     {

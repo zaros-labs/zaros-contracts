@@ -77,9 +77,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         _;
     }
 
-    function testFuzz_RevertWhen_WithdrawalDelayIsZero(
-        uint128 vaultId
-    )
+    function testFuzz_RevertWhen_WithdrawalDelayIsZero(uint128 vaultId)
         external
         whenTheIndexTokenAddressIsNotZero
         whenTheDepositCapIsNotZero
@@ -113,9 +111,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         _;
     }
 
-    function testFuzz_RevertWhen_VaultIdIsZero(
-        uint128 vaultId
-    )
+    function testFuzz_RevertWhen_VaultIdIsZero(uint128 vaultId)
         external
         whenTheIndexTokenAddressIsNotZero
         whenTheDepositCapIsNotZero
@@ -150,9 +146,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         _;
     }
 
-    function test_RevertGiven_VaultWithThatIdAlreadyExists(
-        uint128 vaultId
-    )
+    function test_RevertGiven_VaultWithThatIdAlreadyExists(uint128 vaultId)
         external
         whenTheIndexTokenAddressIsNotZero
         whenTheDepositCapIsNotZero
@@ -186,9 +180,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         marketMakingEngine.createVault(params);
     }
 
-    function test_GivenTheVaultDoesNotExist(
-        uint128 vaultId
-    )
+    function test_GivenTheVaultDoesNotExist(uint128 vaultId)
         external
         whenTheIndexTokenAddressIsNotZero
         whenTheDepositCapIsNotZero
