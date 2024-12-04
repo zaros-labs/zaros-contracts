@@ -322,60 +322,42 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param shares The amount of index tokens to stake, in 18 decimals.
     function stake(uint128 vaultId, uint128 shares) external {
-        // // to prevent safe cast overflow errors
-        // if (shares < Constants.MIN_OF_SHARES_TO_STAKE) {
-        //     revert Errors.QuantityOfSharesLessThanTheMinimumAllowed(Constants.MIN_OF_SHARES_TO_STAKE,
-        // uint256(shares));
-        // }
+        // to prevent safe cast overflow errors
+        if (shares < Constants.MIN_OF_SHARES_TO_STAKE) {
+            revert Errors.QuantityOfSharesLessThanTheMinimumAllowed(Constants.MIN_OF_SHARES_TO_STAKE, uint256(shares));
+        }
 
-        // // fetch storage slot for vault by id
-        // Vault.Data storage vault = Vault.loadLive(vaultId);
+        // fetch storage slot for vault by id
+        Vault.Data storage vault = Vault.loadLive(vaultId);
 
-        // // load distribution data
-        // Distribution.Data storage distributionData = vault.wethRewardDistribution;
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
 
-        // // cast actor address to bytes32
-        // bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
+        // updates the vault's credit capacity and perform all vault state transitions before updating `msg.sender`'s
+        // staked shares
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
-        // // load actor distribution data
-        // Distribution.Actor storage actor = distributionData.actor[actorId];
+        // load distribution data
+        Distribution.Data storage wethRewardDistribution = vault.wethRewardDistribution;
 
-        // // calculate actor updated shares amount
-        // UD60x18 updatedActorShares = ud60x18(actor.shares).add(ud60x18(shares));
+        // cast actor address to bytes32
+        bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
-        // // update actor staked shares
-        // distributionData.setActorShares(actorId, updatedActorShares);
+        // load actor distribution data
+        Distribution.Actor storage actor = wethRewardDistribution.actor[actorId];
 
-        // // cast actor vault it to bytes 32
-        // bytes32 vaultActorId = bytes32(uint256(uint160(vaultId)));
+        // calculate actor updated shares amount
+        UD60x18 updatedActorShares = ud60x18(actor.shares).add(ud60x18(shares));
 
-        // // update actor shares of connected markets
-        // // todo: rework unstake on a separate pr, we need to handle credit updates at deposit
-        // // vault.updateSharesOfConnectedMarkets(vaultActorId, updatedActorShares, true);
+        // update actor staked shares
+        wethRewardDistribution.setActorShares(actorId, updatedActorShares);
 
-        // // prepare the `Vault::recalculateVaultsCreditCapacity` call
-        // uint256[] memory vaultsIds = new uint256[](1);
-        // vaultsIds[0] = uint256(vaultId);
+        // transfer shares from actor
+        IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
 
-        // // updates the vault's credit capacity
-        // Vault.recalculateVaultsCreditCapacity(vaultsIds);
-
-        // // load the mm engine configuration from storage
-        // MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-        //     MarketMakingEngineConfiguration.load();
-
-        // IReferral referralModule = IReferral(marketMakingEngineConfiguration.referralModule);
-
-        // if (referralCode.length != 0) {
-        //     referralModule.registerReferral(abi.encode(msg.sender), msg.sender, referralCode,
-        // isCustomReferralCode);
-        // }
-
-        // // transfer shares from actor
-        // IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
-
-        // // emit an event
-        // emit LogStake(vaultId, msg.sender, shares);
+        // emit an event
+        emit LogStake(vaultId, msg.sender, shares);
     }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.

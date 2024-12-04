@@ -543,46 +543,4 @@ library Vault {
             }
         }
     }
-
-    // todo: rework this on a separate PR
-    // /// @notice Updates the vault shares of the connected markets
-    // /// @param self The vault storage pointer.
-    // /// @param actorId The actor id (vault id) to update the shares.
-    // /// @param updatedActorShares The updated actor shares.
-    // /// @param shouldIncrement Whether the shares should be incremented or decremented.
-    // function updateSharesOfConnectedMarkets(
-    //     Data storage self,
-    //     bytes32 actorId,
-    //     UD60x18 updatedActorShares,
-    //     bool shouldIncrement
-    // )
-    //     internal
-    // {
-    //     // loads the connected markets storage pointer by taking the last configured market ids uint set
-    //     EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
-
-    //     // cache the connected markets ids
-    //     uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
-
-    //     // iterate over each connected market id
-    //     for (uint256 i; i < connectedMarketsIdsCache.length; i++) {
-    //         // loads the memory cached market id
-    //         uint128 connectedMarketId = connectedMarkets.at(i).toUint128();
-
-    //         // loads the market storage pointer
-    //         Market.Data storage market = Market.load(connectedMarketId);
-
-    //         // update the market's shares of the actor
-    //         UD60x18 totalSharesX18 = ud60x18(market.vaultsDebtDistribution.totalShares);
-    //         UD60x18 updatedSharesX18;
-
-    //         if (shouldIncrement) {
-    //             updatedSharesX18 = totalSharesX18.add(updatedActorShares);
-    //         } else {
-    //             updatedSharesX18 = totalSharesX18.sub(updatedActorShares);
-    //         }
-
-    //         market.vaultsDebtDistribution.setActorShares(actorId, updatedSharesX18);
-    //     }
-    // }
 }
