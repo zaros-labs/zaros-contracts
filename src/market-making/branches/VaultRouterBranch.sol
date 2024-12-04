@@ -23,7 +23,6 @@ import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/I
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
-// TODO: think about referrals
 contract VaultRouterBranch {
     using SafeERC20 for IERC20;
     using Collateral for Collateral.Data;
@@ -361,6 +360,9 @@ contract VaultRouterBranch {
     }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
+    /// @dev Even if the vault doesn't have enough unlocked credit capacity to fulfill the withdrawal request, the
+    /// user can still initiate it, wait for the withdrawal delay period to elapse, and redeem the shares when
+    /// liquidity is available.
     /// @dev Invariants involved in the call:
     /// The shares to withdraw MUST be greater than zero.
     /// The user MUST have enough shares in their balance to initiate the withdrawal.
@@ -378,8 +380,6 @@ contract VaultRouterBranch {
 
         // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
-
-        // todo: validate the vault.lockedCreditRatio invariant
 
         // increment withdrawal request counter and set withdrawal request id
         uint128 withdrawalRequestId = ++vault.withdrawalRequestIdCounter[msg.sender];
@@ -453,6 +453,12 @@ contract VaultRouterBranch {
         // get the shares to send to the vault deposit and redeem fee recipient
         uint256 sharesFees = withdrawalRequest.shares - sharesMinusRedeemFeesX18.intoUint256();
 
+        // cache the vault's credit capacity before redeeming
+        SD59x18 creditCapacityBeforeRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
+
+        // cache the locked credit capacity before redeeming
+        UD60x18 lockedCreditCapacityBeforeRedeemUsdX18 = vault.getLockedCreditCapacityUsd();
+
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
         uint256 assets =
             IERC4626(vault.indexToken).redeem(sharesMinusRedeemFeesX18.intoUint256(), msg.sender, address(this));
@@ -464,6 +470,18 @@ contract VaultRouterBranch {
 
         // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed(minAssets, assets);
+
+        // cache the vault's credit capacity after redeeming
+        SD59x18 creditCapacityAfterRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
+
+        // if the credit capacity delta is greater than the locked credit capacity before the state transition, revert
+        if (
+            creditCapacityBeforeRedeemUsdX18.sub(creditCapacityAfterRedeemUsdX18).lte(
+                lockedCreditCapacityBeforeRedeemUsdX18.intoSD59x18()
+            )
+        ) {
+            revert Errors.NotEnoughUnlockedCreditCapacity();
+        }
 
         // set withdrawal request to fulfilled
         withdrawalRequest.fulfilled = true;
@@ -510,7 +528,7 @@ contract VaultRouterBranch {
         UD60x18 updatedActorShares = actorShares.sub(ud60x18(shares));
 
         // update actor shares
-        distributionData.setActorShares(actorId, updatedActorShares);
+        wethRewardDistribution.setActorShares(actorId, updatedActorShares);
 
         // transfer shares to user
         IERC20(vault.indexToken).safeTransfer(msg.sender, shares);

@@ -181,9 +181,19 @@ library Vault {
     /// @notice Returns the vault's minimum credit capacity allocated to the connected markets.
     /// @dev Prevents the vault's LPs from withdrawing more collateral than allowed, leading to potential liquidity
     /// issues to connected markets.
+    /// @dev If the credit capacity goes to zero or below, meaning the vault is insolvent, the locked capacity will be
+    /// zero, so functions using this method must ensure funds can't be withdrawn in that state.
     /// @param self The vault storage pointer.
-    function getLockedCreditCapacityUsd(Data storage self) internal view returns (SD59x18) {
-        return getTotalCreditCapacityUsd(self).mul(ud60x18(self.lockedCreditRatio).intoSD59x18());
+    /// @return lockedCreditCapacityUsdX18 The vault's minimum credit capacity in USD.
+    function getLockedCreditCapacityUsd(Data storage self)
+        internal
+        view
+        returns (UD60x18 lockedCreditCapacityUsdX18)
+    {
+        SD59x18 creditCapacityUsdX18 = getTotalCreditCapacityUsd(self);
+        lockedCreditCapacityUsdX18 = creditCapacityUsdX18.lte(SD59x18_ZERO)
+            ? UD60x18_ZERO
+            : creditCapacityUsdX18.intoUD60x18().mul(ud60x18(self.lockedCreditRatio));
     }
 
     /// @notice Returns the vault's total credit capacity allocated to the connected markets.
