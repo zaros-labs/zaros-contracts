@@ -26,7 +26,7 @@ contract GetIndexTokenSwapRate_Integration_Test is Base_Test {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         vaultId = fuzzVaultConfig.vaultId;
 
-        UD60x18 swapRate = marketMakingEngine.getIndexTokenSwapRate(vaultId, amountToSwap);
+        UD60x18 swapRate = marketMakingEngine.getIndexTokenSwapRate(vaultId, amountToSwap, false);
 
         // it should return the swap rate
         assertAlmostEq(IERC4626(fuzzVaultConfig.indexToken).previewRedeem(amountToSwap), swapRate.intoUint256(), 1e17);

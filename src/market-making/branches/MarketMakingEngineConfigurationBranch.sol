@@ -124,6 +124,18 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param enabled Bool indicating whether the swap path is enabled
     event LogConfiguredSwapPath(address asset, address[] assets, uint128[] dexSwapStrategyIds, bool enabled);
 
+    /// @notice Emitted when the deposit fee is configured.
+    /// @param depositFee The deposit fee.
+    event LogConfigureDepositFee(uint256 depositFee);
+
+    /// @notice Emitted when the redeem fee is configured.
+    /// @param redeemFee The redeem fee.
+    event LogConfigureRedeemFee(uint256 redeemFee);
+
+    /// @notice Emitted when the vault deposit and redeem fee recipient is configured.
+    /// @param vaultDepositAndRedeemFeeRecipient The vault deposit and redeem fee recipient address.
+    event LogConfigureVaultDepositAndRedeemFeeRecipient(address vaultDepositAndRedeemFeeRecipient);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -533,7 +545,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @notice Returns the fees associated with the USD token swap.
     /// @return swapSettlementFeeBps The swap settlement fee in basis points.
     /// @return baseFeeUsd The base fee in USD.
-    function getUsdTokenSwapConfigFees() external view returns (uint128 swapSettlementFeeBps, uint128 baseFeeUsd) {
+    function getUsdTokenSwapFees() external view returns (uint128 swapSettlementFeeBps, uint128 baseFeeUsd) {
         UsdTokenSwapConfig.Data storage data = UsdTokenSwapConfig.load();
 
         swapSettlementFeeBps = data.swapSettlementFeeBps;
@@ -566,6 +578,63 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit the LogConfigureReferralModule event
         emit LogConfigureReferralModule(msg.sender, referralModule);
+    }
+
+    /// @notice Configure deposit and redeem fee to the vault
+    /// @dev Only owner can call this function
+    /// @param vaultsIds The array of vaults
+    /// @param depositFees The array of deposit fees
+    /// @param redeemFees The array of redeem fees
+    function configureDepositAndRedeemFees(
+        uint128[] calldata vaultsIds,
+        uint128[] calldata depositFees,
+        uint128[] calldata redeemFees
+    )
+        external
+        onlyOwner
+    {
+        // verify the array length
+        if (vaultsIds.length != depositFees.length) {
+            revert Errors.ArrayLengthMismatch(vaultsIds.length, depositFees.length);
+        }
+
+        // verify the array length
+        if (depositFees.length != redeemFees.length) {
+            revert Errors.ArrayLengthMismatch(vaultsIds.length, depositFees.length);
+        }
+
+        // loop over the arrays
+        for (uint256 i; i < vaultsIds.length; i++) {
+            // load vault data from storage
+            Vault.Data storage vault = Vault.load(vaultsIds[i]);
+
+            // update deposit and redeem fees
+            vault.depositFee = depositFees[i];
+            vault.redeemFee = redeemFees[i];
+        }
+    }
+
+    /// @notice Configure the vault deposit and redeem fee recipient
+    /// @dev Only owner can call this function
+    /// @param vaultDepositAndRedeemFeeRecipient The vault deposit and redeem fee recipient
+    function configureVaultDepositAndRedeemFeeRecipient(address vaultDepositAndRedeemFeeRecipient)
+        external
+        onlyOwner
+    {
+        // revert if the vaultDepositAndRedeemFeeRecipient is zero
+        if (vaultDepositAndRedeemFeeRecipient == address(0)) {
+            revert Errors.ZeroInput("vaultDepositAndRedeemFeeRecipient");
+        }
+
+        // load the market making engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // update the vault deposit and redeem fee recipient
+        marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient = vaultDepositAndRedeemFeeRecipient;
+
+        // emit the LogConfigureVaultDepositAndRedeemFeeRecipient event
+        emit LogConfigureVaultDepositAndRedeemFeeRecipient(vaultDepositAndRedeemFeeRecipient);
     }
 
     /// @notice Configures a custom swap path for a specific asset.

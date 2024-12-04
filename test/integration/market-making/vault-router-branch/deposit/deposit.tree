@@ -8,4 +8,5 @@ Deposit_Integration_Test
         ├── when shares minted are less than min amount
         │   └── it should revert
         └── when shares minted are more than min amount
+            ├── it should send the fees to the vault deposit fee recipient
             └── it should mint shares to the user

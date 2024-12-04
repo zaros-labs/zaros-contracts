@@ -27,7 +27,7 @@ contract GetVaultAssetSwapRate_Integration_Test is Base_Test {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         vaultId = fuzzVaultConfig.vaultId;
 
-        UD60x18 swapRate = marketMakingEngine.getVaultAssetSwapRate(vaultId, amountToSwap);
+        UD60x18 swapRate = marketMakingEngine.getVaultAssetSwapRate(vaultId, amountToSwap, false);
 
         // it should return the swap rate
         assertAlmostEq(

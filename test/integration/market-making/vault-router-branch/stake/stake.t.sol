@@ -32,8 +32,11 @@ contract Stake_Integration_Test is Base_Test {
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDepositVault =
-            bound({ x: assetsToDepositVault, min: Constants.MIN_OF_SHARES_TO_STAKE, max: fuzzVaultConfig.depositCap });
+        assetsToDepositVault = bound({
+            x: assetsToDepositVault,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
 
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0);
@@ -42,12 +45,11 @@ contract Stake_Integration_Test is Base_Test {
 
         marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake), "", false);
 
-        bytes32 actorId = bytes32(uint256(uint160(address(users.naruto.account))));
-        uint256 userStakedShares =
-            marketMakingEngine.workaround_Vault_getActorStakedShares(fuzzVaultConfig.vaultId, actorId);
+        uint256 actorShares =
+            marketMakingEngine.getVaultSharesOfAccount(fuzzVaultConfig.vaultId, users.naruto.account);
 
         // it should update staked shares
-        assertEq(sharesToStake, userStakedShares);
+        assertEq(sharesToStake, actorShares);
     }
 
     modifier whenTheUserHasAReferralCode() {

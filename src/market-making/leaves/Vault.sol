@@ -65,6 +65,10 @@ library Vault {
         bytes assetDexSwapPath;
     }
 
+    /// @param depositFee The despoit fee in the Vault, example 1e18 (100%), 0.1e18 (10%), 0.01e16 (1%), 0.001e18
+    /// (0,1%).
+    /// @param redeemFee The redeem fee in the Vault, example 1e18 (100%), 0.1e18 (10%), 0.01e16 (1%), 0.001e18
+    /// (0,1%).
     /// @param id The vault identifier.
     /// @param totalCreditDelegationWeight The total amount of credit delegation weight in the vault.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
@@ -87,6 +91,8 @@ library Vault {
     /// `EnumerableSet.UintSet` is created.
     /// @param withdrawalRequestIdCounter Counter for user withdraw requiest ids
     struct Data {
+        uint256 depositFee;
+        uint256 redeemFee;
         uint128 id;
         uint128 totalCreditDelegationWeight;
         uint128 depositCap;
@@ -106,12 +112,16 @@ library Vault {
     }
 
     /// @notice Parameters required to create a new vault.
+    /// @param depositFee The despoit fee for the vault.
+    /// @param redeemFee The redeem fee for the vault.
     /// @param vaultId The unique identifier for the vault to be created.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @param indexToken The address of the index token used in the vault.
     /// @param collateral The collateral asset data associated with the vault.
     struct CreateParams {
+        uint256 depositFee;
+        uint256 redeemFee;
         uint128 vaultId;
         uint128 depositCap;
         uint128 withdrawalDelay;
@@ -426,6 +436,8 @@ library Vault {
         self.withdrawalDelay = params.withdrawalDelay;
         self.indexToken = params.indexToken;
         self.collateral = params.collateral;
+        self.depositFee = params.depositFee;
+        self.redeemFee = params.redeemFee;
         self.isLive = true;
     }
 

@@ -69,8 +69,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureUsdTokenSwapConfig_Integ
         marketMakingEngine.configureUsdTokenSwapConfig(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
 
         // it should update the usd token swap fees
-        (uint128 actualSwapSettlementFeeBps, uint128 actualBaseFeeUsd) =
-            marketMakingEngine.getUsdTokenSwapConfigFees();
+        (uint128 actualSwapSettlementFeeBps, uint128 actualBaseFeeUsd) = marketMakingEngine.getUsdTokenSwapFees();
 
         assertEq(actualSwapSettlementFeeBps, swapSettlementFeeBps);
         assertEq(actualBaseFeeUsd, baseFeeUsd);

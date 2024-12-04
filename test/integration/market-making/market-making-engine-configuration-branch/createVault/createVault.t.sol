@@ -33,7 +33,9 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: address(0),
-            collateral: collateral
+            collateral: collateral,
+            depositFee: MOCK_DEPOSIT_FEE,
+            redeemFee: MOCK_REDEEM_FEE
         });
 
         // it should revert
@@ -61,7 +63,9 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: 0,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateral
+            collateral: collateral,
+            depositFee: MOCK_DEPOSIT_FEE,
+            redeemFee: MOCK_REDEEM_FEE
         });
 
         // it should revert
@@ -93,7 +97,9 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: 0,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateral
+            collateral: collateral,
+            depositFee: MOCK_DEPOSIT_FEE,
+            redeemFee: MOCK_REDEEM_FEE
         });
 
         // it should revert
@@ -126,7 +132,9 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateral
+            collateral: collateral,
+            depositFee: MOCK_DEPOSIT_FEE,
+            redeemFee: MOCK_REDEEM_FEE
         });
 
         // it should revert
@@ -162,7 +170,9 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateral
+            collateral: collateral,
+            depositFee: MOCK_DEPOSIT_FEE,
+            redeemFee: MOCK_REDEEM_FEE
         });
 
         // it should revert
@@ -192,7 +202,9 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
-            collateral: collateral
+            collateral: collateral,
+            depositFee: MOCK_DEPOSIT_FEE,
+            redeemFee: MOCK_REDEEM_FEE
         });
 
         // it should emit event

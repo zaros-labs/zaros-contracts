@@ -139,6 +139,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal liquidationKeeper;
     address internal feeConversionKeeper;
     uint256 internal constant MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO = 1e18;
+    uint256 internal constant MOCK_DEPOSIT_FEE = 0.01e18;
+    uint256 internal constant MOCK_REDEEM_FEE = 0.01e18;
     uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -279,6 +281,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         bool isTest = true;
         setupPerpMarketsCreditConfig(isTest);
+
+        marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(users.owner.account);
 
         marketMakingEngine.configureCollateral(
             address(usdc),
@@ -1007,6 +1011,15 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         // fill first order and open position
         perpsEngine.fillMarketOrder(tradingAccountId, marketId, mockSignedReport);
         changePrank({ msgSender: users.naruto.account });
+    }
+
+    function calculateMinOfSharesToStake(uint128 vaultId) internal view returns (uint256) {
+        UD60x18 minOfSharesToStakeX18 = ud60x18(Constants.MIN_OF_SHARES_TO_STAKE);
+        minOfSharesToStakeX18 = minOfSharesToStakeX18.add(
+            minOfSharesToStakeX18.mul(ud60x18(vaultsConfig[vaultId].depositFee))
+        ).add(ud60x18(12));
+
+        return minOfSharesToStakeX18.intoUint256();
     }
 
     function initiateUsdSwap(uint128 vaultId, uint256 amountInUsd, uint256 minAmountOut) internal {

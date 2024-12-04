@@ -170,7 +170,7 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
 
         // fetch the amount of assets out for the shares input value calling the `MarketMakingEngine`
         UD60x18 assetsOut = IMarketMakingEngine(zlpVaultStorage.marketMakingEngine).getIndexTokenSwapRate(
-            zlpVaultStorage.vaultId, shares
+            zlpVaultStorage.vaultId, shares, false
         );
 
         return assetsOut.intoUint256();
@@ -198,7 +198,7 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
 
         // fetch the amount of shares out for the assets input value calling the `MarketMakingEngine`
         UD60x18 sharesOut = IMarketMakingEngine(zlpVaultStorage.marketMakingEngine).getVaultAssetSwapRate(
-            zlpVaultStorage.vaultId, assets
+            zlpVaultStorage.vaultId, assets, false
         );
 
         return sharesOut.intoUint256();
