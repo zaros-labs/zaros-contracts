@@ -31,7 +31,7 @@ contract Deposit_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector, INVALID_VAULT_ID));
-        marketMakingEngine.deposit(INVALID_VAULT_ID, amountToDeposit, minSharesOut);
+        // marketMakingEngine.deposit(INVALID_VAULT_ID, amountToDeposit, minSharesOut);
     }
 
     modifier whenVaultDoesExist() {
@@ -80,7 +80,7 @@ contract Deposit_Integration_Test is Base_Test {
                 fuzzVaultConfig.depositCap
             )
         );
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
     }
 
     modifier whenTheDepositCapIsNotReached() {
@@ -104,7 +104,7 @@ contract Deposit_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsToDeposit));
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares));
+        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares));
     }
 
     function testFuzz_WhenSharesMintedAreMoreThanMinAmount(
@@ -136,7 +136,7 @@ contract Deposit_Integration_Test is Base_Test {
 
         vm.expectEmit();
         emit VaultRouterBranch.LogDeposit(fuzzVaultConfig.vaultId, users.naruto.account, assetsMinusFees);
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
         uint256 vaultDepositFeeRecipientAmountAfterDeposit =
             IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);

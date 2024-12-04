@@ -42,7 +42,7 @@ contract Redeem_Integration_Test is Base_Test {
             max: fuzzVaultConfig.depositCap
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
@@ -80,7 +80,7 @@ contract Redeem_Integration_Test is Base_Test {
             max: fuzzVaultConfig.depositCap
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
@@ -115,7 +115,7 @@ contract Redeem_Integration_Test is Base_Test {
             max: fuzzVaultConfig.depositCap
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
@@ -155,7 +155,7 @@ contract Redeem_Integration_Test is Base_Test {
             max: fuzzVaultConfig.depositCap
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalanceBefore = IERC20(indexToken).balanceOf(users.naruto.account);

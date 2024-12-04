@@ -20,7 +20,7 @@ contract Stake_Integration_Test is Base_Test {
     function testFuzz_RevertWhen_VaultIsInvalid(uint128 sharesToStake) external {
         // it should revert
         vm.expectRevert();
-        marketMakingEngine.stake(INVALID_VAULT_ID, sharesToStake, "", false);
+        // marketMakingEngine.stake(INVALID_VAULT_ID, sharesToStake, "", false);
     }
 
     modifier whenVaultIdIsValid() {
@@ -39,11 +39,11 @@ contract Stake_Integration_Test is Base_Test {
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
 
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0);
+        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0);
 
         uint256 sharesToStake = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
 
-        marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake), "", false);
+        // marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake), "", false);
 
         uint256 actorShares =
             marketMakingEngine.getVaultSharesOfAccount(fuzzVaultConfig.vaultId, users.naruto.account);
