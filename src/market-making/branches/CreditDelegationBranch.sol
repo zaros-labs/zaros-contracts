@@ -5,13 +5,14 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 import { SwapExactInputSinglePayload, SwapExactInputPayload } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 import { UsdToken } from "@zaros/usd/UsdToken.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { Market } from "@zaros/market-making/leaves/Market.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
-import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -30,6 +31,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeCast for uint256;
+    using SafeCast for int256;
     using SafeERC20 for IERC20;
     using Vault for Vault.Data;
 
@@ -404,6 +406,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 swapAmount;
         UD60x18 swapAmountX18;
         uint256 usdcOut;
+        UD60x18 usdcOutX18;
         uint256 usdcIn;
         UD60x18 usdcInX18;
         uint256 vaultUsdcBalance;
@@ -418,12 +421,20 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// case the vault is in debt.
     /// @dev If the vault is in net credit and doesn't own enough USDC to fully settle the due amount, it may have its
     /// assets rebalanced with other vaults through `CreditDelegation::rebalanceVaultsAssets`.
+    /// @dev There isn't any issue settling debt of vaults of different engines in the same call, as the system
+    /// allocates the USDC acquired in case of a debt settlement to the engine's USD Token accordingly.
     /// @param vaultsIds The vaults' identifiers to settle.
     function settleVaultsDebt(uint256[] calldata vaultsIds) external onlyRegisteredSystemKeepers {
         // first, we need to update the credit capacity of the vaults
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
         SettleVaultDebtContext memory ctx;
+
+        // cache the usdc address
+        ctx.usdc = MarketMakingEngineConfiguration.load().usdc;
+
+        // load the usdc collateral data storage pointer
+        Collateral.Data storage usdcCollateralConfig = Collateral.load(ctx.usdc);
 
         for (uint256 i; i < vaultsIds.length; i++) {
             // load the vault storage pointer
@@ -434,9 +445,6 @@ contract CreditDelegationBranch is EngineAccessControl {
 
             // cache the vault asset
             ctx.vaultAsset = vault.collateral.asset;
-
-            // cache the usdc address
-            ctx.usdc = MarketMakingEngineConfiguration.load().usdc;
 
             if (ctx.vaultUnsettledRealizedDebtUsdX18.isZero()) {
                 // proceed to the next vault if the vault has no debt that needs to be settled
@@ -470,9 +478,18 @@ contract CreditDelegationBranch is EngineAccessControl {
                     address(this)
                 );
 
-                // use the usdcOut to update the vault's state
-                vault.depositedUsdc +=
-                    Collateral.load(ctx.usdc).convertTokenAmountToUd60x18(ctx.usdcOut).intoUint256().toUint128();
+                ctx.usdcOutX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcOut);
+
+                // use the amount of usdc bought with assets to update the vault's state
+
+                // deduct the amount of usdc swapped for assets from the vault's unsettled debt
+                vault.marketsRealizedDebtUsd -= ctx.usdcOutX18.intoUint256().toInt256().toInt128();
+
+                // load the usd token swap config
+                UsdTokenSwapConfig.Data storage usdTokenSwapConfig = UsdTokenSwapConfig.load();
+
+                // allocate the usdc acquired to back the engine's usd token
+                usdTokenSwapConfig.usdcAvailableForEngine[vault.engine] += ctx.usdcOutX18.intoUint256();
 
                 // update the variables to be logged
                 ctx.assetIn = ctx.vaultAsset;
@@ -506,7 +523,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 ctx.usdcIn = (ctx.usdcIn <= ctx.vaultUsdcBalance) ? ctx.usdcIn : ctx.vaultUsdcBalance;
 
                 // convert the usdc amount to UD60x18 using 18 decimals
-                ctx.usdcInX18 = Collateral.load(ctx.usdc).convertTokenAmountToUd60x18(ctx.usdcIn);
+                ctx.usdcInX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcIn);
 
                 // swaps the vault's usdc balance to more vault assets and send them to the ZLP Vault contract (index
                 // token address)
@@ -518,9 +535,11 @@ contract CreditDelegationBranch is EngineAccessControl {
                     vault.indexToken
                 );
 
-                // subtract the amount of usdc sold from the vault's deposited usdc balance
-                vault.depositedUsdc -=
-                    Collateral.load(ctx.usdc).convertTokenAmountToUd60x18(ctx.usdcIn).intoUint256().toUint128();
+                // use the amount of usdc swapped for assets to update the vault's state
+
+                // subtract the usdc amount used to buy vault assets from the vault's deposited usdc, thus, settling
+                // the due credit amount (partially or fully)
+                vault.depositedUsdc -= ctx.usdcInX18.intoUint128();
 
                 // update the variables to be logged
                 ctx.assetIn = ctx.usdc;
@@ -574,17 +593,42 @@ contract CreditDelegationBranch is EngineAccessControl {
     }
 
     /// @notice Rebalances credit and debt between two vaults.
-    /// @dev Since the protocol supports usdToken holders to redeem a ZLP Vault's underlying assets, it may enter a
-    /// state where the relation between vaults' credit and debt is unbalanced. This function allows the system to fix
-    /// this correlation by swapping assets of a vault in net debt for USDC and depositing the USDC to the vault in
-    /// net credit, rebalancing the system. Accumulated USDC is later swapped back to the in credit vault's underlying
-    /// assets at `CreditDelegationBranch::settleVaultsDebt`.
+    /// @dev There are multiple factors that may result on vaults backing the same engine having a completely
+    /// different credit or debt state, such as:
+    ///  - connecting vaults with markets in different times
+    ///  - connecting vaults with different sets of markets
+    ///  - users swapping the engine's usd token for assets of different vaults
+    /// This way, from time to time, the system keepers must rebalance vaults with a significant state difference in
+    /// order to facilitate settlement of their credit and debt. A rebalancing doesn't need to always fully settle the
+    /// amount of USDC that a vault in credit requires to settle its due amount, so the system is optimized to ensure
+    /// a financial stability of the protocol.
+    /// @dev Example:
+    ///  in credit vault markets realized debt = -100 -> -90
+    ///  in credit vault deposited usdc = 200 -> 210
+    ///  in credit vault unsettled realized debt = -300 | as -100 + -200 -> after settlement -> -300 | as -90 + -210
+    ///  = -300
+
+    ///  thus, we need to rebalance as the in credit vault doesn't own enough usdc to settle its due credit
+
+    ///  in debt vault markets realized debt = 50 -> 40
+    ///  in debt vault deposited usdc = 10 -> 0
+    ///  in debt vault unsettled realized debt = 40 | as 50 + -10  -> after settlement -> 40 | as 40 + 0 = 40
+    /// @dev The first vault id passed is assumed to be the in credit vault, and the second vault id is assumed to be
+    /// the in debt vault.
+    /// @dev The final unsettled realized debt of both vaults MUST remain the same after the rebalance.
+    /// @dev The actual increase or decrease in the vaults' unsettled realized debt happen at `settleVaultsDebt`.
     /// @param vaultsIds The vaults' identifiers to rebalance.
     function rebalanceVaultsAssets(uint128[2] calldata vaultsIds) external onlyRegisteredSystemKeepers {
         // load the storage pointer of the vault in net credit
         Vault.Data storage inCreditVault = Vault.loadExisting(vaultsIds[0]);
         // load the storage pointer of the vault in net debt
         Vault.Data storage inDebtVault = Vault.loadExisting(vaultsIds[1]);
+
+        // both vaults must belong to the same engine in order to have their debt state rebalanced, as each usd
+        // token's debt is isolated
+        if (inCreditVault.engine != inDebtVault.engine) {
+            revert Errors.VaultsConnectedToDifferentEngines();
+        }
 
         // create an in-memory dynamic array in order to call `Vault::recalculateVaultsCreditCapacity`
         uint256[] memory vaultsIdsForRecalculation = new uint256[](2);
@@ -649,8 +693,14 @@ contract CreditDelegationBranch is EngineAccessControl {
 
         // deposits the USDC to the vault in net credit
         inCreditVault.depositedUsdc += depositAmountUsdc.toUint128();
+        // increase the vault's share of the markets realized debt as it has received the USDC and needs to settle it
+        // in the future
+        inCreditVault.marketsRealizedDebtUsd += depositAmountUsdX18.intoUint256().toInt256().toInt128();
+
         // withdraws the USDC from the vault in net debt
         inDebtVault.depositedUsdc -= depositAmountUsdc.toUint128();
+        // decrease the vault's share of the markets realized debt as it has transferred USDC to the in credit vault
+        inDebtVault.marketsRealizedDebtUsd -= depositAmountUsdX18.intoUint256().toInt256().toInt128();
 
         // emit an event
         emit LogRebalanceVaultsAssets(vaultsIds[0], vaultsIds[1], depositAmountUsdX18.intoUint256());

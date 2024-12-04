@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Errors } from "@zaros/utils/Errors.sol";
 import { MarketMakingEngineConfigurationBranch } from
     "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
-import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 
 // Zaros dependencies test
 import { Base_Test } from "test/Base.t.sol";
@@ -13,7 +13,7 @@ import { Base_Test } from "test/Base.t.sol";
 // Open Zeppelin dependencies
 import { Ownable } from "@openzeppelin/access/Ownable.sol";
 
-contract MarketMakingEngineConfigurationBranch_ConfigureUsdTokenSwap_Integration_Test is Base_Test {
+contract MarketMakingEngineConfigurationBranch_ConfigureUsdTokenSwapConfig_Integration_Test is Base_Test {
     function testFuzz_RevertGiven_TheSenderIsNotTheOwner(
         uint128 baseFeeUsd,
         uint128 swapSettlementFeeBps,
@@ -29,7 +29,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureUsdTokenSwap_Integration
             revertData: abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, users.sakura.account)
         });
 
-        marketMakingEngine.configureUsdTokenSwap(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
+        marketMakingEngine.configureUsdTokenSwapConfig(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
 
     modifier givenTheSenderIsTheOwner() {
@@ -48,7 +48,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureUsdTokenSwap_Integration
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "maxExecutionTime") });
 
-        marketMakingEngine.configureUsdTokenSwap(baseFeeUsd, swapSettlementFeeBps, 0);
+        marketMakingEngine.configureUsdTokenSwapConfig(baseFeeUsd, swapSettlementFeeBps, 0);
     }
 
     function test_WhenTheMaxExecutionTimeIsNotZero(
@@ -64,9 +64,9 @@ contract MarketMakingEngineConfigurationBranch_ConfigureUsdTokenSwap_Integration
         changePrank({ msgSender: users.owner.account });
 
         vm.expectEmit();
-        emit UsdTokenSwap.LogUpdateUsdTokenSwap(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
+        emit UsdTokenSwapConfig.LogUpdateUsdTokenSwapConfig(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
 
-        marketMakingEngine.configureUsdTokenSwap(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
+        marketMakingEngine.configureUsdTokenSwapConfig(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
 
         // it should update the usd token swap fees
         (uint128 actualSwapSettlementFeeBps, uint128 actualBaseFeeUsd) = marketMakingEngine.getUsdTokenSwapFees();

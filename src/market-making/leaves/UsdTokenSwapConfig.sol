@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-library UsdTokenSwap {
+library UsdTokenSwapConfig {
     /// @notice ERC7201 storage location.
     bytes32 internal constant SWAP_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Swap")) - 1));
@@ -10,7 +10,7 @@ library UsdTokenSwap {
     /// @param baseFeeUsd The updated base fee in USD.
     /// @param swapSettlementFeeBps The updated swap settlement fee in basis points.
     /// @param maxExecutionTime The updated maximum execution time in seconds.
-    event LogUpdateUsdTokenSwap(uint128 baseFeeUsd, uint128 swapSettlementFeeBps, uint128 maxExecutionTime);
+    event LogUpdateUsdTokenSwapConfig(uint128 baseFeeUsd, uint128 swapSettlementFeeBps, uint128 maxExecutionTime);
 
     /// @notice Represents a swap request for a user.
     /// @param processed Indicates whether the swap has been processed.
@@ -33,6 +33,10 @@ library UsdTokenSwap {
     /// @param swapSettlementFeeBps The swap settlement fee in basis points (bps), applied as a percentage of the swap
     /// amount.
     /// @param maxExecutionTime The maximum allowed time, in seconds, to execute a swap after it has been requested.
+    /// @param usdcAvailableForEngine The amount of USDC backing an engine's usd token, coming from vaults that had
+    /// their debt settled, allocating the usdc acquired to users of that engine. Note: usdc stored here isn't owned
+    // by any vault, it's where usdc from settled vaults is stored, to be used for swaps, although swaps can
+    // also be done using a vault's deposited usdc.
     /// @param swapRequestIdCounter A counter for tracking the number of swap requests per user address.
     /// @param swapRequests A mapping that tracks all swap requests for each user, by user address and swap request
     /// id.
@@ -40,11 +44,12 @@ library UsdTokenSwap {
         uint128 baseFeeUsd; // 1 USD
         uint128 swapSettlementFeeBps; // 0.3 %
         uint128 maxExecutionTime;
+        mapping(address engine => uint256 availableUsdc) usdcAvailableForEngine;
         mapping(address => uint128) swapRequestIdCounter;
         mapping(address => mapping(uint128 => SwapRequest)) swapRequests;
     }
 
-    /// @notice Loads a {UsdTokenSwap}.
+    /// @notice Loads the {UsdTokenSwapConfig}.
     /// @return swap The loaded swap data storage pointer.
     function load() internal pure returns (Data storage swap) {
         bytes32 slot = keccak256(abi.encode(SWAP_LOCATION));
@@ -66,7 +71,7 @@ library UsdTokenSwap {
         self.swapSettlementFeeBps = swapSettlementFeeBps;
         self.maxExecutionTime = maxExecutionTime;
 
-        emit LogUpdateUsdTokenSwap(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
+        emit LogUpdateUsdTokenSwapConfig(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
 
     /// @notice Increments and returns the next swap request ID for a given user.

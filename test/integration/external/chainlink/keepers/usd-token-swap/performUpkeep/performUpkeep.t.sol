@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { UsdTokenSwapKeeper } from "@zaros/external/chainlink/keepers/usd-token-swap-keeper/UsdTokenSwapKeeper.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
-import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -83,7 +83,7 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
         bytes memory performData = abi.encode(mockSignedReport, abi.encode(users.naruto.account, 1));
 
         ctx.requestId = 1;
-        UsdTokenSwap.SwapRequest memory request =
+        UsdTokenSwapConfig.SwapRequest memory request =
             marketMakingEngine.getSwapRequest(users.naruto.account, ctx.requestId);
 
         ctx.amountOut = marketMakingEngine.getAmountOfAssetOut(ud60x18(ctx.amountInUsd), ud60x18(ctx.mockPrice));

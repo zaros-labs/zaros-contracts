@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
-import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 
 contract InitiateSwap_Integration_Test is Base_Test {
@@ -128,7 +128,7 @@ contract InitiateSwap_Integration_Test is Base_Test {
         marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
 
         // it shoud create new usd token swap request
-        UsdTokenSwap.SwapRequest memory request =
+        UsdTokenSwapConfig.SwapRequest memory request =
             marketMakingEngine.getSwapRequest(users.naruto.account, swapRequestId);
 
         assertGt(request.vaultId, 0);

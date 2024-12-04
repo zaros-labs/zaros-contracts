@@ -1304,6 +1304,67 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         assertEq(ctx.marketOrder.timestamp, 0);
     }
 
+    struct Test_RevertGiven_TheUserAccountWillBeLiquidatedAfterCreatingMarketOrder_Context {
+        uint256 marketId;
+        uint256 marginValueUsd;
+        int128 userPositionSizeDelta;
+        uint128 tradingAccountId;
+        int128 orderSizeDelta;
+        bytes mockSignedReport;
+        MarketConfig fuzzMarketConfig;
+        PerpMarket.Data perpMarketData;
+        Position.Data expectedPosition;
+        Position.Data position;
+        address marketOrderKeeper;
+    }
+
+    function test_RevertGiven_TheUserAccountWillBeLiquidatedAfterCreatingMarketOrder()
+        external
+        givenTheSenderIsTheKeeper
+        givenTheMarketOrderExists
+        givenThePerpMarketIsEnabled
+        givenTheSettlementStrategyIsEnabled
+        givenTheReportVerificationPasses
+        givenTheDataStreamsReportIsValid
+        givenTheAccountWillMeetTheMarginRequirement
+        givenTheMarketsOILimitWontBeExceeded
+    {
+        Test_RevertGiven_TheUserAccountWillBeLiquidatedAfterCreatingMarketOrder_Context memory ctx;
+
+        ctx.marketId = BTC_USD_MARKET_ID;
+        ctx.marginValueUsd = 100_000e18;
+        ctx.userPositionSizeDelta = 10e18;
+
+        deal({ token: address(usdToken), to: users.naruto.account, give: ctx.marginValueUsd });
+
+        ctx.fuzzMarketConfig = getFuzzMarketConfig(ctx.marketId);
+        ctx.marketOrderKeeper = marketOrderKeepers[ctx.fuzzMarketConfig.marketId];
+        ctx.tradingAccountId = createAccountAndDeposit(ctx.marginValueUsd, address(usdToken));
+
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams({
+                tradingAccountId: ctx.tradingAccountId,
+                marketId: ctx.fuzzMarketConfig.marketId,
+                sizeDelta: ctx.userPositionSizeDelta
+            })
+        );
+
+        ctx.mockSignedReport = getMockedSignedReport(ctx.fuzzMarketConfig.streamId, ctx.fuzzMarketConfig.mockUsdPrice);
+
+        updateMockPriceFeed(BTC_USD_MARKET_ID, MOCK_BTC_USD_PRICE / 2);
+
+        address marketOrderKeeper = marketOrderKeepers[BTC_USD_MARKET_ID];
+
+        changePrank({ msgSender: marketOrderKeeper });
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.AccountIsLiquidatable.selector, ctx.tradingAccountId)
+        });
+
+        perpsEngine.fillMarketOrder(ctx.tradingAccountId, BTC_USD_MARKET_ID, ctx.mockSignedReport);
+    }
+
     modifier givenTheUserHasAnOpenPosition() {
         _;
     }

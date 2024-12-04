@@ -13,7 +13,7 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
-import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { LiveMarkets } from "@zaros/market-making/leaves/LiveMarkets.sol";
 import { AssetSwapPath } from "@zaros/market-making/leaves/AssetSwapPath.sol";
@@ -527,7 +527,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param baseFeeUsd The base fee applied to each swap.
     /// @param swapSettlementFeeBps The settlement fee in basis points applied to each swap.
     /// @param maxExecutionTime The maximum allowable time (in seconds) for swap execution.
-    function configureUsdTokenSwap(
+    function configureUsdTokenSwapConfig(
         uint128 baseFeeUsd,
         uint128 swapSettlementFeeBps,
         uint128 maxExecutionTime
@@ -539,14 +539,14 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("maxExecutionTime");
         }
 
-        UsdTokenSwap.update(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
+        UsdTokenSwapConfig.update(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
 
     /// @notice Returns the fees associated with the USD token swap.
     /// @return swapSettlementFeeBps The swap settlement fee in basis points.
     /// @return baseFeeUsd The base fee in USD.
     function getUsdTokenSwapFees() external view returns (uint128 swapSettlementFeeBps, uint128 baseFeeUsd) {
-        UsdTokenSwap.Data storage data = UsdTokenSwap.load();
+        UsdTokenSwapConfig.Data storage data = UsdTokenSwapConfig.load();
 
         swapSettlementFeeBps = data.swapSettlementFeeBps;
         baseFeeUsd = data.baseFeeUsd;

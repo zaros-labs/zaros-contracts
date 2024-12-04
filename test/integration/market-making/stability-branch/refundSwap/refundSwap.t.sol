@@ -5,7 +5,7 @@ pragma solidity 0.8.25;
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
-import { UsdTokenSwap } from "@zaros/market-making/leaves/UsdTokenSwap.sol";
+import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 
 // PRB Math dependencies
 import { ud60x18, UD60x18 } from "@prb-math/UD60x18.sol";
@@ -72,7 +72,7 @@ contract RefundSwap_Integration_Test is Base_Test {
         uint128 minAmountOut = 0;
 
         changePrank({ msgSender: users.owner.account });
-        marketMakingEngine.configureUsdTokenSwap(0, 0, uint128(300));
+        marketMakingEngine.configureUsdTokenSwapConfig(0, 0, uint128(300));
         changePrank({ msgSender: users.naruto.account });
 
         initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), uint128(swapAmount), minAmountOut);
@@ -102,9 +102,10 @@ contract RefundSwap_Integration_Test is Base_Test {
 
         skip(MAX_VERIFICATION_DELAY + 1);
 
-        uint256 baseFeeUsd = UsdTokenSwap.load().baseFeeUsd;
+        uint256 baseFeeUsd = UsdTokenSwapConfig.load().baseFeeUsd;
         uint256 refundAmount = swapAmount - baseFeeUsd;
-        UsdTokenSwap.SwapRequest memory request = marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
+        UsdTokenSwapConfig.SwapRequest memory request =
+            marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
 
         // it should emit {LogRefundSwap} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
