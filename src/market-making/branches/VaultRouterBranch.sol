@@ -537,7 +537,11 @@ contract VaultRouterBranch {
         emit LogUnstake(vaultId, msg.sender, shares);
     }
 
-    function getVaultSharesOfAccount(uint128 vaultId, address account) public view returns (uint256) {
+    /// @notice Returns the amount of shares staked by a given account in the provided vault.
+    /// @param vaultId The vault identifier.
+    /// @param account The address of the account to query.
+    /// @return The amount of shares staked by the account.
+    function getStakedSharesOfAccount(uint128 vaultId, address account) public view returns (uint256) {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
