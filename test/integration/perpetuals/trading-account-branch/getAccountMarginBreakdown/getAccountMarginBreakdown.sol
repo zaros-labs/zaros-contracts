@@ -8,11 +8,15 @@ import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 
 contract getAccountMarginBreakdown_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
+        changePrank({ msgSender: users.owner.account });
+        configureSystemParameters();
+        createPerpMarkets();
+        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit) external {
@@ -45,6 +49,33 @@ contract getAccountMarginBreakdown_Integration_Test is Base_Test {
             maintenanceMarginUsdX18.intoUint256(),
             expectedMaintenanceMargin,
             "getAccountMargin maintenanceMarginUsdX18"
+        );
+    }
+
+    function testFuzz_AvailableBalance(uint128 marketId, uint256 amountToDeposit, bool isLong) external {
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+
+        amountToDeposit = bound({
+            x: amountToDeposit,
+            min: USDC_MIN_DEPOSIT_MARGIN,
+            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
+        });
+        deal({ token: address(usdc), to: users.naruto.account, give: amountToDeposit });
+
+        uint256 initialMarginRate = fuzzMarketConfig.imr;
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
+
+        openPosition(fuzzMarketConfig, tradingAccountId, initialMarginRate, amountToDeposit, isLong);
+
+        (SD59x18 marginBalanceUsdX18, UD60x18 initialMarginUsdX18,, SD59x18 availableBalance) =
+            perpsEngine.getAccountMarginBreakdown({ tradingAccountId: tradingAccountId });
+
+        SD59x18 availableMarginSubByInitialMargin = marginBalanceUsdX18.sub((initialMarginUsdX18).intoSD59x18());
+
+        assertGt(
+            availableBalance.intoInt256(),
+            availableMarginSubByInitialMargin.intoInt256(),
+            "marginBalance substracted by maintenance margin > marginBalance substracted by initial margin"
         );
     }
 
