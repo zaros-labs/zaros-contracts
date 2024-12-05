@@ -205,7 +205,8 @@ library Vault {
         Collateral.Data storage collateral = self.collateral;
 
         // fetch the zlp vault's total assets amount
-        UD60x18 totalAssetsX18 = ud60x18(IERC4626(collateral.asset).totalAssets());
+        UD60x18 totalAssetsX18 = ud60x18(IERC4626(self.indexToken).totalAssets());
+
         // calculate the total assets value in usd terms
         UD60x18 totalAssetsUsdX18 = collateral.getAdjustedPrice().mul(totalAssetsX18);
 

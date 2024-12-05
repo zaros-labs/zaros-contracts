@@ -285,7 +285,9 @@ contract VaultRouterBranch {
 
         // register the given referral code
         if (referralCode.length != 0) {
-            ctx.referralModule.registerReferral(abi.encode(msg.sender), msg.sender, referralCode, isCustomReferralCode);
+            ctx.referralModule.registerReferral(
+                abi.encode(msg.sender), msg.sender, referralCode, isCustomReferralCode
+            );
         }
 
         // cache the vault assets decimals value for gas savings
@@ -435,10 +437,10 @@ contract VaultRouterBranch {
         WithdrawalRequest.Data storage withdrawalRequest =
             WithdrawalRequest.loadExisting(vaultId, msg.sender, withdrawalRequestId);
 
-        // revert if withdrawal request already filfilled
-        if (withdrawalRequest.fulfilled) revert Errors.WithdrawalRequestAlreadyFullfilled();
+        // revert if withdrawal request already fulfilled
+        if (withdrawalRequest.fulfilled) revert Errors.WithdrawalRequestAlreadyFulfilled();
 
-        // revert if withdrawl request delay not yes passed
+        // revert if withdrawal request delay not yet passed
         if (withdrawalRequest.timestamp + vault.withdrawalDelay > block.timestamp) {
             revert Errors.WithdrawDelayNotPassed();
         }

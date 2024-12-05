@@ -325,11 +325,13 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         uint256 indexArray = 0;
 
         for (uint256 i = INITIAL_PERP_MARKET_CREDIT_CONFIG_ID; i <= FINAL_PERP_MARKET_CREDIT_CONFIG_ID; i++) {
+            marketMakingEngine.workaround_updateMarketTotalDelegatedCreditUsd(uint128(i), 1e10);
             perpMarketsCreditConfigIds[indexArray++] = uint128(i);
         }
 
         for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
             marketMakingEngine.configureVaultConnectedMarkets(uint128(i), perpMarketsCreditConfigIds);
+            marketMakingEngine.workaround_Vault_setTotalCreditDelegationWeight(uint128(i), 1e10);
         }
 
         // Referral Module setup
@@ -579,20 +581,20 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
         deal(vaultAsset, users.naruto.account, assetsToDeposit);
 
-        // marketMakingEngine.deposit(vaultId, assetsToDeposit, 0);
+        marketMakingEngine.deposit(vaultId, assetsToDeposit, 0, "", false);
     }
 
     function depositAndStakeInVault(uint128 vaultId, uint128 assetsToDeposit) internal {
         address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
         deal(vaultAsset, users.naruto.account, assetsToDeposit);
 
-        // marketMakingEngine.deposit(vaultId, assetsToDeposit, 0);
+        marketMakingEngine.deposit(vaultId, assetsToDeposit, 0, "", false);
 
         address indexToken = marketMakingEngine.workaround_Vault_getIndexToken(vaultId);
         uint128 sharesToStake = IERC20(indexToken).balanceOf(users.naruto.account).toUint128();
 
         IERC20(indexToken).approve(address(marketMakingEngine), sharesToStake);
-        // marketMakingEngine.stake(vaultId, sharesToStake, new bytes(0), false);
+        marketMakingEngine.stake(vaultId, sharesToStake);
     }
 
     function setMarketId(uint128 marketId) internal {
