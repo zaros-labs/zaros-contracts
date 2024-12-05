@@ -12,6 +12,7 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
+import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -385,11 +386,26 @@ contract TradingAccountBranch {
 
     /// @notice Used by the Account NFT contract to notify an account transfer.
     /// @dev Can only be called by the Account NFT contract.
-    /// @dev It updates the Trading Account stored access control data.
+    /// @dev It updates the Trading Account stored access control data and cancel existing pending orders.
     /// @param to The recipient of the account transfer.
     /// @param tradingAccountId The trading account id.
     function notifyAccountTransfer(address to, uint128 tradingAccountId) external {
         _onlyTradingAccountToken();
+
+        // load trader's orders
+        MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
+
+        // cancel pending order if it exists
+        if(marketOrder.marketId != 0) {
+            // reverts if a trader has a pending order and that pending order hasn't
+            // existed for the minimum order lifetime; pending orders can't be cancelled
+            // until they have existed for the minimum order lifetime
+            marketOrder.checkPendingOrder();
+            // cancel pending order
+            marketOrder.clear();
+
+            emit OrderBranch.LogCancelMarketOrder(msg.sender, tradingAccountId);
+        }
 
         TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
         tradingAccount.owner = to;
