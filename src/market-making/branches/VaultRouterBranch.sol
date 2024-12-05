@@ -223,6 +223,18 @@ contract VaultRouterBranch {
         return ud60x18(previewSharesOut);
     }
 
+    struct DepositContext {
+        address vaultAsset;
+        IReferral referralModule;
+        uint8 vaultAssetDecimals;
+        UD60x18 assetsX18;
+        UD60x18 assetFeesX18;
+        UD60x18 assetsMinusFeesX18;
+        uint256 assetFees;
+        uint256 assetsMinusFees;
+        uint256 shares;
+    }
+
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
     /// @dev Invariants involved in the call:
     /// The total deposits MUST not exceed the vault after the deposit.
@@ -246,8 +258,11 @@ contract VaultRouterBranch {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
+        // define context struct
+        DepositContext memory ctx;
+
         // get vault asset
-        address vaultAsset = vault.collateral.asset;
+        ctx.vaultAsset = vault.collateral.asset;
 
         // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
@@ -266,50 +281,50 @@ contract VaultRouterBranch {
             MarketMakingEngineConfiguration.load();
 
         // load the referral module contract
-        IReferral referralModule = IReferral(marketMakingEngineConfiguration.referralModule);
+        ctx.referralModule = IReferral(marketMakingEngineConfiguration.referralModule);
 
         // register the given referral code
         if (referralCode.length != 0) {
-            referralModule.registerReferral(abi.encode(msg.sender), msg.sender, referralCode, isCustomReferralCode);
+            ctx.referralModule.registerReferral(abi.encode(msg.sender), msg.sender, referralCode, isCustomReferralCode);
         }
 
         // cache the vault assets decimals value for gas savings
-        uint8 vaultAssetDecimals = vault.collateral.decimals;
+        ctx.vaultAssetDecimals = vault.collateral.decimals;
 
         // uint256 -> ud60x18 18 decimals
-        UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(vaultAssetDecimals, assets);
+        ctx.assetsX18 = Math.convertTokenAmountToUd60x18(ctx.vaultAssetDecimals, assets);
 
         // calculate the collateral fees
-        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(vault.depositFee));
+        ctx.assetFeesX18 = ctx.assetsX18.mul(ud60x18(vault.depositFee));
 
         // calculate assets minus fees
-        UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
+        ctx.assetsMinusFeesX18 = ctx.assetsX18.sub(ctx.assetFeesX18);
 
         // ud60x18 -> uint256 asset decimals
-        uint256 assetFees = Math.convertUd60x18ToTokenAmount(vaultAssetDecimals, assetFeesX18);
-        uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(vaultAssetDecimals, assetsMinusFeesX18);
+        ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
+        ctx.assetsMinusFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetsMinusFeesX18);
 
         // get the tokens
-        IERC20(vaultAsset).safeTransferFrom(msg.sender, address(this), assetsMinusFees);
+        IERC20(ctx.vaultAsset).safeTransferFrom(msg.sender, address(this), ctx.assetsMinusFees);
 
         // get the asset fees
-        IERC20(vaultAsset).safeTransferFrom(
-            msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, assetFees
+        IERC20(ctx.vaultAsset).safeTransferFrom(
+            msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, ctx.assetFees
         );
 
         // increase vault allowance to transfer tokens
-        IERC20(vaultAsset).approve(address(vault.indexToken), assetsMinusFees);
+        IERC20(ctx.vaultAsset).approve(address(vault.indexToken), ctx.assetsMinusFees);
 
         // then perform the actual deposit
         // NOTE: the following call will update the total assets deposited in the vault
         // NOTE: the following call will validate the vault's deposit cap
-        uint256 shares = IERC4626(vault.indexToken).deposit(assetsMinusFees, msg.sender);
+        ctx.shares = IERC4626(vault.indexToken).deposit(ctx.assetsMinusFees, msg.sender);
 
         // assert min shares minted
-        if (shares < minShares) revert Errors.SlippageCheckFailed(minShares, shares);
+        if (ctx.shares < minShares) revert Errors.SlippageCheckFailed(minShares, ctx.shares);
 
         // emit an event
-        emit LogDeposit(vaultId, msg.sender, assetsMinusFees);
+        emit LogDeposit(vaultId, msg.sender, ctx.assetsMinusFees);
     }
 
     /// @notice Stakes a given amount of index tokens in the contract.
