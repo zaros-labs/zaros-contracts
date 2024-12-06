@@ -135,8 +135,8 @@ library Market {
     /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
-    /// marketDebtRatio = (Market::getUnrealizedDebtUsdX18 + Market.Data.realizedUsdTokenDebt) /
-    /// Market::getCreditCapacityUsd
+    /// marketDebtRatio = (Market::getRealizedDebtUsd + Market::getUnrealizedDebtUsd) /
+    /// Market::getTotalDelegatedCreditUsd
     /// @param self The market storage pointer.
     /// @param delegatedCreditUsdX18 The market's credit delegated by vaults in USD, used to determine the ADL state.
     /// @param totalDebtUsdX18 The market's total debt in USD, assumed to be positive.

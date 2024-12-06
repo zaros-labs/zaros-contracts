@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
+// PRB Math dependencies
+import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
+
 library UsdTokenSwapConfig {
     /// @notice ERC7201 storage location.
     bytes32 internal constant SWAP_LOCATION =
@@ -29,10 +33,24 @@ library UsdTokenSwapConfig {
     }
 
     /// @notice Represents the configuration and state data for USD token swaps.
+    /// @dev The premium/discount function is defined for a usd token swap is defined as:
+    ///      f(x) = y_min + Δy * ((x - x_min) / (x_max - x_min))^z
+    ///      where:
+    ///      - y_min is the minimum premium or discount abs value.
+    ///      - Δy = y_max - y_min in abs value.
+    ///      - x_min is the minimum debt / tvl value for the premium or discount to be applied.
+    ///      - x_max is the maximum debt / tvl value for the premium or discount to be applied.
+    ///      - z is the exponent that determines the curvature of the function, i.e how fast the premium or discount
+    /// scale up.
     /// @param baseFeeUsd The flat fee for each swap, denominated in USD.
     /// @param swapSettlementFeeBps The swap settlement fee in basis points (bps), applied as a percentage of the swap
     /// amount.
     /// @param maxExecutionTime The maximum allowed time, in seconds, to execute a swap after it has been requested.
+    /// @param pdCurveYMin The minimum y value of the premium / discount curve.
+    /// @param pdCurveYMax The maximum y value of the premium / discount curve.
+    /// @param pdCurveXMin The minimum x value of the premium / discount curve.
+    /// @param pdCurveXMax The maximum x value of the premium / discount curve.
+    /// @param pdCurveZ The exponent that determines the curvature of the premium / discount curve.
     /// @param usdcAvailableForEngine The amount of USDC backing an engine's usd token, coming from vaults that had
     /// their debt settled, allocating the usdc acquired to users of that engine. Note: usdc stored here isn't owned
     // by any vault, it's where usdc from settled vaults is stored, to be used for swaps, although swaps can
@@ -44,9 +62,11 @@ library UsdTokenSwapConfig {
         uint128 baseFeeUsd; // 1 USD
         uint128 swapSettlementFeeBps; // 0.3 %
         uint128 maxExecutionTime;
-        uint128 pdCurveMinX;
-        uint128 pdCurveMaxX;
-        uint128 debtTvlRatioEndThreshold;
+        uint128 pdCurveYMin;
+        uint128 pdCurveYMax;
+        uint128 pdCurveXMin;
+        uint128 pdCurveXMax;
+        uint128 pdCurveZ;
         mapping(address engine => uint256 availableUsdc) usdcAvailableForEngine;
         mapping(address => uint128) swapRequestIdCounter;
         mapping(address => mapping(uint128 => SwapRequest)) swapRequests;
@@ -69,34 +89,41 @@ library UsdTokenSwapConfig {
     // {
     // }
 
-    // function getPremiumDiscountFactor(UD60x18 vaulAssetsValueUsdX18, SD59x18 vaultDebtUsdX18) internal pure returns
-    // (SD59x18 pdFactorX18) {
-    //     //   SD59x18 sdDelegatedCreditUsdX18 = delegatedCreditUsdX18.intoSD59x18();
-    //     // if (sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()) {
-    //     //     autoDeleverageFactorX18 = UD60x18_UNIT;
-    //     //     return autoDeleverageFactorX18;
-    //     // }
+    // f(x) = 1 + 9 * ((x - 0.3) / 0.5)^2
+    function getPremiumDiscountFactor(
+        UD60x18 vaultAssetsValueUsdX18,
+        SD59x18 vaultDebtUsdX18
+    )
+        internal
+        pure
+        returns (SD59x18 pdFactorX18)
+    {
+        //   SD59x18 sdDelegatedCreditUsdX18 = delegatedCreditUsdX18.intoSD59x18();
+        // if (sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()) {
+        //     autoDeleverageFactorX18 = UD60x18_UNIT;
+        //     return autoDeleverageFactorX18;
+        // }
 
-    //     // UD60x18 -> SD59x18
-    //     SD59x18 sdVaultAssetsValueUsdX18 = vaulAssetsValueUsdX18.intoSD59x18();
+        // UD60x18 -> SD59x18
+        // SD59x18 sdVaultAssetsValueUsdX18 = vaulAssetsValueUsdX18.intoSD59x18();
 
-    //     // cache the vault's tvl / debt value, positive means we'll apply a discount, negative means we'll apply a
-    // premium
-    //     SD59x18 vaultDebtTvlRatio = vaultDebtUsdX18.div(sdVaultAssetsValueUsdX18);
+        // // cache the vault's tvl / debt value, positive means we'll apply a discount, negative means we'll apply a
+        // // premium
+        // SD59x18 vaultDebtTvlRatio = vaultDebtUsdX18.div(sdVaultAssetsValueUsdX18);
 
-    //     // cache the auto deleverage parameters as UD60x18
-    //     UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
-    //     UD60x18 autoDeleverageEndThresholdX18 = ud60x18(self.autoDeleverageEndThreshold);
-    //     UD60x18 autoDeleverageExpoentZX18 = ud60x18(self.autoDeleverageExpoentZ);
+        // // cache the auto deleverage parameters as UD60x18
+        // UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
+        // UD60x18 autoDeleverageEndThresholdX18 = ud60x18(self.autoDeleverageEndThreshold);
+        // UD60x18 autoDeleverageExpoentZX18 = ud60x18(self.autoDeleverageExpoentZ);
 
-    //     // first, calculate the unscaled delevarage factor
-    //     UD60x18 unscaledDeleverageFactor = Math.min(marketDebtRatio, autoDeleverageEndThresholdX18).sub(
-    //         autoDeleverageStartThresholdX18
-    //     ).div(autoDeleverageEndThresholdX18.sub(autoDeleverageStartThresholdX18));
+        // // first, calculate the unscaled delevarage factor
+        // UD60x18 unscaledDeleverageFactor = Math.min(marketDebtRatio, autoDeleverageEndThresholdX18).sub(
+        //     autoDeleverageStartThresholdX18
+        // ).div(autoDeleverageEndThresholdX18.sub(autoDeleverageStartThresholdX18));
 
-    //     // finally, raise to the power scale
-    //     autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleverageExpoentZX18);
-    // }
+        // // finally, raise to the power scale
+        // autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleverageExpoentZX18);
+    }
 
     /// @notice Updates the fee and execution time parameters for USD token swaps.
     /// @param baseFeeUsd The new flat fee for each swap, denominated in USD.
