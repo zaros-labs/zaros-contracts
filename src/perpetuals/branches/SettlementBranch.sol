@@ -175,6 +175,7 @@ contract SettlementBranch is EIP712Upgradeable {
         address signer;
         bool isFillPriceValid;
         bool isBuyOrder;
+        bool isMarketWithActivePosition;
     }
 
     /// @notice Fills pending, eligible offchain offchain orders targeting the given market id.
@@ -226,6 +227,17 @@ contract SettlementBranch is EIP712Upgradeable {
             // enforce that keeper is filling the order for the correct marketId
             if (marketId != ctx.offchainOrder.marketId) {
                 revert Errors.OrderMarketIdMismatch(marketId, ctx.offchainOrder.marketId);
+            }
+
+            // find if account has active position in this market
+            ctx.isMarketWithActivePosition = tradingAccount.isMarketWithActivePosition(marketId);
+
+            // if the account doesn't have an active position in this market then
+            // this trade is opening a new active position in a new market, hence
+            // revert if this new position would put the account over the maximum
+            // number of open positions
+            if (!ctx.isMarketWithActivePosition) {
+                tradingAccount.validatePositionsLimit();
             }
 
             // First we check if the nonce is valid, as a first measure to protect from replay attacks, according to
