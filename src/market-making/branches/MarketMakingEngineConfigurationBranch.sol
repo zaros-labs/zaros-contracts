@@ -486,7 +486,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         marketMakingEngineConfiguration.protocolFeeRecipients.set(feeRecipient, share);
 
         // update protocol total fee recipients shares value
-        marketMakingEngineConfiguration.totalFeeRecipientsShares += share.toUint128();
+        marketMakingEngineConfiguration.totalFeeRecipientsShares += share.toUint128(); // update_here
 
         // emit event LogConfigureFeeRecipient
         emit LogConfigureFeeRecipient(feeRecipient, share);

@@ -506,9 +506,10 @@ library Market {
         // to weth
         self.receivedFees.remove(asset);
 
-        // increment the amount o pending weth reward to be distributed to fee recipients
+        // increment the amount of pending weth reward to be distributed to fee recipients
         self.availableProtocolWethReward =
             ud60x18(self.availableProtocolWethReward).add(receivedProtocolWethRewardX18).intoUint128();
+
         // increment the all time weth reward storage
         self.wethRewardPerVaultShare =
             ud60x18(self.wethRewardPerVaultShare).add(receivedVaultsWethRewardX18).intoUint128();

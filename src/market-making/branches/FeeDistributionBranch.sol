@@ -263,6 +263,9 @@ contract FeeDistributionBranch is EngineAccessControl {
         // get total shares
         UD60x18 totalShares = ud60x18(marketMakingEngineConfiguration.totalFeeRecipientsShares);
 
+        // this condition can never be hit since if shares is zero, availableProtocolWethReward
+        // will also be zero, since in convertAccumulatedFeesToWeth at the end if there are no
+        // fee recipient shares all weth rewards would go to the vaults
         if (totalShares.isZero()) {
             // if total shares is zero, revert
             revert Errors.NoSharesAvailable();
