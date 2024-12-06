@@ -33,13 +33,13 @@ abstract contract PerpMarketsCreditConfig is
     /// @param marketId Market id
     /// @param autoDeleverageStartThreshold Auto deleverage start threshold
     /// @param autoDeleverageEndThreshold Auto deleverage end threshold
-    /// @param autoDeleveragePowerScale Auto deleverage power scale
+    /// @param autoDeleverageExpoentZ Auto deleverage power scale
     struct PerpMarketCreditConfig {
         address engine;
         uint128 marketId;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
-        uint128 autoDeleveragePowerScale;
+        uint128 autoDeleverageExpoentZ;
     }
 
     /// @notice Configure market params
@@ -64,7 +64,7 @@ abstract contract PerpMarketsCreditConfig is
             marketId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
-            autoDeleveragePowerScale: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+            autoDeleverageExpoentZ: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
         });
 
         marketEngine[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = address(new MockEngine());
@@ -73,7 +73,7 @@ abstract contract PerpMarketsCreditConfig is
             marketId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
-            autoDeleveragePowerScale: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+            autoDeleverageExpoentZ: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
         });
     }
 
@@ -109,7 +109,7 @@ abstract contract PerpMarketsCreditConfig is
                 perpMarketsCreditConfig[i].marketId,
                 perpMarketsCreditConfig[i].autoDeleverageStartThreshold,
                 perpMarketsCreditConfig[i].autoDeleverageEndThreshold,
-                perpMarketsCreditConfig[i].autoDeleveragePowerScale
+                perpMarketsCreditConfig[i].autoDeleverageExpoentZ
             );
 
             params.marketMakingEngine.unpauseMarket(perpMarketsCreditConfig[i].marketId);

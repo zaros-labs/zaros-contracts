@@ -44,19 +44,59 @@ library UsdTokenSwapConfig {
         uint128 baseFeeUsd; // 1 USD
         uint128 swapSettlementFeeBps; // 0.3 %
         uint128 maxExecutionTime;
+        uint128 pdCurveMinX;
+        uint128 pdCurveMaxX;
+        uint128 debtTvlRatioEndThreshold;
         mapping(address engine => uint256 availableUsdc) usdcAvailableForEngine;
         mapping(address => uint128) swapRequestIdCounter;
         mapping(address => mapping(uint128 => SwapRequest)) swapRequests;
     }
 
     /// @notice Loads the {UsdTokenSwapConfig}.
-    /// @return swap The loaded swap data storage pointer.
-    function load() internal pure returns (Data storage swap) {
+    /// @return usdTokenSwapConfig The loaded usd token swap config data storage pointer.
+    function load() internal pure returns (Data storage usdTokenSwapConfig) {
         bytes32 slot = keccak256(abi.encode(SWAP_LOCATION));
         assembly {
-            swap.slot := slot
+            usdTokenSwapConfig.slot := slot
         }
     }
+
+    // function applyPremiumOrDiscountToAmountOut(
+    //     UD60x18 assetAmountOutX18,
+    //     SD59x18 vaultDebtRatioX18
+    // ) internal pure returns (UD60x18) {
+
+    // {
+    // }
+
+    // function getPremiumDiscountFactor(UD60x18 vaulAssetsValueUsdX18, SD59x18 vaultDebtUsdX18) internal pure returns
+    // (SD59x18 pdFactorX18) {
+    //     //   SD59x18 sdDelegatedCreditUsdX18 = delegatedCreditUsdX18.intoSD59x18();
+    //     // if (sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()) {
+    //     //     autoDeleverageFactorX18 = UD60x18_UNIT;
+    //     //     return autoDeleverageFactorX18;
+    //     // }
+
+    //     // UD60x18 -> SD59x18
+    //     SD59x18 sdVaultAssetsValueUsdX18 = vaulAssetsValueUsdX18.intoSD59x18();
+
+    //     // cache the vault's tvl / debt value, positive means we'll apply a discount, negative means we'll apply a
+    // premium
+    //     SD59x18 vaultDebtTvlRatio = vaultDebtUsdX18.div(sdVaultAssetsValueUsdX18);
+
+    //     // cache the auto deleverage parameters as UD60x18
+    //     UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
+    //     UD60x18 autoDeleverageEndThresholdX18 = ud60x18(self.autoDeleverageEndThreshold);
+    //     UD60x18 autoDeleverageExpoentZX18 = ud60x18(self.autoDeleverageExpoentZ);
+
+    //     // first, calculate the unscaled delevarage factor
+    //     UD60x18 unscaledDeleverageFactor = Math.min(marketDebtRatio, autoDeleverageEndThresholdX18).sub(
+    //         autoDeleverageStartThresholdX18
+    //     ).div(autoDeleverageEndThresholdX18.sub(autoDeleverageStartThresholdX18));
+
+    //     // finally, raise to the power scale
+    //     autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleverageExpoentZX18);
+    // }
 
     /// @notice Updates the fee and execution time parameters for USD token swaps.
     /// @param baseFeeUsd The new flat fee for each swap, denominated in USD.

@@ -67,7 +67,7 @@ contract MarketHarness {
 
     function workaround_getAutoDeleveragePowerScale(uint128 marketId) external view returns (uint128) {
         Market.Data storage market = Market.load(marketId);
-        return market.autoDeleveragePowerScale;
+        return market.autoDeleverageExpoentZ;
     }
 
     function workaround_updateMarketTotalDelegatedCreditUsd(

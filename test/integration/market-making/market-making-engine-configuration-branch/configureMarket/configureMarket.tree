@@ -14,8 +14,8 @@ MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test
                 ├── when the autoDeleverageEndThreshold is zero
                 │   └── it should revert
                 └── when the autoDeleverageEndThreshold is not zero
-                    ├── when the autoDeleveragePowerScale is zero
+                    ├── when the autoDeleverageExpoentZ is zero
                     │   └── it should revert
-                    └── when the autoDeleveragePowerScale is not zero
+                    └── when the autoDeleverageExpoentZ is not zero
                         ├── it should update market storage
                         └── it should emit {LogConfigureMarket} event

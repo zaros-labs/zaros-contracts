@@ -43,7 +43,7 @@ library Market {
     /// threshold of the ADL polynomial regression curve, ranging from 0 to 1.
     /// @param autoDeleverageEndThreshold An admin configurable decimal rate used to determine the ending threshold of
     /// the ADL polynomial regression curve, ranging from 0 to 1.
-    /// @param autoDeleveragePowerScale An admin configurable exponent used to determine the acceleration of the
+    /// @param autoDeleverageExpoentZ An admin configurable exponent used to determine the acceleration of the
     /// ADL polynomial regression curve.
     /// @param netUsdTokenIssuance The net value of usd tokens minted and burned by this market, mints add while burns
     /// subtract from this variable.
@@ -73,7 +73,7 @@ library Market {
         uint128 id;
         uint128 autoDeleverageStartThreshold;
         uint128 autoDeleverageEndThreshold;
-        uint128 autoDeleveragePowerScale;
+        uint128 autoDeleverageExpoentZ;
         int128 netUsdTokenIssuance;
         uint128 creditDepositsValueCacheUsd;
         uint128 lastCreditDepositsValueRehydration;
@@ -131,7 +131,7 @@ library Market {
     /// @dev The auto deleverage factor is the `y` coordinate of the following polynomial regression curve:
     //// X and Y in [0, 1] ∈ R
     /// y = x^z
-    /// z = Market.Data.autoDeleveragePowerScale
+    /// z = Market.Data.autoDeleverageExpoentZ
     /// x = (Math.min(marketDebtRatio, autoDeleverageEndThreshold) - autoDeleverageStartThreshold)  /
     /// (autoDeleverageEndThreshold - autoDeleverageStartThreshold)
     /// where:
@@ -164,7 +164,7 @@ library Market {
         // cache the auto deleverage parameters as UD60x18
         UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
         UD60x18 autoDeleverageEndThresholdX18 = ud60x18(self.autoDeleverageEndThreshold);
-        UD60x18 autoDeleveragePowerScaleX18 = ud60x18(self.autoDeleveragePowerScale);
+        UD60x18 autoDeleverageExpoentZX18 = ud60x18(self.autoDeleverageExpoentZ);
 
         // first, calculate the unscaled delevarage factor
         UD60x18 unscaledDeleverageFactor = Math.min(marketDebtRatio, autoDeleverageEndThresholdX18).sub(
@@ -172,7 +172,7 @@ library Market {
         ).div(autoDeleverageEndThresholdX18.sub(autoDeleverageStartThresholdX18));
 
         // finally, raise to the power scale
-        autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleveragePowerScaleX18);
+        autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleverageExpoentZX18);
     }
 
     /// @notice Builds and returns a memory array containing the vaults delegating credit to the market.
@@ -356,7 +356,7 @@ library Market {
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale
+        uint128 autoDeleverageExpoentZ
     )
         internal
     {
@@ -365,7 +365,7 @@ library Market {
         self.id = marketId;
         self.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         self.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
-        self.autoDeleveragePowerScale = autoDeleveragePowerScale;
+        self.autoDeleverageExpoentZ = autoDeleverageExpoentZ;
     }
 
     /// @notice Configures the vaults ids delegating credit to the market.

@@ -23,7 +23,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale
+        uint128 autoDeleverageExpoentZ
     )
         external
     {
@@ -35,7 +35,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         });
 
         marketMakingEngine.configureMarket(
-            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExpoentZ
         );
     }
 
@@ -47,7 +47,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale
+        uint128 autoDeleverageExpoentZ
     )
         external
         givenTheSenderIsTheOwner
@@ -58,7 +58,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         address engine = address(0);
 
         marketMakingEngine.configureMarket(
-            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExpoentZ
         );
     }
 
@@ -70,7 +70,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         address engine,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale
+        uint128 autoDeleverageExpoentZ
     )
         external
         givenTheSenderIsTheOwner
@@ -84,7 +84,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         uint128 marketId = 0;
 
         marketMakingEngine.configureMarket(
-            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExpoentZ
         );
     }
 
@@ -96,7 +96,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         address engine,
         uint128 marketId,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale
+        uint128 autoDeleverageExpoentZ
     )
         external
         givenTheSenderIsTheOwner
@@ -113,7 +113,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         uint128 autoDeleverageStartThreshold = 0;
 
         marketMakingEngine.configureMarket(
-            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExpoentZ
         );
     }
 
@@ -125,7 +125,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         address engine,
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
-        uint128 autoDeleveragePowerScale
+        uint128 autoDeleverageExpoentZ
     )
         external
         givenTheSenderIsTheOwner
@@ -141,7 +141,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         uint128 autoDeleverageEndThreshold = 0;
 
         marketMakingEngine.configureMarket(
-            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExpoentZ
         );
     }
 
@@ -168,12 +168,12 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         );
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "autoDeleveragePowerScale") });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "autoDeleverageExpoentZ") });
 
-        uint128 autoDeleveragePowerScale = 0;
+        uint128 autoDeleverageExpoentZ = 0;
 
         marketMakingEngine.configureMarket(
-            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExpoentZ
         );
     }
 
@@ -182,7 +182,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleveragePowerScale
+        uint128 autoDeleverageExpoentZ
     )
         external
         givenTheSenderIsTheOwner
@@ -193,17 +193,17 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
     {
         vm.assume(
             engine != address(0) && marketId != 0 && autoDeleverageStartThreshold != 0
-                && autoDeleverageEndThreshold != 0 && autoDeleveragePowerScale != 0
+                && autoDeleverageEndThreshold != 0 && autoDeleverageExpoentZ != 0
         );
 
         // it should emit {LogConfigureMarket} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit MarketMakingEngineConfigurationBranch.LogConfigureMarket(
-            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExpoentZ
         );
 
         marketMakingEngine.configureMarket(
-            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleveragePowerScale
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExpoentZ
         );
 
         // it should update market storage
@@ -222,8 +222,8 @@ contract MarketMakingEngineConfigurationBranch_ConfigureMarket_Integration_Test 
         );
         assertEq(
             marketMakingEngine.workaround_getAutoDeleveragePowerScale(marketId),
-            autoDeleveragePowerScale,
-            "the market autoDeleveragePowerScale should be updated"
+            autoDeleverageExpoentZ,
+            "the market autoDeleverageExpoentZ should be updated"
         );
     }
 }
