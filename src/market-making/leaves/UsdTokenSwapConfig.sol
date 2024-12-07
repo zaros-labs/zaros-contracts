@@ -2,13 +2,13 @@
 pragma solidity 0.8.25;
 
 // PRB Math dependencies
-import { UD60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18, UNIT as UD60x18_UNIT, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, UNIT as SD59x18_UNIT, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 library UsdTokenSwapConfig {
     /// @notice ERC7201 storage location.
-    bytes32 internal constant SWAP_LOCATION =
-        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Swap")) - 1));
+    bytes32 internal constant USD_TOKEN_SWAP_CONFIG_LOCATION =
+        keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.UsdTokenSwapConfig")) - 1));
 
     /// @notice Emitted when the USD token swap configuration is updated.
     /// @param baseFeeUsd The updated base fee in USD.
@@ -75,54 +75,67 @@ library UsdTokenSwapConfig {
     /// @notice Loads the {UsdTokenSwapConfig}.
     /// @return usdTokenSwapConfig The loaded usd token swap config data storage pointer.
     function load() internal pure returns (Data storage usdTokenSwapConfig) {
-        bytes32 slot = keccak256(abi.encode(SWAP_LOCATION));
+        bytes32 slot = keccak256(abi.encode(USD_TOKEN_SWAP_CONFIG_LOCATION));
         assembly {
             usdTokenSwapConfig.slot := slot
         }
     }
 
-    // function applyPremiumOrDiscountToAmountOut(
-    //     UD60x18 assetAmountOutX18,
-    //     SD59x18 vaultDebtRatioX18
-    // ) internal pure returns (UD60x18) {
-
-    // {
-    // }
-
-    // f(x) = 1 + 9 * ((x - 0.3) / 0.5)^2
+    /// @notice Returns the premium or discount to be applied to the amount out of a swap, based on the vault's debt
+    /// and the system configured premium / discount curve parameters.
+    /// @dev The following invariant defining the premium / discount curve must hold true:
+    ///      f(x) = y_min + Δy * ((x - x_min) / (x_max - x_min))^z | x ∈ [x_min, x_max]
+    /// @dev The proposed initial curve is defined as:
+    ///      f(x) = 1 + 9 * ((x - 0.3) / 0.5)^3
+    /// @dev Using the proposed z value of 3, the slope of f(x) near the upper bound of x is steeper than near the
+    /// lower bound, meaning the premium or discount accelerates faster as the vault's debt / tvl ratio increases.
     function getPremiumDiscountFactor(
+        Data storage self,
         UD60x18 vaultAssetsValueUsdX18,
         SD59x18 vaultDebtUsdX18
     )
         internal
-        pure
-        returns (SD59x18 pdFactorX18)
+        view
+        returns (UD60x18 premiumDiscountFactorX18)
     {
-        //   SD59x18 sdDelegatedCreditUsdX18 = delegatedCreditUsdX18.intoSD59x18();
-        // if (sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()) {
-        //     autoDeleverageFactorX18 = UD60x18_UNIT;
-        //     return autoDeleverageFactorX18;
-        // }
+        // calculate the vault's tvl / debt absolute value, positive means we'll apply a discount, negative means
+        // we'll apply a premium
 
-        // UD60x18 -> SD59x18
-        // SD59x18 sdVaultAssetsValueUsdX18 = vaulAssetsValueUsdX18.intoSD59x18();
+        UD60x18 vaultDebtTvlRatioAbs = vaultDebtUsdX18.abs().intoUD60x18().div(vaultAssetsValueUsdX18);
 
-        // // cache the vault's tvl / debt value, positive means we'll apply a discount, negative means we'll apply a
-        // // premium
-        // SD59x18 vaultDebtTvlRatio = vaultDebtUsdX18.div(sdVaultAssetsValueUsdX18);
+        // cache the minimum x value of the premium / discount curve
+        UD60x18 pdCurveXMinX18 = ud60x18(self.pdCurveXMin);
+        // cache the maximum x value of the premium / discount curve
+        UD60x18 pdCurveXMaxX18 = ud60x18(self.pdCurveXMax);
 
-        // // cache the auto deleverage parameters as UD60x18
-        // UD60x18 autoDeleverageStartThresholdX18 = ud60x18(self.autoDeleverageStartThreshold);
-        // UD60x18 autoDeleverageEndThresholdX18 = ud60x18(self.autoDeleverageEndThreshold);
-        // UD60x18 autoDeleverageExpoentZX18 = ud60x18(self.autoDeleverageExpoentZ);
+        // if the vault's debt / tvl ratio is less than or equal to the minimum x value of the premium / discount
+        // curve, then we don't apply any premium or discount
+        if (vaultDebtTvlRatioAbs.lte(pdCurveXMinX18)) {
+            premiumDiscountFactorX18 = UD60x18_UNIT;
+            return premiumDiscountFactorX18;
+        }
 
-        // // first, calculate the unscaled delevarage factor
-        // UD60x18 unscaledDeleverageFactor = Math.min(marketDebtRatio, autoDeleverageEndThresholdX18).sub(
-        //     autoDeleverageStartThresholdX18
-        // ).div(autoDeleverageEndThresholdX18.sub(autoDeleverageStartThresholdX18));
+        // if the vault's debt / tvl ratio is greater than or equal to the maximum x value of the premium / discount
+        // curve, we use the max X value, otherwise, use the calculated vault tvl / debt ratio
+        UD60x18 pdCurveXX18 = vaultDebtTvlRatioAbs.gte(pdCurveXMaxX18) ? pdCurveXMaxX18 : vaultDebtTvlRatioAbs;
 
-        // // finally, raise to the power scale
-        // autoDeleverageFactorX18 = unscaledDeleverageFactor.pow(autoDeleverageExpoentZX18);
+        // cache the minimum y value of the premium / discount curve
+        UD60x18 pdCurveYMinX18 = ud60x18(self.pdCurveYMin);
+        // cache the maximum y value of the premium / discount curve
+        UD60x18 pdCurveYMaxX18 = ud60x18(self.pdCurveYMax);
+
+        // cache the exponent that determines the steepness of the premium / discount curve
+        UD60x18 pdCurveZX18 = ud60x18(self.pdCurveZ);
+
+        // calculate the y point of the premium or discount curve given the x point
+        UD60x18 pdCurveYX18 = pdCurveYMinX18.add(
+            pdCurveYMaxX18.sub(pdCurveYMinX18).mul(
+                pdCurveXX18.sub(pdCurveXMinX18).div(pdCurveXMaxX18.sub(pdCurveXMinX18)).pow(pdCurveZX18)
+            )
+        );
+        // if the vault is in credit, we apply a discount, otherwise, we apply a premium
+        premiumDiscountFactorX18 =
+            vaultDebtUsdX18.lt(SD59x18_ZERO) ? UD60x18_UNIT.sub(pdCurveYX18) : UD60x18_UNIT.add(pdCurveYX18);
     }
 
     /// @notice Updates the fee and execution time parameters for USD token swaps.
