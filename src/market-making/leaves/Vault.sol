@@ -304,25 +304,33 @@ library Vault {
 
             // get the latest realized debt of the market
             ctx.marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
-            // distribute the market's debt to its connected vaults
-            market.distributeDebtToVaults(ctx.marketUnrealizedDebtUsdX18, ctx.marketRealizedDebtUsdX18);
+
+            // if market has debt distribute it
+            if (!ctx.marketUnrealizedDebtUsdX18.isZero() || !ctx.marketRealizedDebtUsdX18.isZero()) {
+                // distribute the market's debt to its connected vaults
+                market.distributeDebtToVaults(ctx.marketUnrealizedDebtUsdX18, ctx.marketRealizedDebtUsdX18);
+            }
 
             // load the credit delegation to the given market id
             CreditDelegation.Data storage creditDelegation = CreditDelegation.load(ctx.vaultId, ctx.connectedMarketId);
 
-            // get the vault's accumulated debt, credit and reward changes from the market to update its stored values
-            (
-                ctx.realizedDebtChangeUsdX18,
-                ctx.unrealizedDebtChangeUsdX18,
-                ctx.usdcCreditChangeX18,
-                ctx.wethRewardChangeX18
-            ) = market.getVaultAccumulatedValues(
-                ud60x18(creditDelegation.valueUsd),
-                sd59x18(creditDelegation.lastVaultDistributedRealizedDebtUsdPerShare),
-                sd59x18(creditDelegation.lastVaultDistributedUnrealizedDebtUsdPerShare),
-                ud60x18(creditDelegation.lastVaultDistributedUsdcCreditPerShare),
-                ud60x18(creditDelegation.lastVaultDistributedWethRewardPerShare)
-            );
+            // prevent division by zero
+            if (!market.getTotalDelegatedCreditUsd().isZero()) {
+                // get the vault's accumulated debt, credit and reward changes from the market to update its stored
+                // values
+                (
+                    ctx.realizedDebtChangeUsdX18,
+                    ctx.unrealizedDebtChangeUsdX18,
+                    ctx.usdcCreditChangeX18,
+                    ctx.wethRewardChangeX18
+                ) = market.getVaultAccumulatedValues(
+                    ud60x18(creditDelegation.valueUsd),
+                    sd59x18(creditDelegation.lastVaultDistributedRealizedDebtUsdPerShare),
+                    sd59x18(creditDelegation.lastVaultDistributedUnrealizedDebtUsdPerShare),
+                    ud60x18(creditDelegation.lastVaultDistributedUsdcCreditPerShare),
+                    ud60x18(creditDelegation.lastVaultDistributedWethRewardPerShare)
+                );
+            }
 
             // if there's been no change in any of the returned values, we can iterate to the next
             // market id
@@ -520,34 +528,36 @@ library Vault {
             // cache the previous credit delegation value
             UD60x18 previousCreditDelegationUsdX18 = ud60x18(creditDelegation.valueUsd);
 
-            // // get the latest credit delegation share of the vault's credit capacity
-            UD60x18 creditDelegationShareX18 =
-                ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
+            if (self.totalCreditDelegationWeight != 0) {
+                // get the latest credit delegation share of the vault's credit capacity
+                UD60x18 creditDelegationShareX18 =
+                    ud60x18(creditDelegation.weight).div(ud60x18(self.totalCreditDelegationWeight));
 
-            // stores the vault's total credit capacity to be returned
-            vaultCreditCapacityUsdX18 = getTotalCreditCapacityUsd(self);
+                // stores the vault's total credit capacity to be returned
+                vaultCreditCapacityUsdX18 = getTotalCreditCapacityUsd(self);
 
-            // if the vault's credit capacity went to zero or below, we set its credit delegation to that market
-            // to zero
-            UD60x18 newCreditDelegationUsdX18 = vaultCreditCapacityUsdX18.gt(SD59x18_ZERO)
-                ? vaultCreditCapacityUsdX18.intoUD60x18().mul(creditDelegationShareX18)
-                : UD60x18_ZERO;
+                // if the vault's credit capacity went to zero or below, we set its credit delegation to that market
+                // to zero
+                UD60x18 newCreditDelegationUsdX18 = vaultCreditCapacityUsdX18.gt(SD59x18_ZERO)
+                    ? vaultCreditCapacityUsdX18.intoUD60x18().mul(creditDelegationShareX18)
+                    : UD60x18_ZERO;
 
-            // calculate the delta applied to the market's total delegated credit
-            UD60x18 creditDeltaUsdX18 = newCreditDelegationUsdX18.sub(previousCreditDelegationUsdX18);
+                // calculate the delta applied to the market's total delegated credit
+                UD60x18 creditDeltaUsdX18 = newCreditDelegationUsdX18.sub(previousCreditDelegationUsdX18);
 
-            // loads the market's storage pointer
-            Market.Data storage market = Market.load(connectedMarketId);
+                // loads the market's storage pointer
+                Market.Data storage market = Market.load(connectedMarketId);
 
-            // performs state update
-            market.updateTotalDelegatedCredit(creditDeltaUsdX18);
+                // performs state update
+                market.updateTotalDelegatedCredit(creditDeltaUsdX18);
 
-            // if new credit delegation is zero, we clear the credit delegation storage
-            if (newCreditDelegationUsdX18.isZero()) {
-                creditDelegation.clear();
-            } else {
-                // update the credit delegation stored usd value
-                creditDelegation.valueUsd = newCreditDelegationUsdX18.intoUint128();
+                // if new credit delegation is zero, we clear the credit delegation storage
+                if (newCreditDelegationUsdX18.isZero()) {
+                    creditDelegation.clear();
+                } else {
+                    // update the credit delegation stored usd value
+                    creditDelegation.valueUsd = newCreditDelegationUsdX18.intoUint128();
+                }
             }
         }
     }

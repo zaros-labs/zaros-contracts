@@ -299,12 +299,11 @@ contract VaultRouterBranch {
         // calculate the collateral fees
         ctx.assetFeesX18 = ctx.assetsX18.mul(ud60x18(vault.depositFee));
 
-        // calculate assets minus fees
-        ctx.assetsMinusFeesX18 = ctx.assetsX18.sub(ctx.assetFeesX18);
-
         // ud60x18 -> uint256 asset decimals
         ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
-        ctx.assetsMinusFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetsMinusFeesX18);
+
+        // calculate assets minus fees
+        ctx.assetsMinusFees = assets - ctx.assetFees;
 
         // get the tokens
         IERC20(ctx.vaultAsset).safeTransferFrom(msg.sender, address(this), ctx.assetsMinusFees);

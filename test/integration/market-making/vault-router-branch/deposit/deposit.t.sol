@@ -68,8 +68,8 @@ contract Deposit_Integration_Test is Base_Test {
 
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
-        UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
-        uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetsMinusFeesX18);
+        uint256 assetsFee = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+        uint256 assetsMinusFees = assetsToDeposit - assetsFee;
 
         // it should revert
         vm.expectRevert(
@@ -107,15 +107,14 @@ contract Deposit_Integration_Test is Base_Test {
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
 
         // calculate assets minus fees
-        UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
-        uint256 assetsToDepositMinusFee =
-            Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetsMinusFeesX18);
+        uint256 assetsFee = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+        uint256 assetsMinusFees = assetsToDeposit - assetsFee;
 
-        uint256 minShares = type(uint128).max; // todo apply fee
+        uint256 minShares = type(uint128).max;
 
         // it should revert
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsToDepositMinusFee)
+            abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsMinusFees)
         );
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares), "", false);
     }
@@ -141,8 +140,10 @@ contract Deposit_Integration_Test is Base_Test {
 
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
-        UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
-        uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetsMinusFeesX18);
+
+        uint256 assetsFee = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+
+        uint256 assetsMinusFees = assetsToDeposit - assetsFee;
 
         uint256 vaultDepositFeeRecipientAmountBeforeDeposit =
             IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);
