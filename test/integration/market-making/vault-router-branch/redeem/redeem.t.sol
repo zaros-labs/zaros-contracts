@@ -42,7 +42,7 @@ contract Redeem_Integration_Test is Base_Test {
             max: fuzzVaultConfig.depositCap
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0, "", false);
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
@@ -56,7 +56,7 @@ contract Redeem_Integration_Test is Base_Test {
 
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.WithdrawalRequestAlreadyFullfilled.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.WithdrawalRequestAlreadyFulfilled.selector));
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, 0);
     }
 
@@ -80,7 +80,7 @@ contract Redeem_Integration_Test is Base_Test {
             max: fuzzVaultConfig.depositCap
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0, "", false);
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
@@ -101,7 +101,7 @@ contract Redeem_Integration_Test is Base_Test {
     function testFuzz_RevertWhen_AssetsAreLessThenMinAmount(
         uint256 vaultId,
         uint256 assetsToDeposit,
-        uint256 assetsToWithdraw
+        uint256 sharesToSwap
     )
         external
         whenRequestIsNotFulfulled
@@ -115,19 +115,30 @@ contract Redeem_Integration_Test is Base_Test {
             max: fuzzVaultConfig.depositCap
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0, "", false);
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalance = IERC20(indexToken).balanceOf(users.naruto.account);
-        assetsToWithdraw = bound({ x: assetsToDeposit, min: 0, max: userBalance });
-        IERC20(indexToken).approve(address(marketMakingEngine), assetsToWithdraw);
+        sharesToSwap = bound({ x: assetsToDeposit, min: 0, max: userBalance });
 
-        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(assetsToWithdraw));
+        IERC20(indexToken).approve(address(marketMakingEngine), sharesToSwap);
+
+        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, uint128(sharesToSwap));
 
         skip(fuzzVaultConfig.withdrawalDelay + 1);
 
-        uint256 assetsOut = IERC4626(indexToken).previewRedeem(userBalance);
+        UD60x18 expectedAssetsX18 =
+            marketMakingEngine.getIndexTokenSwapRate(fuzzVaultConfig.vaultId, sharesToSwap, false);
 
+        uint256 redeemFee = vaultsConfig[fuzzVaultConfig.vaultId].redeemFee;
+
+        UD60x18 expectedAssetsMinusRedeemFeeX18 = expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(redeemFee)));
+
+        UD60x18 sharesMinusRedeemFeesX18 = marketMakingEngine.getVaultAssetSwapRate(
+            fuzzVaultConfig.vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false
+        );
+
+        uint256 assetsOut = IERC4626(fuzzVaultConfig.indexToken).previewRedeem(sharesMinusRedeemFeesX18.intoUint256());
         uint256 minAssetsOut = assetsOut + 1;
 
         IERC20(indexToken).approve(address(marketMakingEngine), userBalance);
@@ -155,7 +166,7 @@ contract Redeem_Integration_Test is Base_Test {
             max: fuzzVaultConfig.depositCap
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0, "", false);
 
         address indexToken = fuzzVaultConfig.indexToken;
         uint256 userBalanceBefore = IERC20(indexToken).balanceOf(users.naruto.account);

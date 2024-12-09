@@ -285,7 +285,9 @@ contract VaultRouterBranch {
 
         // register the given referral code
         if (referralCode.length != 0) {
-            ctx.referralModule.registerReferral(abi.encode(msg.sender), msg.sender, referralCode, isCustomReferralCode);
+            ctx.referralModule.registerReferral(
+                abi.encode(msg.sender), msg.sender, referralCode, isCustomReferralCode
+            );
         }
 
         // cache the vault assets decimals value for gas savings
@@ -297,12 +299,11 @@ contract VaultRouterBranch {
         // calculate the collateral fees
         ctx.assetFeesX18 = ctx.assetsX18.mul(ud60x18(vault.depositFee));
 
-        // calculate assets minus fees
-        ctx.assetsMinusFeesX18 = ctx.assetsX18.sub(ctx.assetFeesX18);
-
         // ud60x18 -> uint256 asset decimals
         ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
-        ctx.assetsMinusFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetsMinusFeesX18);
+
+        // calculate assets minus fees
+        ctx.assetsMinusFees = assets - ctx.assetFees;
 
         // get the tokens
         IERC20(ctx.vaultAsset).safeTransferFrom(msg.sender, address(this), ctx.assetsMinusFees);
@@ -435,10 +436,10 @@ contract VaultRouterBranch {
         WithdrawalRequest.Data storage withdrawalRequest =
             WithdrawalRequest.loadExisting(vaultId, msg.sender, withdrawalRequestId);
 
-        // revert if withdrawal request already filfilled
-        if (withdrawalRequest.fulfilled) revert Errors.WithdrawalRequestAlreadyFullfilled();
+        // revert if withdrawal request already fulfilled
+        if (withdrawalRequest.fulfilled) revert Errors.WithdrawalRequestAlreadyFulfilled();
 
-        // revert if withdrawl request delay not yes passed
+        // revert if withdrawal request delay not yet passed
         if (withdrawalRequest.timestamp + vault.withdrawalDelay > block.timestamp) {
             revert Errors.WithdrawDelayNotPassed();
         }

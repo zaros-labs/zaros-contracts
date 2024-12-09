@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
@@ -20,7 +19,7 @@ contract Stake_Integration_Test is Base_Test {
     function testFuzz_RevertWhen_VaultIsInvalid(uint128 sharesToStake) external {
         // it should revert
         vm.expectRevert();
-        // marketMakingEngine.stake(INVALID_VAULT_ID, sharesToStake, "", false);
+        marketMakingEngine.stake(INVALID_VAULT_ID, sharesToStake);
     }
 
     modifier whenVaultIdIsValid() {
@@ -39,11 +38,11 @@ contract Stake_Integration_Test is Base_Test {
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
 
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0, "", false);
 
         uint256 sharesToStake = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
 
-        // marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake), "", false);
+        marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake));
 
         uint256 actorShares =
             marketMakingEngine.getStakedSharesOfAccount(fuzzVaultConfig.vaultId, users.naruto.account);

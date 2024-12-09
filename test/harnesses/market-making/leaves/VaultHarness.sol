@@ -104,4 +104,14 @@ contract VaultHarness {
             connectedMarkets[i] = uint128(vaultData.connectedMarkets[vaultData.connectedMarkets.length - 1].at(i));
         }
     }
+
+    function workaround_Vault_setTotalCreditDelegationWeight(
+        uint128 vaultId,
+        uint128 totalCreditDelegationWeight
+    )
+        external
+    {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        vaultData.totalCreditDelegationWeight = totalCreditDelegationWeight;
+    }
 }

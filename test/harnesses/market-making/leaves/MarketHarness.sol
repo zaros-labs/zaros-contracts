@@ -69,4 +69,14 @@ contract MarketHarness {
         Market.Data storage market = Market.load(marketId);
         return market.autoDeleveragePowerScale;
     }
+
+    function workaround_updateMarketTotalDelegatedCreditUsd(
+        uint128 marketId,
+        uint128 totalDelegatedCreditUsd
+    )
+        external
+    {
+        Market.Data storage market = Market.load(marketId);
+        market.totalDelegatedCreditUsd = totalDelegatedCreditUsd;
+    }
 }

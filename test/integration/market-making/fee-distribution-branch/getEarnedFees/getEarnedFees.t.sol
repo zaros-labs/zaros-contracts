@@ -63,11 +63,11 @@ contract GetEarnedFees_Integration_Test is Base_Test {
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
 
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0, "", false);
 
         uint256 sharesToStake = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
 
-        // marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake), "", false);
+        marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake));
 
         assertEq(IERC20(wEth).balanceOf(users.naruto.account), 0);
 

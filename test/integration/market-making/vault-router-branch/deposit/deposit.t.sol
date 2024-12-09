@@ -31,7 +31,7 @@ contract Deposit_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector, INVALID_VAULT_ID));
-        // marketMakingEngine.deposit(INVALID_VAULT_ID, amountToDeposit, minSharesOut);
+        marketMakingEngine.deposit(INVALID_VAULT_ID, amountToDeposit, minSharesOut, "", false);
     }
 
     modifier whenVaultDoesExist() {
@@ -68,8 +68,8 @@ contract Deposit_Integration_Test is Base_Test {
 
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
-        UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
-        uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetsMinusFeesX18);
+        uint256 assetsFee = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+        uint256 assetsMinusFees = assetsToDeposit - assetsFee;
 
         // it should revert
         vm.expectRevert(
@@ -80,7 +80,7 @@ contract Deposit_Integration_Test is Base_Test {
                 fuzzVaultConfig.depositCap
             )
         );
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0, "", false);
     }
 
     modifier whenTheDepositCapIsNotReached() {
@@ -100,11 +100,21 @@ contract Deposit_Integration_Test is Base_Test {
         assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
 
+        uint256 depositFee = vaultsConfig[fuzzVaultConfig.vaultId].depositFee;
+        UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
+
+        // calculate the collateral fees
+        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
+
+        // calculate assets minus fees
+        uint256 assetsFee = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+        uint256 assetsMinusFees = assetsToDeposit - assetsFee;
+
         uint256 minShares = type(uint128).max;
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsToDeposit));
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares));
+        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsMinusFees));
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares), "", false);
     }
 
     function testFuzz_WhenSharesMintedAreMoreThanMinAmount(
@@ -128,15 +138,20 @@ contract Deposit_Integration_Test is Base_Test {
 
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
-        UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
-        uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetsMinusFeesX18);
+
+        uint256 assetsFee = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+
+        uint256 assetsMinusFees = assetsToDeposit - assetsFee;
 
         uint256 vaultDepositFeeRecipientAmountBeforeDeposit =
             IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);
 
+        marketMakingEngine.workaround_Vault_setTotalCreditDelegationWeight(fuzzVaultConfig.vaultId, 1e10);
+
         vm.expectEmit();
         emit VaultRouterBranch.LogDeposit(fuzzVaultConfig.vaultId, users.naruto.account, assetsMinusFees);
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0, "", false);
 
         uint256 vaultDepositFeeRecipientAmountAfterDeposit =
             IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);

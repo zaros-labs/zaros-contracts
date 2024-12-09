@@ -236,8 +236,8 @@ library Errors {
     /// @notice Thrown when a withdrawal is attempted before the required delay has passed.
     error WithdrawDelayNotPassed();
 
-    /// @notice Thrown when a withdraw request is fulfiled.
-    error WithdrawalRequestAlreadyFullfilled();
+    /// @notice Thrown when a withdraw request is fulfilled.
+    error WithdrawalRequestAlreadyFulfilled();
 
     /// @notice Thrown when vault with the given id already exists.
     /// @param vaultId The ID of the vault to create.

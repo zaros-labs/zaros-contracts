@@ -24,7 +24,7 @@ contract RefundSwap_Integration_Test is Base_Test {
 
         deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint128).max });
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint96).max });
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 

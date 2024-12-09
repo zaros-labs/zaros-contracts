@@ -63,11 +63,11 @@ contract ClaimFees_Integration_Test is Base_Test {
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
 
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0, "", false);
 
         uint256 sharesToStake = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
 
-        // marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake), "", false);
+        marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake));
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoFeesToClaim.selector) });
@@ -118,19 +118,19 @@ contract ClaimFees_Integration_Test is Base_Test {
         });
         deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
 
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0, "", false);
 
         uint256 sharesToStake = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
 
-        // marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake), "", false);
+        marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake));
 
         assertEq(IERC20(wEth).balanceOf(users.naruto.account), 0);
 
-        uint256 getEarnedFees = marketMakingEngine.getEarnedFees(fuzzVaultConfig.vaultId, users.naruto.account);
+        uint256 earnedFees = marketMakingEngine.getEarnedFees(fuzzVaultConfig.vaultId, users.naruto.account);
 
         // it should emit {LogClaimFees} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
-        emit FeeDistributionBranch.LogClaimFees(users.naruto.account, fuzzVaultConfig.vaultId, getEarnedFees);
+        emit FeeDistributionBranch.LogClaimFees(users.naruto.account, fuzzVaultConfig.vaultId, earnedFees);
 
         marketMakingEngine.claimFees(fuzzVaultConfig.vaultId);
 
