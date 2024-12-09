@@ -325,6 +325,9 @@ library Errors {
     /// Thrown when a deposit receives zero shares
     error DepositMustReceiveShares();
 
+    /// Thrown when a redeem receives zero assets
+    error RedeemMustReceiveAssets();
+
     /// Thrown when a deposit would be eaten up by fees
     error DepositTooSmall();
 }

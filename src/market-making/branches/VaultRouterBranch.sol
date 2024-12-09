@@ -429,12 +429,25 @@ contract VaultRouterBranch {
         emit LogInitiateWithdrawal(vaultId, msg.sender, shares);
     }
 
+    struct RedeemContext {
+        uint128 shares;
+        UD60x18 expectedAssetsX18;
+        UD60x18 expectedAssetsMinusRedeemFeeX18;
+        UD60x18 sharesMinusRedeemFeesX18;
+        uint256 redeemFee;
+        uint256 sharesFees;
+        SD59x18 creditCapacityBeforeRedeemUsdX18;
+        UD60x18 lockedCreditCapacityBeforeRedeemUsdX18;
+        address indexToken;
+    }
+
     /// @notice Redeems a given amount of index tokens in exchange for collateral assets from the provided vault,
     /// after the withdrawal delay period has elapsed.
     /// @dev Invariants involved in the call:
     /// The withdrawalRequest MUST NOT be already fulfilled.
     /// The withdrawal delay period MUST have elapsed.
     /// Redeemed assets MUST meet or exceed minAssets.
+    /// Redeemed assets MUST be > 0 even when minAssets = 0.
     /// The Vault MUST exist.
     /// The Vault MUST be live.
     /// @param vaultId The vault identifier.
@@ -463,49 +476,59 @@ contract VaultRouterBranch {
         // updates the vault's credit capacity before redeeming
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
+        // define context struct and get withdraw shares
+        RedeemContext memory ctx;
+        ctx.shares = withdrawalRequest.shares;
+
         // get shares -> assets
-        UD60x18 expectedAssetsX18 = getIndexTokenSwapRate(vaultId, withdrawalRequest.shares, false);
+        ctx.expectedAssetsX18 = getIndexTokenSwapRate(vaultId, ctx.shares, false);
 
         // load the mm engine configuration from storage
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
+        // calculate the redeem fees
+        ctx.redeemFee = vault.redeemFee;
+
         // get assets minus redeem fee
-        UD60x18 expectedAssetsMinusRedeemFeeX18 =
-            expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(vault.redeemFee)));
+        ctx.expectedAssetsMinusRedeemFeeX18 =
+            ctx.expectedAssetsX18.sub(ctx.expectedAssetsX18.mul(ud60x18(ctx.redeemFee)));
 
         // calculate assets minus redeem fee as shares
-        UD60x18 sharesMinusRedeemFeesX18 =
-            getVaultAssetSwapRate(vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false);
+        ctx.sharesMinusRedeemFeesX18 =
+            getVaultAssetSwapRate(vaultId, ctx.expectedAssetsMinusRedeemFeeX18.intoUint256(), false);
 
         // get the shares to send to the vault deposit and redeem fee recipient
-        uint256 sharesFees = withdrawalRequest.shares - sharesMinusRedeemFeesX18.intoUint256();
+        ctx.sharesFees = ctx.shares - ctx.sharesMinusRedeemFeesX18.intoUint256();
 
         // cache the vault's credit capacity before redeeming
-        SD59x18 creditCapacityBeforeRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
+        ctx.creditCapacityBeforeRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
 
         // cache the locked credit capacity before redeeming
-        UD60x18 lockedCreditCapacityBeforeRedeemUsdX18 = vault.getLockedCreditCapacityUsd();
+        ctx.lockedCreditCapacityBeforeRedeemUsdX18 = vault.getLockedCreditCapacityUsd();
 
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
+        ctx.indexToken = vault.indexToken;
         uint256 assets =
-            IERC4626(vault.indexToken).redeem(sharesMinusRedeemFeesX18.intoUint256(), msg.sender, address(this));
+            IERC4626(ctx.indexToken).redeem(ctx.sharesMinusRedeemFeesX18.intoUint256(), msg.sender, address(this));
 
         // get the redeem fee
-        IERC4626(vault.indexToken).redeem(
-            sharesFees, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, address(this)
-        );
+        if (ctx.sharesFees > 0) {
+            IERC4626(ctx.indexToken).redeem(
+                ctx.sharesFees, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, address(this)
+            );
+        }
 
         // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed(minAssets, assets);
 
-        // cache the vault's credit capacity after redeeming
-        SD59x18 creditCapacityAfterRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
+        // invariant: received assets must be > 0 even when minAssets = 0
+        if(assets == 0) revert Errors.RedeemMustReceiveAssets();
 
         // if the credit capacity delta is greater than the locked credit capacity before the state transition, revert
         if (
-            creditCapacityBeforeRedeemUsdX18.sub(creditCapacityAfterRedeemUsdX18).lte(
-                lockedCreditCapacityBeforeRedeemUsdX18.intoSD59x18()
+            ctx.creditCapacityBeforeRedeemUsdX18.sub(vault.getTotalCreditCapacityUsd()).lte(
+                ctx.lockedCreditCapacityBeforeRedeemUsdX18.intoSD59x18()
             )
         ) {
             revert Errors.NotEnoughUnlockedCreditCapacity();
@@ -515,7 +538,7 @@ contract VaultRouterBranch {
         withdrawalRequest.fulfilled = true;
 
         // emit an event
-        emit LogRedeem(vaultId, msg.sender, sharesMinusRedeemFeesX18.intoUint256());
+        emit LogRedeem(vaultId, msg.sender, ctx.sharesMinusRedeemFeesX18.intoUint256());
     }
 
     /// @notice Unstakes a given amount of index tokens from the contract.
