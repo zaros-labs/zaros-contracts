@@ -113,9 +113,7 @@ contract Deposit_Integration_Test is Base_Test {
         uint256 minShares = type(uint128).max;
 
         // it should revert
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsMinusFees)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsMinusFees));
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares), "", false);
     }
 

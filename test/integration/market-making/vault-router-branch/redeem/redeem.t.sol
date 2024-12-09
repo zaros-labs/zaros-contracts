@@ -143,6 +143,7 @@ contract Redeem_Integration_Test is Base_Test {
 
         IERC20(indexToken).approve(address(marketMakingEngine), userBalance);
 
+        // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minAssetsOut, assetsOut));
 
         marketMakingEngine.redeem(fuzzVaultConfig.vaultId, WITHDRAW_REQUEST_ID, minAssetsOut);
