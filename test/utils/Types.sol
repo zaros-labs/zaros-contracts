@@ -14,6 +14,8 @@ struct Users {
     User liquidationFeeRecipient;
     // Default forwarder for Chainlink Automation-powered keepers
     User keepersForwarder;
+    // Address that receives vault deposit/redeem fees
+    User vaultFeeRecipient;
     // Impartial user 1.
     User naruto;
     // Impartial user 2.

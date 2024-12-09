@@ -227,9 +227,9 @@ contract VaultRouterBranch {
         address vaultAsset;
         IReferral referralModule;
         uint8 vaultAssetDecimals;
+        UD60x18 vaultDepositFee;
         UD60x18 assetsX18;
         UD60x18 assetFeesX18;
-        UD60x18 assetsMinusFeesX18;
         uint256 assetFees;
         uint256 assetsMinusFees;
         uint256 shares;
@@ -237,10 +237,12 @@ contract VaultRouterBranch {
 
     /// @notice Deposits a given amount of collateral assets into the provided vault in exchange for index tokens.
     /// @dev Invariants involved in the call:
-    /// The total deposits MUST not exceed the vault after the deposit.
+    /// The total deposits MUST not exceed the vault's deposit cap after the deposit.
     /// The number of received shares MUST be greater than or equal to minShares.
+    /// The number of received shares MUST be > 0 even when minShares = 0.
     /// The Vault MUST exist.
     /// The Vault MUST be live.
+    /// If the vault enforces fees then calculated deposit fee must be non-zero.
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
@@ -255,17 +257,15 @@ contract VaultRouterBranch {
     )
         external
     {
-        // fetch storage slot for vault by id
+        if (assets == 0) revert Errors.ZeroInput("Positive deposit required");
+
+        // fetch storage slot for vault by id, vault must exist with valid collateral
         Vault.Data storage vault = Vault.loadLive(vaultId);
-
-        // define context struct
-        DepositContext memory ctx;
-
-        // get vault asset
-        ctx.vaultAsset = vault.collateral.asset;
-
-        // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
+
+        // define context struct and get vault asset
+        DepositContext memory ctx;
+        ctx.vaultAsset = vault.collateral.asset;
 
         // prepare the `Vault::recalculateVaultsCreditCapacity` call
         uint256[] memory vaultsIds = new uint256[](1);
@@ -295,33 +295,48 @@ contract VaultRouterBranch {
         ctx.assetsX18 = Math.convertTokenAmountToUd60x18(ctx.vaultAssetDecimals, assets);
 
         // calculate the collateral fees
-        ctx.assetFeesX18 = ctx.assetsX18.mul(ud60x18(vault.depositFee));
+        ctx.vaultDepositFee = ud60x18(vault.depositFee);
 
-        // calculate assets minus fees
-        ctx.assetsMinusFeesX18 = ctx.assetsX18.sub(ctx.assetFeesX18);
+        if(ctx.vaultDepositFee.isZero()) {
+            ctx.assetsMinusFees = assets;
+        }
+        else {
+            ctx.assetFeesX18 = ctx.assetsX18.mul(ctx.vaultDepositFee);
+            ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
 
-        // ud60x18 -> uint256 asset decimals
-        ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
-        ctx.assetsMinusFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetsMinusFeesX18);
+            // invariant: if vault enforces fees then calculated fee must be non-zero
+            if(ctx.assetFees == 0) revert Errors.ZeroFeeNotAllowed();
 
-        // get the tokens
+            ctx.assetsMinusFees = assets - ctx.assetFees;
+
+            // enforce positive amount left over after deducting fees
+            if(ctx.assetsMinusFees == 0) revert Errors.DepositTooSmall();
+        }
+
+        // transfer tokens being deposited minus fees into this contract
         IERC20(ctx.vaultAsset).safeTransferFrom(msg.sender, address(this), ctx.assetsMinusFees);
 
-        // get the asset fees
-        IERC20(ctx.vaultAsset).safeTransferFrom(
-            msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, ctx.assetFees
-        );
+        // transfer fees from depositor to fee recipient address
+        if(ctx.assetFees > 0) {
+            IERC20(ctx.vaultAsset).safeTransferFrom(
+                msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, ctx.assetFees
+            );
+        }
 
-        // increase vault allowance to transfer tokens
+        // increase vault allowance to transfer tokens minus fees from this contract to vault
         IERC20(ctx.vaultAsset).approve(address(vault.indexToken), ctx.assetsMinusFees);
 
         // then perform the actual deposit
         // NOTE: the following call will update the total assets deposited in the vault
         // NOTE: the following call will validate the vault's deposit cap
+        // invariant: no tokens should remain stuck in this contract
         ctx.shares = IERC4626(vault.indexToken).deposit(ctx.assetsMinusFees, msg.sender);
 
         // assert min shares minted
         if (ctx.shares < minShares) revert Errors.SlippageCheckFailed(minShares, ctx.shares);
+
+        // invariant: received shares must be > 0 even when minShares = 0
+        if (ctx.shares == 0) revert Errors.DepositMustReceiveShares();
 
         // emit an event
         emit LogDeposit(vaultId, msg.sender, ctx.assetsMinusFees);
@@ -390,13 +405,11 @@ contract VaultRouterBranch {
             revert Errors.ZeroInput("sharesAmount");
         }
 
-        // fetch storage slot for vault by id
+        // fetch storage slot for vault by id, vault must exist with valid collateral
         Vault.Data storage vault = Vault.loadLive(vaultId);
-
-        // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
-        // increment withdrawal request counter and set withdrawal request id
+        // increment vault/user withdrawal request counter and set withdrawal request id
         uint128 withdrawalRequestId = ++vault.withdrawalRequestIdCounter[msg.sender];
 
         // load storage slot for withdrawal request
@@ -409,7 +422,7 @@ contract VaultRouterBranch {
         // update withdrawal request shares
         withdrawalRequest.shares = shares;
 
-        // transfer shares to the contract to be later redeemed
+        // transfer shares to this contract to be later redeemed
         IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
 
         // emit an event
@@ -436,7 +449,7 @@ contract VaultRouterBranch {
             WithdrawalRequest.loadExisting(vaultId, msg.sender, withdrawalRequestId);
 
         // revert if withdrawal request already filfilled
-        if (withdrawalRequest.fulfilled) revert Errors.WithdrawalRequestAlreadyFullfilled();
+        if (withdrawalRequest.fulfilled) revert Errors.WithdrawalRequestAlreadyFulfilled();
 
         // revert if withdrawl request delay not yes passed
         if (withdrawalRequest.timestamp + vault.withdrawalDelay > block.timestamp) {

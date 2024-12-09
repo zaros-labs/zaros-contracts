@@ -6,10 +6,12 @@ import { Base_Test } from "test/Base.t.sol";
 
 // Zaros dependencies source
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
+import { Market } from "@zaros/market-making/leaves/Market.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 
 // Open Zeppelin dependencies
+import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { ERC4626Upgradeable } from "@openzeppelin-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
@@ -26,12 +28,14 @@ contract Deposit_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function test_RevertWhen_VaultDoesNotExist(uint128 amountToDeposit) external {
+    function test_RevertWhen_VaultDoesNotExist(uint128 assetsToDeposit) external {
+        assetsToDeposit = uint128(bound(assetsToDeposit, 1, type(uint128).max));
+
         uint128 minSharesOut = 0;
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector, INVALID_VAULT_ID));
-        // marketMakingEngine.deposit(INVALID_VAULT_ID, amountToDeposit, minSharesOut);
+        marketMakingEngine.deposit(INVALID_VAULT_ID, assetsToDeposit, minSharesOut, "", false);
     }
 
     modifier whenVaultDoesExist() {
@@ -66,10 +70,11 @@ contract Deposit_Integration_Test is Base_Test {
 
         deal(collateral, users.naruto.account, assetsToDeposit);
 
+        // calculate expected fees
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
-        UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
-        uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetsMinusFeesX18);
+        uint256 expectedAssetFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+        uint256 assetsMinusFees = assetsToDeposit - expectedAssetFees;
 
         // it should revert
         vm.expectRevert(
@@ -80,7 +85,7 @@ contract Deposit_Integration_Test is Base_Test {
                 fuzzVaultConfig.depositCap
             )
         );
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0, "", false);
     }
 
     modifier whenTheDepositCapIsNotReached() {
@@ -102,52 +107,103 @@ contract Deposit_Integration_Test is Base_Test {
 
         uint256 minShares = type(uint128).max;
 
-        // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsToDeposit));
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares));
+        // it should revert - need to correctly calculate expected received shares
+        // in order to perfectly match error. Other option is to use `vm.expectPartialRevert`
+        // but this is not supported by prb-test
+        //uint256 receivedShares = IERC4626(fuzzVaultConfig.indexToken).previewDeposit(assetsToDeposit);
+        //vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, expectedShares));
+        vm.expectRevert();
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares), "", false);
     }
 
-    function testFuzz_WhenSharesMintedAreMoreThanMinAmount(
-        uint256 vaultId,
-        uint256 assetsToDeposit
-    )
-        external
-        whenVaultDoesExist
-        whenTheDepositCapIsNotReached
-    {
+
+    struct DepositState {
+        // asset balances
+        uint256 depositorAssetBal;
+        uint256 feeReceiverAssetBal;
+        uint256 vaultAssetBal;
+        uint256 marketEngineAssetBal;
+
+        // vault balances
+        uint256 depositorVaultBal;
+        uint256 marketEngineVaultBal;
+    }
+
+    function _getDepositState(
+        address depositor, address feeReceiver,
+        IERC20 assetToken, IERC20 vault
+    ) internal view returns (DepositState memory state) {
+        state.depositorAssetBal    = assetToken.balanceOf(depositor);
+        state.feeReceiverAssetBal  = assetToken.balanceOf(feeReceiver);
+        state.vaultAssetBal        = assetToken.balanceOf(address(vault));
+        state.marketEngineAssetBal = assetToken.balanceOf(address(marketMakingEngine));
+        state.depositorVaultBal    = vault.balanceOf(depositor);
+        state.marketEngineVaultBal = vault.balanceOf(address(marketMakingEngine));
+    }
+
+    function testFuzz_InitialState_WhenSharesMintedAreMoreThanMinAmount(
+        uint128 vaultId,
+        uint128 assetsToDeposit
+    ) external {
+        // ensure valid vault
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+
+        // load vault config
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit = bound({
-            x: assetsToDeposit,
-            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
-            max: fuzzVaultConfig.depositCap
-        });
-        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        // ensure valid deposit amount
+        address user = users.naruto.account;
+        assetsToDeposit = uint128(bound(assetsToDeposit,
+                                         calculateMinOfSharesToStake(vaultId),
+                                         fuzzVaultConfig.depositCap));
+        deal(fuzzVaultConfig.asset, user, assetsToDeposit);
 
-        uint256 depositFee = vaultsConfig[fuzzVaultConfig.vaultId].depositFee;
+        // verify initial state of vault's connected markets
+        uint128[] memory connectedMarkets = marketMakingEngine.workaround_Vault_getConnectedMarkets(vaultId);
+        assertEq(connectedMarkets.length, 2);
 
+        for(uint128 i; i<2; i++) {
+            Market.Data storage market = Market.load(connectedMarkets[i]);
+            assertEq(market.totalDelegatedCreditUsd, 0);
+        }        
+
+        // calculate expected fees
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
-        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
-        UD60x18 assetsMinusFeesX18 = assetsX18.sub(assetFeesX18);
-        uint256 assetsMinusFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetsMinusFeesX18);
+        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(vaultsConfig[vaultId].depositFee));
+        uint256 expectedAssetFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+        uint256 assetsMinusFees = assetsToDeposit - expectedAssetFees;
 
-        uint256 vaultDepositFeeRecipientAmountBeforeDeposit =
-            IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);
+        // save and verify pre state
+        DepositState memory pre = _getDepositState(user,
+                                                   users.vaultFeeRecipient.account,
+                                                   IERC20(fuzzVaultConfig.asset),
+                                                   IERC20(fuzzVaultConfig.indexToken));
 
+        assertEq(pre.depositorAssetBal, assetsToDeposit, "Depositor has assets to deposit");
+        assertEq(pre.feeReceiverAssetBal, 0 , "FeeReceiver has no assets");
+        assertEq(pre.vaultAssetBal, 0, "Vault has no assets");
+        assertEq(pre.marketEngineAssetBal, 0, "MarketEngine has no assets");
+        assertEq(pre.depositorVaultBal, 0, "Depositor has no vault shares");
+        assertEq(pre.marketEngineVaultBal, 0, "MarketEngine has no vault shares");
+
+        // perform the deposit
+        vm.startPrank(user);
         vm.expectEmit();
-        emit VaultRouterBranch.LogDeposit(fuzzVaultConfig.vaultId, users.naruto.account, assetsMinusFees);
-        // marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0);
+        emit VaultRouterBranch.LogDeposit(vaultId, user, assetsMinusFees);
+        marketMakingEngine.deposit(vaultId, assetsToDeposit, 0, "", false);
 
-        uint256 vaultDepositFeeRecipientAmountAfterDeposit =
-            IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);
+        // save and verify post state
+        DepositState memory post = _getDepositState(user,
+                                                    users.vaultFeeRecipient.account,
+                                                    IERC20(fuzzVaultConfig.asset),
+                                                    IERC20(fuzzVaultConfig.indexToken));
 
-        // it should send the fees to the vault deposit fee recipient
-        assertEq(
-            vaultDepositFeeRecipientAmountAfterDeposit - vaultDepositFeeRecipientAmountBeforeDeposit,
-            Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18)
-        );
+        assertEq(post.depositorAssetBal, 0, "Depositor lost assets after deposit");
+        assertEq(post.feeReceiverAssetBal, expectedAssetFees, "FeeReceiver got asset fees");
+        assertEq(post.vaultAssetBal, assetsMinusFees, "Vault got assets minus fees");
+        assertEq(post.marketEngineAssetBal, 0, "No assets stuck in MarketEngine");
 
-        // it should mint shares to the user
-        assertGt(IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account), 0);
+        assertGt(post.depositorVaultBal, 0, "Depositor got vault shares");
+        assertEq(post.marketEngineVaultBal, 0, "MarketEngine got no vault shares");
     }
 }

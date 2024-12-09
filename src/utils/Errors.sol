@@ -237,7 +237,7 @@ library Errors {
     error WithdrawDelayNotPassed();
 
     /// @notice Thrown when a withdraw request is fulfiled.
-    error WithdrawalRequestAlreadyFullfilled();
+    error WithdrawalRequestAlreadyFulfilled();
 
     /// @notice Thrown when vault with the given id already exists.
     /// @param vaultId The ID of the vault to create.
@@ -276,6 +276,9 @@ library Errors {
 
     /// @notice Thrown when user does not have fees to claim
     error NoFeesToClaim();
+
+    /// @notice Thrown when fees should be > 0
+    error ZeroFeeNotAllowed();
 
     /// @notice Thrown when user does not have shares to claim fees
     error NoSharesAvailable();
@@ -318,4 +321,10 @@ library Errors {
 
     /// Thrown when swap path is invalid - assets and swap strategy ids mismatch
     error InvalidSwapPathParamsLength();
+
+    /// Thrown when a deposit receives zero shares
+    error DepositMustReceiveShares();
+
+    /// Thrown when a deposit would be eaten up by fees
+    error DepositTooSmall();
 }
