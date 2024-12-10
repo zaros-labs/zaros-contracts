@@ -90,7 +90,7 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         IMarketMakingEngine marketMakingEngine = IMarketMakingEngine(zlpVaultStorage.marketMakingEngine);
 
         // get the vault's deposit cap
-        (uint128 depositCap,,,,,) = marketMakingEngine.getVaultData(zlpVaultStorage.vaultId);
+        uint128 depositCap = marketMakingEngine.getDepositCap(zlpVaultStorage.vaultId);
 
         // cache the vault's total assets
         uint256 totalAssetsCached = totalAssets();

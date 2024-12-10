@@ -94,6 +94,15 @@ contract VaultRouterBranch {
         return totalAssetsMinusVaultDebt;
     }
 
+    /// @notice Returns the deposit cap to save 5 storage reads versus calling getVaultData
+    /// @dev Invariants:
+    /// - Vault MUST exist.
+    /// @param vaultId The vault identifier.
+    /// @return depositCap The maximum amount of collateral assets that can be deposited in the vault.
+    function getDepositCap(uint128 vaultId) external view returns(uint128 depositCap) {
+        depositCap = Vault.loadExisting(vaultId).depositCap;
+    }
+
     /// @notice Returns the data and state of a given vault.
     /// @dev Invariants:
     /// - Vault MUST exist.
