@@ -262,7 +262,7 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.loadLive(vaultId);
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
-        // define context struct and get vault asset
+        // define context struct and get vault collateral asset
         DepositContext memory ctx;
         ctx.vaultAsset = vault.collateral.asset;
 
@@ -328,12 +328,13 @@ contract VaultRouterBranch {
         }
 
         // increase vault allowance to transfer tokens minus fees from this contract to vault
-        IERC20(ctx.vaultAsset).approve(address(vault.indexToken), ctx.assetsMinusFees);
+        address indexTokenCache = vault.indexToken;
+        IERC20(ctx.vaultAsset).approve(indexTokenCache, ctx.assetsMinusFees);
 
         // then perform the actual deposit
         // NOTE: the following call will update the total assets deposited in the vault
         // NOTE: the following call will validate the vault's deposit cap
-        ctx.shares = IERC4626(vault.indexToken).deposit(ctx.assetsMinusFees, msg.sender);
+        ctx.shares = IERC4626(indexTokenCache).deposit(ctx.assetsMinusFees, msg.sender);
 
         // assert min shares minted
         if (ctx.shares < minShares) revert Errors.SlippageCheckFailed(minShares, ctx.shares);
