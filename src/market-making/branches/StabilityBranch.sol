@@ -15,10 +15,12 @@ import { EngineAccessControl } from "@zaros/utils/EngineAccessControl.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18, convert as ud60x18Convert } from "@prb-math/UD60x18.sol";
+import { SD59x18 } from "@prb-math/SD59x18.sol";
 
 contract StabilityBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
@@ -28,6 +30,7 @@ contract StabilityBranch is EngineAccessControl {
     using SafeCast for uint120;
     using StabilityConfiguration for StabilityConfiguration.Data;
     using UsdTokenSwapConfig for UsdTokenSwapConfig.Data;
+    using Vault for Vault.Data;
 
     /// @notice Emitted to trigger the Chainlink Log based upkeep
     event LogInitiateSwap(
@@ -87,21 +90,40 @@ contract StabilityBranch is EngineAccessControl {
 
     /// @notice Calculates the amount of assets to be received in a swap based on the input USD amount, its current
     /// price and the premium or discount to be applied.
+    /// @dev This function assumes that checks for the vault's liveness or existence state are performed in the parent
+    /// context if needed.
     /// @param usdAmountInX18 The amount of USD tokens to be swapped in 18-decimal fixed-point format (UD60x18).
-    /// @param priceX18 The price of the collateral asset in 18-decimal fixed-point format (UD60x18).
+    /// @param indexPriceX18 The price of the collateral asset in 18-decimal fixed-point format (UD60x18).
     /// @return amountOutX18 The amount of assets to be received using in the ERC20's decimals, calculated from the
     /// input USD amount and its price.
     function getAmountOfAssetOut(
+        uint128 vaultId,
         UD60x18 usdAmountInX18,
-        UD60x18 priceX18
+        UD60x18 indexPriceX18
     )
         public
-        pure
+        view
         returns (UD60x18 amountOutX18)
     {
-        // TODO: apply premium / discount
-        // get amounts out taking into consideration CL price
-        amountOutX18 = usdAmountInX18.div(priceX18);
+        // fetch the vault's storage pointer
+        Vault.Data storage vault = Vault.load(vaultId);
+        // fetch the vault's total assets in USD
+        UD60x18 vaultAssetsUsdX18 = ud60x18(IERC4626(vault.indexToken).totalAssets()).mul(indexPriceX18);
+
+        // we use the vault's net sum of all debt types coming from its connected markets to determine the swap rate
+        SD59x18 vaultDebtUsdX18 = vault.getTotalDebt();
+
+        // fetch the usd token swap config's storage pointer
+        UsdTokenSwapConfig.Data storage usdTokenSwapConfig = UsdTokenSwapConfig.load();
+
+        // calculate the premium or discount that may be applied to the vault asset's index price
+        // note: if no premium or discount needs to be applied, the premiumDiscountFactorX18 will be 1e18 (UD60x18
+        // one value)
+        UD60x18 premiumDiscountFactorX18 =
+            usdTokenSwapConfig.getPremiumDiscountFactor(vaultAssetsUsdX18, vaultDebtUsdX18);
+
+        // get amounts out taking into consideration the CL price and the premium/discount
+        amountOutX18 = usdAmountInX18.div(indexPriceX18).mul(premiumDiscountFactorX18);
     }
 
     /// @notice Returns the applicable fees for the specified amount of assets being paid in a swap.
@@ -300,7 +322,7 @@ contract StabilityBranch is EngineAccessControl {
 
         // load vault data
         ctx.vaultId = request.vaultId;
-        Vault.Data storage vault = Vault.load(ctx.vaultId);
+        Vault.Data storage vault = Vault.loadLive(ctx.vaultId);
 
         // get usd token of engine
         ctx.usdToken = UsdToken(marketMakingEngineConfiguration.usdTokenOfEngine[engine]);
@@ -313,7 +335,7 @@ contract StabilityBranch is EngineAccessControl {
 
         // get amount out asset
         ctx.amountIn = request.amountIn;
-        ctx.amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(ctx.amountIn), ctx.priceX18);
+        ctx.amountOutBeforeFeesX18 = getAmountOfAssetOut(ctx.vaultId, ud60x18(ctx.amountIn), ctx.priceX18);
 
         // gets the base fee and swap fee for the given amount out before fees
         (ctx.baseFeeX18, ctx.swapFeeX18) = getFeesForAssetsAmountOut(ctx.amountOutBeforeFeesX18, ctx.priceX18);

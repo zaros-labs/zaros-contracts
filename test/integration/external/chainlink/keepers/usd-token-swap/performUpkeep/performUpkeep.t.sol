@@ -86,7 +86,9 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
         UsdTokenSwapConfig.SwapRequest memory request =
             marketMakingEngine.getSwapRequest(users.naruto.account, ctx.requestId);
 
-        ctx.amountOut = marketMakingEngine.getAmountOfAssetOut(ud60x18(ctx.amountInUsd), ud60x18(ctx.mockPrice));
+        ctx.amountOut = marketMakingEngine.getAmountOfAssetOut(
+            fuzzVaultConfig.vaultId, ud60x18(ctx.amountInUsd), ud60x18(ctx.mockPrice)
+        );
 
         (ctx.baseFeeX18, ctx.swapFeeX18) =
             marketMakingEngine.getFeesForAssetsAmountOut(ctx.amountOut, ud60x18(ctx.mockPrice));

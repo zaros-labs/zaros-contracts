@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 // PRB Math dependencies
 import { UD60x18, UNIT as UD60x18_UNIT, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, UNIT as SD59x18_UNIT, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
+import { SD59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 library UsdTokenSwapConfig {
     /// @notice ERC7201 storage location.
@@ -87,6 +87,7 @@ library UsdTokenSwapConfig {
     ///      f(x) = y_min + Δy * ((x - x_min) / (x_max - x_min))^z | x ∈ [x_min, x_max]
     /// @dev The proposed initial curve is defined as:
     ///      f(x) = 1 + 9 * ((x - 0.3) / 0.5)^3
+    /// @dev If no premium or discount has to be applied, the function returns 1 as UD60x18.
     /// @dev Using the proposed z value of 3, the slope of f(x) near the upper bound of x is steeper than near the
     /// lower bound, meaning the premium or discount accelerates faster as the vault's debt / tvl ratio increases.
     function getPremiumDiscountFactor(

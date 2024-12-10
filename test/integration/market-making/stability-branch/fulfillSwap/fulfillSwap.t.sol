@@ -151,7 +151,8 @@ contract FulfillSwap_Integration_Test is Base_Test {
         uint128 requestId = 1;
         changePrank({ msgSender: usdTokenSwapKeeper });
 
-        UD60x18 amountOut = marketMakingEngine.getAmountOfAssetOut(ud60x18(swapAmount), ud60x18(price));
+        UD60x18 amountOut =
+            marketMakingEngine.getAmountOfAssetOut(fuzzVaultConfig.vaultId, ud60x18(swapAmount), ud60x18(price));
 
         (UD60x18 baseFeeX18, UD60x18 swapFeeX18) =
             marketMakingEngine.getFeesForAssetsAmountOut(amountOut, ud60x18(price));
@@ -197,7 +198,8 @@ contract FulfillSwap_Integration_Test is Base_Test {
         UsdTokenSwapConfig.SwapRequest memory request =
             marketMakingEngine.getSwapRequest(users.naruto.account, requestId);
 
-        UD60x18 amountOut = marketMakingEngine.getAmountOfAssetOut(ud60x18(swapAmount), ud60x18(1e10));
+        UD60x18 amountOut =
+            marketMakingEngine.getAmountOfAssetOut(fuzzVaultConfig.vaultId, ud60x18(swapAmount), ud60x18(1e10));
 
         (UD60x18 baseFeeX18, UD60x18 swapFeeX18) =
             marketMakingEngine.getFeesForAssetsAmountOut(amountOut, ud60x18(1e10));
