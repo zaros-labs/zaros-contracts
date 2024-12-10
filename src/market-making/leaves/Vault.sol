@@ -282,10 +282,11 @@ library Vault {
         ctx.vaultId = self.id;
 
         // make sure there are markets connected to the vault
-        if (self.connectedMarkets.length == 0) revert Errors.NoMarketsConnectedToVault(ctx.vaultId);
+        uint256 connectedMarketsConfigLength = self.connectedMarkets.length;
+        if (connectedMarketsConfigLength == 0) revert Errors.NoMarketsConnectedToVault(ctx.vaultId);
 
         // loads the connected markets storage pointer by taking the last configured market ids uint set
-        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[self.connectedMarkets.length - 1];
+        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[connectedMarketsConfigLength - 1];
 
         for (uint256 i; i < connectedMarketsIdsCache.length; i++) {
             if (shouldRehydrateCache) {
@@ -301,9 +302,7 @@ library Vault {
 
             // first we cache the market's unrealized and realized debt
             ctx.marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
-
-            // get the latest realized debt of the market
-            ctx.marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
+            ctx.marketRealizedDebtUsdX18   = market.getRealizedDebtUsd();
 
             // if market has debt distribute it
             if (!ctx.marketUnrealizedDebtUsdX18.isZero() || !ctx.marketRealizedDebtUsdX18.isZero()) {
