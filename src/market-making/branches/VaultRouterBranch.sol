@@ -155,7 +155,7 @@ contract VaultRouterBranch {
         uint256 totalAssetsMinusVaultDebt = getVaultCreditCapacity(vaultId);
 
         // get decimal offset
-        uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
+        uint8 decimalOffset = Constants.SYSTEM_DECIMALS - IERC20Metadata(vault.indexToken).decimals();
 
         // Get the asset amount out for the input amount of shares, taking into account the vault's debt
         // See {IERC4626-previewRedeem}
@@ -202,7 +202,7 @@ contract VaultRouterBranch {
         uint256 totalAssetsMinusVaultDebt = getVaultCreditCapacity(vaultId);
 
         // get decimal offset
-        uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
+        uint8 decimalOffset = Constants.SYSTEM_DECIMALS - IERC20Metadata(vault.indexToken).decimals();
 
         // Get the shares amount out for the input amount of tokens, taking into account the unsettled debt
         // See {IERC4626-previewDeposit}.
