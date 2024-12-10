@@ -302,7 +302,7 @@ library Vault {
 
             // first we cache the market's unrealized and realized debt
             ctx.marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
-            ctx.marketRealizedDebtUsdX18   = market.getRealizedDebtUsd();
+            ctx.marketRealizedDebtUsdX18 = market.getRealizedDebtUsd();
 
             // if market has debt distribute it
             if (!ctx.marketUnrealizedDebtUsdX18.isZero() || !ctx.marketRealizedDebtUsdX18.isZero()) {
@@ -394,13 +394,14 @@ library Vault {
             // gas optimization: only write to storage if values have changed
             //
             // updates the vault's stored unsettled realized debt distributed from markets
-            if(!vaultTotalRealizedDebtChangeUsdX18.isZero()) {
-                self.marketsRealizedDebtUsd =
-                    sd59x18(self.marketsRealizedDebtUsd).add(vaultTotalRealizedDebtChangeUsdX18).intoInt256().toInt128();
+            if (!vaultTotalRealizedDebtChangeUsdX18.isZero()) {
+                self.marketsRealizedDebtUsd = sd59x18(self.marketsRealizedDebtUsd).add(
+                    vaultTotalRealizedDebtChangeUsdX18
+                ).intoInt256().toInt128();
             }
 
             // updates the vault's stored unrealized debt distributed from markets
-            if(!vaultTotalUnrealizedDebtChangeUsdX18.isZero()) {
+            if (!vaultTotalUnrealizedDebtChangeUsdX18.isZero()) {
                 self.marketsUnrealizedDebtUsd = sd59x18(self.marketsUnrealizedDebtUsd).add(
                     vaultTotalUnrealizedDebtChangeUsdX18
                 ).intoInt256().toInt128();
@@ -408,13 +409,14 @@ library Vault {
 
             // adds the vault's total USDC credit change, earned from its connected markets, to the
             // `depositedUsdc` variable
-            if(!vaultTotalUsdcCreditChangeX18.isZero()) {
+            if (!vaultTotalUsdcCreditChangeX18.isZero()) {
                 self.depositedUsdc = ud60x18(self.depositedUsdc).add(vaultTotalUsdcCreditChangeX18).intoUint128();
             }
 
             // distributes the vault's total WETH reward change, earned from its connected markets
-            if(!vaultTotalWethRewardChangeX18.isZero()) {
-                SD59x18 vaultTotalWethRewardChangeSD59X18 = sd59x18(int256(vaultTotalWethRewardChangeX18.intoUint256()));
+            if (!vaultTotalWethRewardChangeX18.isZero()) {
+                SD59x18 vaultTotalWethRewardChangeSD59X18 =
+                    sd59x18(int256(vaultTotalWethRewardChangeX18.intoUint256()));
                 self.wethRewardDistribution.distributeValue(vaultTotalWethRewardChangeSD59X18);
             }
 

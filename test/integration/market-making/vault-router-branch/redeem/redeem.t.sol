@@ -40,9 +40,8 @@ contract Redeem_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address user = users.naruto.account;
-        assetsToDeposit = uint128(bound(assetsToDeposit,
-                                         calculateMinOfSharesToStake(vaultId),
-                                         fuzzVaultConfig.depositCap));
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
 
         fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
 
@@ -81,9 +80,8 @@ contract Redeem_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address user = users.naruto.account;
-        assetsToDeposit = uint128(bound(assetsToDeposit,
-                                         calculateMinOfSharesToStake(vaultId),
-                                         fuzzVaultConfig.depositCap));
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
 
         fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
 
@@ -117,9 +115,8 @@ contract Redeem_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address user = users.naruto.account;
-        assetsToDeposit = uint128(bound(assetsToDeposit,
-                                         calculateMinOfSharesToStake(vaultId),
-                                         fuzzVaultConfig.depositCap));
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
 
         fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
 
@@ -132,16 +129,14 @@ contract Redeem_Integration_Test is Base_Test {
         // fast forward block.timestamp to after withdraw delay has passed
         skip(fuzzVaultConfig.withdrawalDelay + 1);
 
-        UD60x18 expectedAssetsX18 =
-            marketMakingEngine.getIndexTokenSwapRate(vaultId, sharesToWithdraw, false);
+        UD60x18 expectedAssetsX18 = marketMakingEngine.getIndexTokenSwapRate(vaultId, sharesToWithdraw, false);
 
         uint256 redeemFee = vaultsConfig[fuzzVaultConfig.vaultId].redeemFee;
 
         UD60x18 expectedAssetsMinusRedeemFeeX18 = expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(redeemFee)));
 
-        UD60x18 sharesMinusRedeemFeesX18 = marketMakingEngine.getVaultAssetSwapRate(
-            vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false
-        );
+        UD60x18 sharesMinusRedeemFeesX18 =
+            marketMakingEngine.getVaultAssetSwapRate(vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false);
 
         uint256 assetsOut = IERC4626(fuzzVaultConfig.indexToken).previewRedeem(sharesMinusRedeemFeesX18.intoUint256());
         uint256 minAssetsOut = assetsOut + 1;
@@ -155,19 +150,25 @@ contract Redeem_Integration_Test is Base_Test {
         uint256 redeemerAssetBal;
         uint256 feeReceiverAssetBal;
         uint256 vaultAssetBal;
-
         // vault balances
         uint256 redeemerVaultBal;
         uint256 marketEngineVaultBal;
     }
 
     function _getRedeemState(
-        address redeemer, address feeReceiver, IERC20 assetToken, IERC20 vault
-    ) internal view returns (RedeemState memory state) {
-        state.redeemerAssetBal     = assetToken.balanceOf(redeemer);
-        state.feeReceiverAssetBal  = assetToken.balanceOf(feeReceiver);
-        state.vaultAssetBal        = assetToken.balanceOf(address(vault));
-        state.redeemerVaultBal     = vault.balanceOf(redeemer);
+        address redeemer,
+        address feeReceiver,
+        IERC20 assetToken,
+        IERC20 vault
+    )
+        internal
+        view
+        returns (RedeemState memory state)
+    {
+        state.redeemerAssetBal = assetToken.balanceOf(redeemer);
+        state.feeReceiverAssetBal = assetToken.balanceOf(feeReceiver);
+        state.vaultAssetBal = assetToken.balanceOf(address(vault));
+        state.redeemerVaultBal = vault.balanceOf(redeemer);
         state.marketEngineVaultBal = vault.balanceOf(address(marketMakingEngine));
     }
 
@@ -186,9 +187,8 @@ contract Redeem_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address user = users.naruto.account;
-        assetsToDeposit = uint128(bound(assetsToDeposit,
-                                         calculateMinOfSharesToStake(vaultId),
-                                         fuzzVaultConfig.depositCap));
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
 
         // peform the deposit
         fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
@@ -203,22 +203,19 @@ contract Redeem_Integration_Test is Base_Test {
         // fast forward block.timestamp to after withdraw delay has passed
         skip(fuzzVaultConfig.withdrawalDelay + 1);
 
-        UD60x18 expectedAssetsX18 =
-            marketMakingEngine.getIndexTokenSwapRate(vaultId, sharesToWithdraw, false);
+        UD60x18 expectedAssetsX18 = marketMakingEngine.getIndexTokenSwapRate(vaultId, sharesToWithdraw, false);
 
         uint256 redeemFee = vaultsConfig[vaultId].redeemFee;
 
         UD60x18 expectedAssetsMinusRedeemFeeX18 = expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(redeemFee)));
 
-        UD60x18 sharesMinusRedeemFeesX18 = marketMakingEngine.getVaultAssetSwapRate(
-            vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false
-        );
+        UD60x18 sharesMinusRedeemFeesX18 =
+            marketMakingEngine.getVaultAssetSwapRate(vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false);
 
         // save and verify pre state
-        RedeemState memory pre = _getRedeemState(user,
-                                                 users.vaultFeeRecipient.account,
-                                                 IERC20(fuzzVaultConfig.asset),
-                                                 IERC20(fuzzVaultConfig.indexToken));
+        RedeemState memory pre = _getRedeemState(
+            user, users.vaultFeeRecipient.account, IERC20(fuzzVaultConfig.asset), IERC20(fuzzVaultConfig.indexToken)
+        );
 
         assertEq(pre.marketEngineVaultBal, sharesToWithdraw, "MarketEngine received shares from initiated withdraw");
         assertEq(pre.redeemerVaultBal, userVaultShares - sharesToWithdraw, "Shares deducted from Redeemer");
@@ -226,21 +223,17 @@ contract Redeem_Integration_Test is Base_Test {
 
         // perform the redemption
         vm.expectEmit();
-        emit VaultRouterBranch.LogRedeem(
-            vaultId, user, sharesMinusRedeemFeesX18.intoUint256()
-        );
+        emit VaultRouterBranch.LogRedeem(vaultId, user, sharesMinusRedeemFeesX18.intoUint256());
         marketMakingEngine.redeem(vaultId, WITHDRAW_REQUEST_ID, 0);
 
         // save and verify post state
-        RedeemState memory post = _getRedeemState(user,
-                                                  users.vaultFeeRecipient.account,
-                                                  IERC20(fuzzVaultConfig.asset),
-                                                  IERC20(fuzzVaultConfig.indexToken));
-        
-        // verify withdrawal request marked as fulfilled
-        WithdrawalRequest.Data memory withdrawalRequest = marketMakingEngine.exposed_WithdrawalRequest_loadExisting(
-            vaultId, user, WITHDRAW_REQUEST_ID
+        RedeemState memory post = _getRedeemState(
+            user, users.vaultFeeRecipient.account, IERC20(fuzzVaultConfig.asset), IERC20(fuzzVaultConfig.indexToken)
         );
+
+        // verify withdrawal request marked as fulfilled
+        WithdrawalRequest.Data memory withdrawalRequest =
+            marketMakingEngine.exposed_WithdrawalRequest_loadExisting(vaultId, user, WITHDRAW_REQUEST_ID);
         assertTrue(withdrawalRequest.fulfilled);
 
         // verify redeem fees paid to the vault redeem fee recipient
@@ -253,30 +246,41 @@ contract Redeem_Integration_Test is Base_Test {
         assertEq(post.redeemerVaultBal, userVaultShares - sharesToWithdraw, "Shares deducted from Redeemer");
         assertEq(post.marketEngineVaultBal, 0, "No shares stuck in market engine");
 
-        assertEq(post.redeemerAssetBal,
-                 expectedAssetsMinusRedeemFeeX18.intoUint256(),
-                 "Redeemer received correct asset tokens");
-        assertEq(post.redeemerAssetBal + post.feeReceiverAssetBal + post.vaultAssetBal,
-                 assetsToDeposit,
-                 "All deposited assets accounted");
+        assertEq(
+            post.redeemerAssetBal,
+            expectedAssetsMinusRedeemFeeX18.intoUint256(),
+            "Redeemer received correct asset tokens"
+        );
+        assertEq(
+            post.redeemerAssetBal + post.feeReceiverAssetBal + post.vaultAssetBal,
+            assetsToDeposit,
+            "All deposited assets accounted"
+        );
     }
 
     // fuzz test a "first depositor" style exploit
     function testFuzz_firstDepositorExploit(
-        uint128 vaultId, uint128 userDeposit, uint128 attackerDeposit, uint128 attackerDirectTransfer
-    ) external {
+        uint128 vaultId,
+        uint128 userDeposit,
+        uint128 attackerDeposit,
+        uint128 attackerDirectTransfer
+    )
+        external
+    {
         // ensure valid vault and load vault config
         vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         // bound amounts to not breach deposit cap
-        userDeposit = uint128(bound(userDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap/3));
-        attackerDeposit = uint128(bound(attackerDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap/3));
-        attackerDirectTransfer = uint128(bound(attackerDirectTransfer, 1, fuzzVaultConfig.depositCap/3));
+        userDeposit =
+            uint128(bound(userDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 3));
+        attackerDeposit =
+            uint128(bound(attackerDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 3));
+        attackerDirectTransfer = uint128(bound(attackerDirectTransfer, 1, fuzzVaultConfig.depositCap / 3));
 
         // define user and attacker
         address innocentUser = users.naruto.account;
-        address attacker     = users.madara.account;
+        address attacker = users.madara.account;
 
         // fund initial deposits
         deal(fuzzVaultConfig.asset, innocentUser, userDeposit);
@@ -297,7 +301,7 @@ contract Redeem_Integration_Test is Base_Test {
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, userDeposit);
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(vaultsConfig[vaultId].depositFee));
         uint256 expectedAssetFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
-        vm.assume(IERC4626(fuzzVaultConfig.indexToken).previewDeposit(userDeposit - expectedAssetFees)  > 0);
+        vm.assume(IERC4626(fuzzVaultConfig.indexToken).previewDeposit(userDeposit - expectedAssetFees) > 0);
         marketMakingEngine.deposit(vaultId, userDeposit, 0, "", false);
 
         // 4) attacker redeems their shares
@@ -310,9 +314,11 @@ contract Redeem_Integration_Test is Base_Test {
         marketMakingEngine.redeem(vaultId, WITHDRAW_REQUEST_ID, 0);
 
         // verify attacker did not make a profit; attacker total spent > attacker final balance
-        assertGt(attackerDeposit+attackerDirectTransfer,
-                 IERC20(fuzzVaultConfig.asset).balanceOf(attacker),
-                 "Attacker did not make a profit");
+        assertGt(
+            attackerDeposit + attackerDirectTransfer,
+            IERC20(fuzzVaultConfig.asset).balanceOf(attacker),
+            "Attacker did not make a profit"
+        );
     }
 
     // manual test of a "first-depositor" style exploit for human scenario exploration
@@ -322,7 +328,7 @@ contract Redeem_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address innocentUser = users.naruto.account;
-        address attacker     = users.madara.account;
+        address attacker = users.madara.account;
 
         uint128 userDeposit = 1000e6;
         deal(fuzzVaultConfig.asset, innocentUser, userDeposit);
@@ -351,10 +357,10 @@ contract Redeem_Integration_Test is Base_Test {
         marketMakingEngine.redeem(vaultId, WITHDRAW_REQUEST_ID, 0);
 
         uint256 attackerTotalSpent = userDeposit + largeDirectTransfer;
-        assertEq(attackerTotalSpent,  101000000000);
+        assertEq(attackerTotalSpent, 101_000_000_000);
 
         uint256 attackerBalanceAfter = IERC20(fuzzVaultConfig.asset).balanceOf(attacker);
-        assertEq(attackerBalanceAfter, 95940499931);
+        assertEq(attackerBalanceAfter, 95_940_499_931);
 
         // attacker generated a loss
     }

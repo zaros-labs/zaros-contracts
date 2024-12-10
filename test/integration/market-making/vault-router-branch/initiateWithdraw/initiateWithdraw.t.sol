@@ -31,9 +31,8 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address user = users.naruto.account;
-        assetsToDeposit = uint128(bound(assetsToDeposit,
-                                         calculateMinOfSharesToStake(vaultId),
-                                         fuzzVaultConfig.depositCap));
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
 
         fundUserAndDepositInVault(user, vaultId, assetsToDeposit);
 
@@ -72,9 +71,8 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address user = users.naruto.account;
-        assetsToDeposit = uint128(bound(assetsToDeposit,
-                                         calculateMinOfSharesToStake(vaultId),
-                                         fuzzVaultConfig.depositCap));
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
 
         fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
 
@@ -84,10 +82,7 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         vm.startPrank(user);
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
-                IERC20Errors.ERC20InsufficientBalance.selector,
-                user,
-                sharesToWithdraw - 1,
-                sharesToWithdraw
+                IERC20Errors.ERC20InsufficientBalance.selector, user, sharesToWithdraw - 1, sharesToWithdraw
             )
         });
         marketMakingEngine.initiateWithdrawal(vaultId, sharesToWithdraw);
@@ -104,9 +99,14 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
     }
 
     function _getInitWithdrawState(
-        address withdrawer, IERC20 vault
-    ) internal view returns (InitWithdrawState memory state) {
-        state.withdrawerVaultBal   = vault.balanceOf(withdrawer);
+        address withdrawer,
+        IERC20 vault
+    )
+        internal
+        view
+        returns (InitWithdrawState memory state)
+    {
+        state.withdrawerVaultBal = vault.balanceOf(withdrawer);
         state.marketEngineVaultBal = vault.balanceOf(address(marketMakingEngine));
     }
 
@@ -126,9 +126,8 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address user = users.naruto.account;
-        assetsToDeposit = uint128(bound(assetsToDeposit,
-                                         calculateMinOfSharesToStake(vaultId),
-                                         fuzzVaultConfig.depositCap));
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
 
         fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
 
@@ -136,8 +135,7 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         sharesToWithdraw = uint128(bound(sharesToWithdraw, 1, userVaultShares));
 
         // save and verify pre state
-        InitWithdrawState memory pre = _getInitWithdrawState(user,
-                                                             IERC20(fuzzVaultConfig.indexToken));
+        InitWithdrawState memory pre = _getInitWithdrawState(user, IERC20(fuzzVaultConfig.indexToken));
         assertEq(pre.withdrawerVaultBal, userVaultShares, "User has initial vault shares");
         assertEq(pre.marketEngineVaultBal, 0, "MarketEngine has no initial vault shares");
 
@@ -148,8 +146,7 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         marketMakingEngine.initiateWithdrawal(vaultId, sharesToWithdraw);
 
         // save and verify post state
-        InitWithdrawState memory post = _getInitWithdrawState(user,
-                                                              IERC20(fuzzVaultConfig.indexToken));
+        InitWithdrawState memory post = _getInitWithdrawState(user, IERC20(fuzzVaultConfig.indexToken));
 
         assertEq(post.withdrawerVaultBal, userVaultShares - sharesToWithdraw, "User vault shares deducted");
         assertEq(post.marketEngineVaultBal, sharesToWithdraw, "MarketEngine received withdrawn shares");

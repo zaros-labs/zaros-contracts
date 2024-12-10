@@ -106,9 +106,8 @@ contract Deposit_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address user = users.naruto.account;
-        assetsToDeposit = uint128(bound(assetsToDeposit,
-                                         calculateMinOfSharesToStake(vaultId),
-                                         fuzzVaultConfig.depositCap));
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
         deal(fuzzVaultConfig.asset, user, assetsToDeposit);
 
         // calculate expected fees
@@ -133,21 +132,26 @@ contract Deposit_Integration_Test is Base_Test {
         uint256 feeReceiverAssetBal;
         uint256 vaultAssetBal;
         uint256 marketEngineAssetBal;
-
         // vault balances
         uint256 depositorVaultBal;
         uint256 marketEngineVaultBal;
     }
 
     function _getDepositState(
-        address depositor, address feeReceiver,
-        IERC20 assetToken, IERC20 vault
-    ) internal view returns (DepositState memory state) {
-        state.depositorAssetBal    = assetToken.balanceOf(depositor);
-        state.feeReceiverAssetBal  = assetToken.balanceOf(feeReceiver);
-        state.vaultAssetBal        = assetToken.balanceOf(address(vault));
+        address depositor,
+        address feeReceiver,
+        IERC20 assetToken,
+        IERC20 vault
+    )
+        internal
+        view
+        returns (DepositState memory state)
+    {
+        state.depositorAssetBal = assetToken.balanceOf(depositor);
+        state.feeReceiverAssetBal = assetToken.balanceOf(feeReceiver);
+        state.vaultAssetBal = assetToken.balanceOf(address(vault));
         state.marketEngineAssetBal = assetToken.balanceOf(address(marketMakingEngine));
-        state.depositorVaultBal    = vault.balanceOf(depositor);
+        state.depositorVaultBal = vault.balanceOf(depositor);
         state.marketEngineVaultBal = vault.balanceOf(address(marketMakingEngine));
     }
 
@@ -165,9 +169,8 @@ contract Deposit_Integration_Test is Base_Test {
 
         // ensure valid deposit amount
         address user = users.naruto.account;
-        assetsToDeposit = uint128(bound(assetsToDeposit,
-                                         calculateMinOfSharesToStake(vaultId),
-                                         fuzzVaultConfig.depositCap));
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
         deal(fuzzVaultConfig.asset, user, assetsToDeposit);
 
         // calculate expected fees
@@ -177,13 +180,12 @@ contract Deposit_Integration_Test is Base_Test {
         uint256 assetsMinusFees = assetsToDeposit - expectedAssetFees;
 
         // save and verify pre state
-        DepositState memory pre = _getDepositState(user,
-                                                   users.vaultFeeRecipient.account,
-                                                   IERC20(fuzzVaultConfig.asset),
-                                                   IERC20(fuzzVaultConfig.indexToken));
+        DepositState memory pre = _getDepositState(
+            user, users.vaultFeeRecipient.account, IERC20(fuzzVaultConfig.asset), IERC20(fuzzVaultConfig.indexToken)
+        );
 
         assertEq(pre.depositorAssetBal, assetsToDeposit, "Depositor has assets to deposit");
-        assertEq(pre.feeReceiverAssetBal, 0 , "FeeReceiver has no assets");
+        assertEq(pre.feeReceiverAssetBal, 0, "FeeReceiver has no assets");
         assertEq(pre.vaultAssetBal, 0, "Vault has no assets");
         assertEq(pre.marketEngineAssetBal, 0, "MarketEngine has no assets");
         assertEq(pre.depositorVaultBal, 0, "Depositor has no vault shares");
@@ -198,10 +200,9 @@ contract Deposit_Integration_Test is Base_Test {
         marketMakingEngine.deposit(vaultId, assetsToDeposit, 0, "", false);
 
         // save and verify post state
-        DepositState memory post = _getDepositState(user,
-                                                    users.vaultFeeRecipient.account,
-                                                    IERC20(fuzzVaultConfig.asset),
-                                                    IERC20(fuzzVaultConfig.indexToken));
+        DepositState memory post = _getDepositState(
+            user, users.vaultFeeRecipient.account, IERC20(fuzzVaultConfig.asset), IERC20(fuzzVaultConfig.indexToken)
+        );
 
         assertEq(post.depositorAssetBal, 0, "Depositor lost assets after deposit");
         assertEq(post.feeReceiverAssetBal, expectedAssetFees, "FeeReceiver got asset fees");

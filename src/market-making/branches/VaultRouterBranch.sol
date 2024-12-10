@@ -99,7 +99,7 @@ contract VaultRouterBranch {
     /// - Vault MUST exist.
     /// @param vaultId The vault identifier.
     /// @return depositCap The maximum amount of collateral assets that can be deposited in the vault.
-    function getDepositCap(uint128 vaultId) external view returns(uint128 depositCap) {
+    function getDepositCap(uint128 vaultId) external view returns (uint128 depositCap) {
         depositCap = Vault.loadExisting(vaultId).depositCap;
     }
 
@@ -310,10 +310,9 @@ contract VaultRouterBranch {
         ctx.vaultDepositFee = ud60x18(vault.depositFee);
 
         // if deposit fee is zero, skip needless processing
-        if(ctx.vaultDepositFee.isZero()) {
+        if (ctx.vaultDepositFee.isZero()) {
             ctx.assetsMinusFees = assets;
-        }
-        else {
+        } else {
             // otherwise calculate the deposit fee
             ctx.assetFeesX18 = ctx.assetsX18.mul(ctx.vaultDepositFee);
 
@@ -321,18 +320,18 @@ contract VaultRouterBranch {
             ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
 
             // invariant: if vault enforces fees then calculated fee must be non-zero
-            if(ctx.assetFees == 0) revert Errors.ZeroFeeNotAllowed();
+            if (ctx.assetFees == 0) revert Errors.ZeroFeeNotAllowed();
 
             // enforce positive amount left over after deducting fees
             ctx.assetsMinusFees = assets - ctx.assetFees;
-            if(ctx.assetsMinusFees == 0) revert Errors.DepositTooSmall();
+            if (ctx.assetsMinusFees == 0) revert Errors.DepositTooSmall();
         }
 
         // transfer tokens being deposited minus fees into this contract
         IERC20(ctx.vaultAsset).safeTransferFrom(msg.sender, address(this), ctx.assetsMinusFees);
 
         // transfer fees from depositor to fee recipient address
-        if(ctx.assetFees > 0) {
+        if (ctx.assetFees > 0) {
             IERC20(ctx.vaultAsset).safeTransferFrom(
                 msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, ctx.assetFees
             );
@@ -537,7 +536,7 @@ contract VaultRouterBranch {
         if (assets < minAssets) revert Errors.SlippageCheckFailed(minAssets, assets);
 
         // invariant: received assets must be > 0 even when minAssets = 0
-        if(assets == 0) revert Errors.RedeemMustReceiveAssets();
+        if (assets == 0) revert Errors.RedeemMustReceiveAssets();
 
         // if the credit capacity delta is greater than the locked credit capacity before the state transition, revert
         if (
