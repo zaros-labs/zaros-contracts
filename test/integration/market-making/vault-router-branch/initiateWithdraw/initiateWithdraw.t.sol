@@ -24,16 +24,22 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_RevertWhen_AmountIsZero(uint256 vaultId, uint256 assetsToDeposit) external {
+    function testFuzz_RevertWhen_AmountIsZero(uint128 vaultId, uint128 assetsToDeposit) external {
+        // ensure valid vault and load vault config
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
 
-        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        depositInVault(fuzzVaultConfig.vaultId, uint128(assetsToDeposit));
+        // ensure valid deposit amount
+        address user = users.naruto.account;
+        assetsToDeposit = uint128(bound(assetsToDeposit,
+                                         calculateMinOfSharesToStake(vaultId),
+                                         fuzzVaultConfig.depositCap));
+
+        fundUserAndDepositInVault(user, vaultId, assetsToDeposit);
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.ZeroInput.selector, "sharesAmount"));
-        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, 0);
+        marketMakingEngine.initiateWithdrawal(vaultId, 0);
     }
 
     modifier whenAmountIsNotZero() {
@@ -53,31 +59,38 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_SharesAmountIsGtUserBalance(
-        uint256 vaultId,
-        uint256 assetsToDeposit
+        uint128 vaultId,
+        uint128 assetsToDeposit
     )
         external
         whenAmountIsNotZero
         whenVaultIdIsValid
     {
+        // ensure valid vault and load vault config
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
 
-        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        depositInVault(fuzzVaultConfig.vaultId, uint128(assetsToDeposit));
+        // ensure valid deposit amount
+        address user = users.naruto.account;
+        assetsToDeposit = uint128(bound(assetsToDeposit,
+                                         calculateMinOfSharesToStake(vaultId),
+                                         fuzzVaultConfig.depositCap));
 
-        uint128 sharesToWithdraw = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account).toUint128() + 1;
+        fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
+
+        uint128 sharesToWithdraw = IERC20(fuzzVaultConfig.indexToken).balanceOf(user).toUint128() + 1;
 
         // it should revert
+        vm.startPrank(user);
         vm.expectRevert({
             revertData: abi.encodeWithSelector(
                 IERC20Errors.ERC20InsufficientBalance.selector,
-                users.naruto.account,
+                user,
                 sharesToWithdraw - 1,
                 sharesToWithdraw
             )
         });
-        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, sharesToWithdraw);
+        marketMakingEngine.initiateWithdrawal(vaultId, sharesToWithdraw);
     }
 
     modifier whenSharesAmountIsNotGtUserBalance() {

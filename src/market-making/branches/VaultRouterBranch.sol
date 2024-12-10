@@ -227,6 +227,7 @@ contract VaultRouterBranch {
         address vaultAsset;
         IReferral referralModule;
         uint8 vaultAssetDecimals;
+        UD60x18 vaultDepositFee;
         UD60x18 assetsX18;
         UD60x18 assetFeesX18;
         uint256 assetFees;
@@ -240,6 +241,7 @@ contract VaultRouterBranch {
     /// The number of received shares MUST be greater than or equal to minShares.
     /// The Vault MUST exist.
     /// The Vault MUST be live.
+    /// If the vault enforces fees then calculated deposit fee must be non-zero.
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
@@ -293,14 +295,27 @@ contract VaultRouterBranch {
         // uint256 -> ud60x18 18 decimals
         ctx.assetsX18 = Math.convertTokenAmountToUd60x18(ctx.vaultAssetDecimals, assets);
 
-        // calculate the collateral fees
-        ctx.assetFeesX18 = ctx.assetsX18.mul(ud60x18(vault.depositFee));
+        // cache the deposit fee
+        ctx.vaultDepositFee = ud60x18(vault.depositFee);
 
-        // ud60x18 -> uint256 asset decimals
-        ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
+        // if deposit fee is zero, skip needless processing
+        if(ctx.vaultDepositFee.isZero()) {
+            ctx.assetsMinusFees = assets;
+        }
+        else {
+            // otherwise calculate the deposit fee
+            ctx.assetFeesX18 = ctx.assetsX18.mul(ctx.vaultDepositFee);
 
-        // calculate assets minus fees
-        ctx.assetsMinusFees = assets - ctx.assetFees;
+            // ud60x18 -> uint256 asset decimals
+            ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
+
+            // invariant: if vault enforces fees then calculated fee must be non-zero
+            if(ctx.assetFees == 0) revert Errors.ZeroFeeNotAllowed();
+
+            // enforce positive amount left over after deducting fees
+            ctx.assetsMinusFees = assets - ctx.assetFees;
+            if(ctx.assetsMinusFees == 0) revert Errors.DepositTooSmall();
+        }
 
         // get the tokens
         IERC20(ctx.vaultAsset).safeTransferFrom(msg.sender, address(this), ctx.assetsMinusFees);

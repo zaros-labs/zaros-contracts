@@ -577,6 +577,15 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         deal({ token: address(wBtc), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
     }
 
+    function fundUserAndDepositInVault(address user, uint128 vaultId, uint128 assetsToDeposit) internal {
+        address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
+        deal(vaultAsset, user, assetsToDeposit);
+
+        vm.startPrank(user);
+        marketMakingEngine.deposit(vaultId, assetsToDeposit, 0, "", false);
+        vm.stopPrank();
+    }
+
     function depositInVault(uint128 vaultId, uint128 assetsToDeposit) internal {
         address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
         deal(vaultAsset, users.naruto.account, assetsToDeposit);

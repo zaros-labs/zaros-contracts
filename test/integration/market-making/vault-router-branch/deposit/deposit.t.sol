@@ -42,12 +42,15 @@ contract Deposit_Integration_Test is Base_Test {
 
     function testFuzz_RevertWhen_TheDepositCapIsReached(
         uint128 vaultId,
-        uint256 assetsToDeposit
+        uint128 assetsToDeposit
     )
         external
         whenVaultDoesExist
     {
+        // ensure valid vault and load vault config
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
         marketMakingEngine.workaround_Collateral_setParams(
             fuzzVaultConfig.asset,
             fuzzVaultConfig.creditRatio,
@@ -62,7 +65,7 @@ contract Deposit_Integration_Test is Base_Test {
             ud60x18(fuzzVaultConfig.depositCap).mul(ud60x18(depositFee))
         ).add(ud60x18(fuzzVaultConfig.depositCap)).intoUint256();
 
-        assetsToDeposit = bound({ x: assetsToDeposit, min: minDeposit, max: type(uint128).max });
+        assetsToDeposit = uint128(bound({ x: assetsToDeposit, min: minDeposit, max: type(uint128).max }));
 
         address collateral = fuzzVaultConfig.asset;
 
@@ -90,33 +93,38 @@ contract Deposit_Integration_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_SharesMintedAreLessThanMinAmount(
-        uint256 vaultId,
-        uint256 assetsToDeposit
+        uint128 vaultId,
+        uint128 assetsToDeposit
     )
         external
         whenVaultDoesExist
         whenTheDepositCapIsNotReached
     {
+        // ensure valid vault and load vault config
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1, max: fuzzVaultConfig.depositCap });
-        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        // ensure valid deposit amount
+        address user = users.naruto.account;
+        assetsToDeposit = uint128(bound(assetsToDeposit,
+                                         calculateMinOfSharesToStake(vaultId),
+                                         fuzzVaultConfig.depositCap));
+        deal(fuzzVaultConfig.asset, user, assetsToDeposit);
 
+        // calculate expected fees
         uint256 depositFee = vaultsConfig[fuzzVaultConfig.vaultId].depositFee;
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
-
-        // calculate the collateral fees
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
 
         // calculate assets minus fees
         uint256 assetsFee = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
         uint256 assetsMinusFees = assetsToDeposit - assetsFee;
 
-        uint256 minShares = type(uint128).max;
+        uint128 minShares = type(uint128).max;
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsMinusFees));
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), uint128(minShares), "", false);
+        marketMakingEngine.deposit(vaultId, assetsToDeposit, minShares, "", false);
     }
 
     function testFuzz_WhenSharesMintedAreMoreThanMinAmount(
