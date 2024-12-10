@@ -153,9 +153,8 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
 
     /// @notice Returns the decimals offset between the ZLP Vault's underlying asset and its shares (index tokens).
     /// @dev Overridden and used in ERC4626.
-    function _decimalsOffset() internal pure override returns (uint8) {
-        ZlpVaultStorage memory zlpVaultStorage = _getZlpVaultStorage();
-        return zlpVaultStorage.decimalsOffset;
+    function _decimalsOffset() internal view override returns (uint8 offset) {
+        offset = _getZlpVaultStorage().decimalsOffset;
     }
 
     /// @notice Converts the provided amount of ZLP Vault shares to the equivalent amount of underlying assets.
