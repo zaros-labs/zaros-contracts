@@ -324,4 +324,7 @@ library Errors {
 
     /// Thrown when a deposit would be eaten up by fees
     error DepositTooSmall();
+
+    /// Thrown when a deposit receives zero shares
+    error DepositMustReceiveShares();
 }

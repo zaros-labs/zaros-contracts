@@ -239,9 +239,11 @@ contract VaultRouterBranch {
     /// @dev Invariants involved in the call:
     /// The total deposits MUST not exceed the vault after the deposit.
     /// The number of received shares MUST be greater than or equal to minShares.
+    /// The number of received shares MUST be > 0 even when minShares = 0.
     /// The Vault MUST exist.
     /// The Vault MUST be live.
     /// If the vault enforces fees then calculated deposit fee must be non-zero.
+    /// No tokens should remain stuck in this contract.
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
@@ -334,10 +336,14 @@ contract VaultRouterBranch {
         // then perform the actual deposit
         // NOTE: the following call will update the total assets deposited in the vault
         // NOTE: the following call will validate the vault's deposit cap
+        // invariant: no tokens should remain stuck in this contract
         ctx.shares = IERC4626(indexTokenCache).deposit(ctx.assetsMinusFees, msg.sender);
 
         // assert min shares minted
         if (ctx.shares < minShares) revert Errors.SlippageCheckFailed(minShares, ctx.shares);
+
+        // invariant: received shares must be > 0 even when minShares = 0; no donation allowed
+        if (ctx.shares == 0) revert Errors.DepositMustReceiveShares();
 
         // emit an event
         emit LogDeposit(vaultId, msg.sender, ctx.assetsMinusFees);

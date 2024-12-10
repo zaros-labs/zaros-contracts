@@ -127,52 +127,88 @@ contract Deposit_Integration_Test is Base_Test {
         marketMakingEngine.deposit(vaultId, assetsToDeposit, minShares, "", false);
     }
 
+    struct DepositState {
+        // asset balances
+        uint256 depositorAssetBal;
+        uint256 feeReceiverAssetBal;
+        uint256 vaultAssetBal;
+        uint256 marketEngineAssetBal;
+
+        // vault balances
+        uint256 depositorVaultBal;
+        uint256 marketEngineVaultBal;
+    }
+
+    function _getDepositState(
+        address depositor, address feeReceiver,
+        IERC20 assetToken, IERC20 vault
+    ) internal view returns (DepositState memory state) {
+        state.depositorAssetBal    = assetToken.balanceOf(depositor);
+        state.feeReceiverAssetBal  = assetToken.balanceOf(feeReceiver);
+        state.vaultAssetBal        = assetToken.balanceOf(address(vault));
+        state.marketEngineAssetBal = assetToken.balanceOf(address(marketMakingEngine));
+        state.depositorVaultBal    = vault.balanceOf(depositor);
+        state.marketEngineVaultBal = vault.balanceOf(address(marketMakingEngine));
+    }
+
     function testFuzz_WhenSharesMintedAreMoreThanMinAmount(
-        uint256 vaultId,
-        uint256 assetsToDeposit
+        uint128 vaultId,
+        uint128 assetsToDeposit
     )
         external
         whenVaultDoesExist
         whenTheDepositCapIsNotReached
     {
+        // ensure valid vault and load vault config
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit = bound({
-            x: assetsToDeposit,
-            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
-            max: fuzzVaultConfig.depositCap
-        });
-        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+        // ensure valid deposit amount
+        address user = users.naruto.account;
+        assetsToDeposit = uint128(bound(assetsToDeposit,
+                                         calculateMinOfSharesToStake(vaultId),
+                                         fuzzVaultConfig.depositCap));
+        deal(fuzzVaultConfig.asset, user, assetsToDeposit);
 
-        uint256 depositFee = vaultsConfig[fuzzVaultConfig.vaultId].depositFee;
-
+        // calculate expected fees
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
-        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
+        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(vaultsConfig[vaultId].depositFee));
+        uint256 expectedAssetFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+        uint256 assetsMinusFees = assetsToDeposit - expectedAssetFees;
 
-        uint256 assetsFee = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+        // save and verify pre state
+        DepositState memory pre = _getDepositState(user,
+                                                   users.vaultFeeRecipient.account,
+                                                   IERC20(fuzzVaultConfig.asset),
+                                                   IERC20(fuzzVaultConfig.indexToken));
 
-        uint256 assetsMinusFees = assetsToDeposit - assetsFee;
+        assertEq(pre.depositorAssetBal, assetsToDeposit, "Depositor has assets to deposit");
+        assertEq(pre.feeReceiverAssetBal, 0 , "FeeReceiver has no assets");
+        assertEq(pre.vaultAssetBal, 0, "Vault has no assets");
+        assertEq(pre.marketEngineAssetBal, 0, "MarketEngine has no assets");
+        assertEq(pre.depositorVaultBal, 0, "Depositor has no vault shares");
+        assertEq(pre.marketEngineVaultBal, 0, "MarketEngine has no vault shares");
 
-        uint256 vaultDepositFeeRecipientAmountBeforeDeposit =
-            IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);
+        marketMakingEngine.workaround_Vault_setTotalCreditDelegationWeight(vaultId, 1e10);
 
-        marketMakingEngine.workaround_Vault_setTotalCreditDelegationWeight(fuzzVaultConfig.vaultId, 1e10);
-
+        // perform the deposit
+        vm.startPrank(user);
         vm.expectEmit();
-        emit VaultRouterBranch.LogDeposit(fuzzVaultConfig.vaultId, users.naruto.account, assetsMinusFees);
+        emit VaultRouterBranch.LogDeposit(vaultId, user, assetsMinusFees);
+        marketMakingEngine.deposit(vaultId, assetsToDeposit, 0, "", false);
 
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDeposit), 0, "", false);
+        // save and verify post state
+        DepositState memory post = _getDepositState(user,
+                                                    users.vaultFeeRecipient.account,
+                                                    IERC20(fuzzVaultConfig.asset),
+                                                    IERC20(fuzzVaultConfig.indexToken));
 
-        uint256 vaultDepositFeeRecipientAmountAfterDeposit =
-            IERC20(fuzzVaultConfig.asset).balanceOf(users.owner.account);
+        assertEq(post.depositorAssetBal, 0, "Depositor lost assets after deposit");
+        assertEq(post.feeReceiverAssetBal, expectedAssetFees, "FeeReceiver got asset fees");
+        assertEq(post.vaultAssetBal, assetsMinusFees, "Vault got assets minus fees");
+        assertEq(post.marketEngineAssetBal, 0, "No assets stuck in MarketEngine");
 
-        // it should send the fees to the vault deposit fee recipient
-        assertEq(
-            vaultDepositFeeRecipientAmountAfterDeposit - vaultDepositFeeRecipientAmountBeforeDeposit,
-            Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18)
-        );
-
-        // it should mint shares to the user
-        assertGt(IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account), 0);
+        assertGt(post.depositorVaultBal, 0, "Depositor got vault shares");
+        assertEq(post.marketEngineVaultBal, 0, "MarketEngine got no vault shares");
     }
 }

@@ -180,6 +180,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             settlementFeeRecipient: createUser({ name: "Settlement Fee Recipient" }),
             liquidationFeeRecipient: createUser({ name: "Liquidation Fee Recipient" }),
             keepersForwarder: createUser({ name: "Keepers Forwarder" }),
+            vaultFeeRecipient: createUser({ name: "Vault Fee Recipient" }),
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
             sakura: createUser({ name: "Sakura Haruno" }),
@@ -282,7 +283,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         bool isTest = true;
         setupPerpMarketsCreditConfig(isTest);
 
-        marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(users.owner.account);
+        marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(users.vaultFeeRecipient.account);
 
         marketMakingEngine.configureCollateral(
             address(usdc),
