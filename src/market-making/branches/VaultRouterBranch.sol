@@ -412,10 +412,8 @@ contract VaultRouterBranch {
             revert Errors.ZeroInput("sharesAmount");
         }
 
-        // fetch storage slot for vault by id
+        // fetch storage slot for vault by id, vault must exist with valid collateral
         Vault.Data storage vault = Vault.loadLive(vaultId);
-
-        // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
         // increment withdrawal request counter and set withdrawal request id

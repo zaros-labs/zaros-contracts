@@ -97,30 +97,61 @@ contract InitiateWithdraw_Integration_Test is Base_Test {
         _;
     }
 
+    struct InitWithdrawState {
+        // vault balances
+        uint256 withdrawerVaultBal;
+        uint256 marketEngineVaultBal;
+    }
+
+    function _getInitWithdrawState(
+        address withdrawer, IERC20 vault
+    ) internal view returns (InitWithdrawState memory state) {
+        state.withdrawerVaultBal   = vault.balanceOf(withdrawer);
+        state.marketEngineVaultBal = vault.balanceOf(address(marketMakingEngine));
+    }
+
     function testFuzz_GivenUserHasSharesBalance(
-        uint256 vaultId,
-        uint256 assetsToDeposit
+        uint128 vaultId,
+        uint128 assetsToDeposit,
+        uint128 sharesToWithdraw
     )
         external
         whenAmountIsNotZero
         whenVaultIdIsValid
         whenSharesAmountIsNotGtUserBalance
     {
+        // ensure valid vault and load vault config
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        assetsToDeposit = bound({
-            x: assetsToDeposit,
-            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
-            max: fuzzVaultConfig.depositCap
-        });
 
-        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
-        depositInVault(fuzzVaultConfig.vaultId, uint128(assetsToDeposit));
+        // ensure valid deposit amount
+        address user = users.naruto.account;
+        assetsToDeposit = uint128(bound(assetsToDeposit,
+                                         calculateMinOfSharesToStake(vaultId),
+                                         fuzzVaultConfig.depositCap));
 
-        uint128 sharesToWithdraw = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account).toUint128();
+        fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
+
+        uint128 userVaultShares = uint128(IERC20(fuzzVaultConfig.indexToken).balanceOf(user));
+        sharesToWithdraw = uint128(bound(sharesToWithdraw, 1, userVaultShares));
+
+        // save and verify pre state
+        InitWithdrawState memory pre = _getInitWithdrawState(user,
+                                                             IERC20(fuzzVaultConfig.indexToken));
+        assertEq(pre.withdrawerVaultBal, userVaultShares, "User has initial vault shares");
+        assertEq(pre.marketEngineVaultBal, 0, "MarketEngine has no initial vault shares");
 
         // it should create withdraw request
+        vm.startPrank(user);
         vm.expectEmit();
-        emit VaultRouterBranch.LogInitiateWithdrawal(fuzzVaultConfig.vaultId, users.naruto.account, sharesToWithdraw);
-        marketMakingEngine.initiateWithdrawal(fuzzVaultConfig.vaultId, sharesToWithdraw);
+        emit VaultRouterBranch.LogInitiateWithdrawal(vaultId, user, sharesToWithdraw);
+        marketMakingEngine.initiateWithdrawal(vaultId, sharesToWithdraw);
+
+        // save and verify post state
+        InitWithdrawState memory post = _getInitWithdrawState(user,
+                                                              IERC20(fuzzVaultConfig.indexToken));
+
+        assertEq(post.withdrawerVaultBal, userVaultShares - sharesToWithdraw, "User vault shares deducted");
+        assertEq(post.marketEngineVaultBal, sharesToWithdraw, "MarketEngine received withdrawn shares");
     }
 }
