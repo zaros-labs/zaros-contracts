@@ -256,17 +256,13 @@ contract VaultRouterBranch {
     {
         if (assets == 0) revert Errors.ZeroInput("assets");
 
-        // fetch storage slot for vault by id
+        // fetch storage slot for vault by id, vault must exist with valid collateral
         Vault.Data storage vault = Vault.loadLive(vaultId);
-
-        // define context struct
-        DepositContext memory ctx;
-
-        // get vault asset
-        ctx.vaultAsset = vault.collateral.asset;
-
-        // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
+
+        // define context struct and get vault asset
+        DepositContext memory ctx;
+        ctx.vaultAsset = vault.collateral.asset;
 
         // prepare the `Vault::recalculateVaultsCreditCapacity` call
         uint256[] memory vaultsIds = new uint256[](1);
