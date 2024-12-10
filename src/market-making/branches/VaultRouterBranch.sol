@@ -317,15 +317,17 @@ contract VaultRouterBranch {
             if(ctx.assetsMinusFees == 0) revert Errors.DepositTooSmall();
         }
 
-        // get the tokens
+        // transfer tokens being deposited minus fees into this contract
         IERC20(ctx.vaultAsset).safeTransferFrom(msg.sender, address(this), ctx.assetsMinusFees);
 
-        // get the asset fees
-        IERC20(ctx.vaultAsset).safeTransferFrom(
-            msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, ctx.assetFees
-        );
+        // transfer fees from depositor to fee recipient address
+        if(ctx.assetFees > 0) {
+            IERC20(ctx.vaultAsset).safeTransferFrom(
+                msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, ctx.assetFees
+            );
+        }
 
-        // increase vault allowance to transfer tokens
+        // increase vault allowance to transfer tokens minus fees from this contract to vault
         IERC20(ctx.vaultAsset).approve(address(vault.indexToken), ctx.assetsMinusFees);
 
         // then perform the actual deposit
