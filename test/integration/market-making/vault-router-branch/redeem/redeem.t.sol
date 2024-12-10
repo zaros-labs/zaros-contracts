@@ -154,6 +154,7 @@ contract Redeem_Integration_Test is Base_Test {
         // asset balances
         uint256 redeemerAssetBal;
         uint256 feeReceiverAssetBal;
+        uint256 vaultAssetBal;
 
         // vault balances
         uint256 redeemerVaultBal;
@@ -165,6 +166,7 @@ contract Redeem_Integration_Test is Base_Test {
     ) internal view returns (RedeemState memory state) {
         state.redeemerAssetBal     = assetToken.balanceOf(redeemer);
         state.feeReceiverAssetBal  = assetToken.balanceOf(feeReceiver);
+        state.vaultAssetBal        = assetToken.balanceOf(address(vault));
         state.redeemerVaultBal     = vault.balanceOf(redeemer);
         state.marketEngineVaultBal = vault.balanceOf(address(marketMakingEngine));
     }
@@ -220,6 +222,7 @@ contract Redeem_Integration_Test is Base_Test {
 
         assertEq(pre.marketEngineVaultBal, sharesToWithdraw, "MarketEngine received shares from initiated withdraw");
         assertEq(pre.redeemerVaultBal, userVaultShares - sharesToWithdraw, "Shares deducted from Redeemer");
+        assertEq(pre.feeReceiverAssetBal + pre.vaultAssetBal, assetsToDeposit, "All deposited assets accounted");
 
         // perform the redemption
         vm.expectEmit();
@@ -249,8 +252,12 @@ contract Redeem_Integration_Test is Base_Test {
 
         assertEq(post.redeemerVaultBal, userVaultShares - sharesToWithdraw, "Shares deducted from Redeemer");
         assertEq(post.marketEngineVaultBal, 0, "No shares stuck in market engine");
-        assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(user),
+
+        assertEq(post.redeemerAssetBal,
                  expectedAssetsMinusRedeemFeeX18.intoUint256(),
                  "Redeemer received correct asset tokens");
+        assertEq(post.redeemerAssetBal + post.feeReceiverAssetBal + post.vaultAssetBal,
+                 assetsToDeposit,
+                 "All deposited assets accounted");
     }
 }
