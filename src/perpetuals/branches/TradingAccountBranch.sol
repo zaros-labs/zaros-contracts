@@ -396,7 +396,7 @@ contract TradingAccountBranch {
         MarketOrder.Data storage marketOrder = MarketOrder.load(tradingAccountId);
 
         // cancel pending order if it exists
-        if(marketOrder.marketId != 0) {
+        if (marketOrder.marketId != 0) {
             // reverts if a trader has a pending order and that pending order hasn't
             // existed for the minimum order lifetime; pending orders can't be cancelled
             // until they have existed for the minimum order lifetime

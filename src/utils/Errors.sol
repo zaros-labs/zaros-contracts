@@ -277,6 +277,9 @@ library Errors {
     /// @notice Thrown when user does not have fees to claim
     error NoFeesToClaim();
 
+    /// @notice Thrown when fees should be > 0
+    error ZeroFeeNotAllowed();
+
     /// @notice Thrown when user does not have shares to claim fees
     error NoSharesAvailable();
 
@@ -318,4 +321,13 @@ library Errors {
 
     /// Thrown when swap path is invalid - assets and swap strategy ids mismatch
     error InvalidSwapPathParamsLength();
+
+    /// Thrown when a deposit would be eaten up by fees
+    error DepositTooSmall();
+
+    /// Thrown when a deposit receives zero shares
+    error DepositMustReceiveShares();
+
+    /// Thrown when a redeem receives zero assets
+    error RedeemMustReceiveAssets();
 }

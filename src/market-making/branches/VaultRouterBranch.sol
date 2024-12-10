@@ -94,6 +94,15 @@ contract VaultRouterBranch {
         return totalAssetsMinusVaultDebt;
     }
 
+    /// @notice Returns the deposit cap to save 5 storage reads versus calling getVaultData
+    /// @dev Invariants:
+    /// - Vault MUST exist.
+    /// @param vaultId The vault identifier.
+    /// @return depositCap The maximum amount of collateral assets that can be deposited in the vault.
+    function getDepositCap(uint128 vaultId) external view returns (uint128 depositCap) {
+        depositCap = Vault.loadExisting(vaultId).depositCap;
+    }
+
     /// @notice Returns the data and state of a given vault.
     /// @dev Invariants:
     /// - Vault MUST exist.
@@ -155,7 +164,7 @@ contract VaultRouterBranch {
         uint256 totalAssetsMinusVaultDebt = getVaultCreditCapacity(vaultId);
 
         // get decimal offset
-        uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
+        uint8 decimalOffset = Constants.SYSTEM_DECIMALS - IERC20Metadata(vault.indexToken).decimals();
 
         // Get the asset amount out for the input amount of shares, taking into account the vault's debt
         // See {IERC4626-previewRedeem}
@@ -202,7 +211,7 @@ contract VaultRouterBranch {
         uint256 totalAssetsMinusVaultDebt = getVaultCreditCapacity(vaultId);
 
         // get decimal offset
-        uint8 decimalOffset = 18 - IERC20Metadata(vault.indexToken).decimals();
+        uint8 decimalOffset = Constants.SYSTEM_DECIMALS - IERC20Metadata(vault.indexToken).decimals();
 
         // Get the shares amount out for the input amount of tokens, taking into account the unsettled debt
         // See {IERC4626-previewDeposit}.
@@ -227,9 +236,9 @@ contract VaultRouterBranch {
         address vaultAsset;
         IReferral referralModule;
         uint8 vaultAssetDecimals;
+        UD60x18 vaultDepositFee;
         UD60x18 assetsX18;
         UD60x18 assetFeesX18;
-        UD60x18 assetsMinusFeesX18;
         uint256 assetFees;
         uint256 assetsMinusFees;
         uint256 shares;
@@ -239,8 +248,11 @@ contract VaultRouterBranch {
     /// @dev Invariants involved in the call:
     /// The total deposits MUST not exceed the vault after the deposit.
     /// The number of received shares MUST be greater than or equal to minShares.
+    /// The number of received shares MUST be > 0 even when minShares = 0.
     /// The Vault MUST exist.
     /// The Vault MUST be live.
+    /// If the vault enforces fees then calculated deposit fee must be non-zero.
+    /// No tokens should remain stuck in this contract.
     /// @param vaultId The vault identifier.
     /// @param assets The amount of collateral to deposit, in the underlying ERC20 decimals.
     /// @param minShares The minimum amount of index tokens to receive in 18 decimals.
@@ -255,17 +267,15 @@ contract VaultRouterBranch {
     )
         external
     {
-        // fetch storage slot for vault by id
+        if (assets == 0) revert Errors.ZeroInput("assets");
+
+        // fetch storage slot for vault by id, vault must exist with valid collateral
         Vault.Data storage vault = Vault.loadLive(vaultId);
-
-        // define context struct
-        DepositContext memory ctx;
-
-        // get vault asset
-        ctx.vaultAsset = vault.collateral.asset;
-
-        // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
+
+        // define context struct and get vault collateral asset
+        DepositContext memory ctx;
+        ctx.vaultAsset = vault.collateral.asset;
 
         // prepare the `Vault::recalculateVaultsCreditCapacity` call
         uint256[] memory vaultsIds = new uint256[](1);
@@ -296,33 +306,52 @@ contract VaultRouterBranch {
         // uint256 -> ud60x18 18 decimals
         ctx.assetsX18 = Math.convertTokenAmountToUd60x18(ctx.vaultAssetDecimals, assets);
 
-        // calculate the collateral fees
-        ctx.assetFeesX18 = ctx.assetsX18.mul(ud60x18(vault.depositFee));
+        // cache the deposit fee
+        ctx.vaultDepositFee = ud60x18(vault.depositFee);
 
-        // ud60x18 -> uint256 asset decimals
-        ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
+        // if deposit fee is zero, skip needless processing
+        if (ctx.vaultDepositFee.isZero()) {
+            ctx.assetsMinusFees = assets;
+        } else {
+            // otherwise calculate the deposit fee
+            ctx.assetFeesX18 = ctx.assetsX18.mul(ctx.vaultDepositFee);
 
-        // calculate assets minus fees
-        ctx.assetsMinusFees = assets - ctx.assetFees;
+            // ud60x18 -> uint256 asset decimals
+            ctx.assetFees = Math.convertUd60x18ToTokenAmount(ctx.vaultAssetDecimals, ctx.assetFeesX18);
 
-        // get the tokens
+            // invariant: if vault enforces fees then calculated fee must be non-zero
+            if (ctx.assetFees == 0) revert Errors.ZeroFeeNotAllowed();
+
+            // enforce positive amount left over after deducting fees
+            ctx.assetsMinusFees = assets - ctx.assetFees;
+            if (ctx.assetsMinusFees == 0) revert Errors.DepositTooSmall();
+        }
+
+        // transfer tokens being deposited minus fees into this contract
         IERC20(ctx.vaultAsset).safeTransferFrom(msg.sender, address(this), ctx.assetsMinusFees);
 
-        // get the asset fees
-        IERC20(ctx.vaultAsset).safeTransferFrom(
-            msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, ctx.assetFees
-        );
+        // transfer fees from depositor to fee recipient address
+        if (ctx.assetFees > 0) {
+            IERC20(ctx.vaultAsset).safeTransferFrom(
+                msg.sender, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, ctx.assetFees
+            );
+        }
 
-        // increase vault allowance to transfer tokens
-        IERC20(ctx.vaultAsset).approve(address(vault.indexToken), ctx.assetsMinusFees);
+        // increase vault allowance to transfer tokens minus fees from this contract to vault
+        address indexTokenCache = vault.indexToken;
+        IERC20(ctx.vaultAsset).approve(indexTokenCache, ctx.assetsMinusFees);
 
         // then perform the actual deposit
         // NOTE: the following call will update the total assets deposited in the vault
         // NOTE: the following call will validate the vault's deposit cap
-        ctx.shares = IERC4626(vault.indexToken).deposit(ctx.assetsMinusFees, msg.sender);
+        // invariant: no tokens should remain stuck in this contract
+        ctx.shares = IERC4626(indexTokenCache).deposit(ctx.assetsMinusFees, msg.sender);
 
         // assert min shares minted
         if (ctx.shares < minShares) revert Errors.SlippageCheckFailed(minShares, ctx.shares);
+
+        // invariant: received shares must be > 0 even when minShares = 0; no donation allowed
+        if (ctx.shares == 0) revert Errors.DepositMustReceiveShares();
 
         // emit an event
         emit LogDeposit(vaultId, msg.sender, ctx.assetsMinusFees);
@@ -391,13 +420,11 @@ contract VaultRouterBranch {
             revert Errors.ZeroInput("sharesAmount");
         }
 
-        // fetch storage slot for vault by id
+        // fetch storage slot for vault by id, vault must exist with valid collateral
         Vault.Data storage vault = Vault.loadLive(vaultId);
-
-        // verify vault exists
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
 
-        // increment withdrawal request counter and set withdrawal request id
+        // increment vault/user withdrawal request counter and set withdrawal request id
         uint128 withdrawalRequestId = ++vault.withdrawalRequestIdCounter[msg.sender];
 
         // load storage slot for withdrawal request
@@ -417,14 +444,27 @@ contract VaultRouterBranch {
         emit LogInitiateWithdrawal(vaultId, msg.sender, shares);
     }
 
+    struct RedeemContext {
+        uint128 shares;
+        UD60x18 expectedAssetsX18;
+        UD60x18 expectedAssetsMinusRedeemFeeX18;
+        UD60x18 sharesMinusRedeemFeesX18;
+        uint256 redeemFee;
+        uint256 sharesFees;
+        SD59x18 creditCapacityBeforeRedeemUsdX18;
+        UD60x18 lockedCreditCapacityBeforeRedeemUsdX18;
+    }
+
     /// @notice Redeems a given amount of index tokens in exchange for collateral assets from the provided vault,
     /// after the withdrawal delay period has elapsed.
     /// @dev Invariants involved in the call:
     /// The withdrawalRequest MUST NOT be already fulfilled.
     /// The withdrawal delay period MUST have elapsed.
     /// Redeemed assets MUST meet or exceed minAssets.
+    /// Redeemed assets MUST be > 0 even when minAssets = 0.
     /// The Vault MUST exist.
     /// The Vault MUST be live.
+    /// No shares should remain stuck in this contract.
     /// @param vaultId The vault identifier.
     /// @param withdrawalRequestId The previously initiated withdrawal request id.
     /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
@@ -451,49 +491,57 @@ contract VaultRouterBranch {
         // updates the vault's credit capacity before redeeming
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
-        // get shares -> assets
-        UD60x18 expectedAssetsX18 = getIndexTokenSwapRate(vaultId, withdrawalRequest.shares, false);
+        // define context struct, get withdraw shares and associated assets
+        RedeemContext memory ctx;
+        ctx.shares = withdrawalRequest.shares;
+        ctx.expectedAssetsX18 = getIndexTokenSwapRate(vaultId, ctx.shares, false);
 
         // load the mm engine configuration from storage
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
+        // cache vault's redeem fee
+        ctx.redeemFee = vault.redeemFee;
+
         // get assets minus redeem fee
-        UD60x18 expectedAssetsMinusRedeemFeeX18 =
-            expectedAssetsX18.sub(expectedAssetsX18.mul(ud60x18(vault.redeemFee)));
+        ctx.expectedAssetsMinusRedeemFeeX18 =
+            ctx.expectedAssetsX18.sub(ctx.expectedAssetsX18.mul(ud60x18(ctx.redeemFee)));
 
         // calculate assets minus redeem fee as shares
-        UD60x18 sharesMinusRedeemFeesX18 =
-            getVaultAssetSwapRate(vaultId, expectedAssetsMinusRedeemFeeX18.intoUint256(), false);
+        ctx.sharesMinusRedeemFeesX18 =
+            getVaultAssetSwapRate(vaultId, ctx.expectedAssetsMinusRedeemFeeX18.intoUint256(), false);
 
         // get the shares to send to the vault deposit and redeem fee recipient
-        uint256 sharesFees = withdrawalRequest.shares - sharesMinusRedeemFeesX18.intoUint256();
+        ctx.sharesFees = ctx.shares - ctx.sharesMinusRedeemFeesX18.intoUint256();
 
         // cache the vault's credit capacity before redeeming
-        SD59x18 creditCapacityBeforeRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
+        ctx.creditCapacityBeforeRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
 
         // cache the locked credit capacity before redeeming
-        UD60x18 lockedCreditCapacityBeforeRedeemUsdX18 = vault.getLockedCreditCapacityUsd();
+        ctx.lockedCreditCapacityBeforeRedeemUsdX18 = vault.getLockedCreditCapacityUsd();
 
         // redeem shares previously transferred to the contract at `initiateWithdrawal` and store the returned assets
+        address indexToken = vault.indexToken;
         uint256 assets =
-            IERC4626(vault.indexToken).redeem(sharesMinusRedeemFeesX18.intoUint256(), msg.sender, address(this));
+            IERC4626(indexToken).redeem(ctx.sharesMinusRedeemFeesX18.intoUint256(), msg.sender, address(this));
 
         // get the redeem fee
-        IERC4626(vault.indexToken).redeem(
-            sharesFees, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, address(this)
-        );
+        if (ctx.sharesFees > 0) {
+            IERC4626(indexToken).redeem(
+                ctx.sharesFees, marketMakingEngineConfiguration.vaultDepositAndRedeemFeeRecipient, address(this)
+            );
+        }
 
         // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed(minAssets, assets);
 
-        // cache the vault's credit capacity after redeeming
-        SD59x18 creditCapacityAfterRedeemUsdX18 = vault.getTotalCreditCapacityUsd();
+        // invariant: received assets must be > 0 even when minAssets = 0
+        if (assets == 0) revert Errors.RedeemMustReceiveAssets();
 
         // if the credit capacity delta is greater than the locked credit capacity before the state transition, revert
         if (
-            creditCapacityBeforeRedeemUsdX18.sub(creditCapacityAfterRedeemUsdX18).lte(
-                lockedCreditCapacityBeforeRedeemUsdX18.intoSD59x18()
+            ctx.creditCapacityBeforeRedeemUsdX18.sub(vault.getTotalCreditCapacityUsd()).lte(
+                ctx.lockedCreditCapacityBeforeRedeemUsdX18.intoSD59x18()
             )
         ) {
             revert Errors.NotEnoughUnlockedCreditCapacity();
@@ -503,7 +551,7 @@ contract VaultRouterBranch {
         withdrawalRequest.fulfilled = true;
 
         // emit an event
-        emit LogRedeem(vaultId, msg.sender, sharesMinusRedeemFeesX18.intoUint256());
+        emit LogRedeem(vaultId, msg.sender, ctx.sharesMinusRedeemFeesX18.intoUint256());
     }
 
     /// @notice Unstakes a given amount of index tokens from the contract.

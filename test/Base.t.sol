@@ -180,6 +180,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             settlementFeeRecipient: createUser({ name: "Settlement Fee Recipient" }),
             liquidationFeeRecipient: createUser({ name: "Liquidation Fee Recipient" }),
             keepersForwarder: createUser({ name: "Keepers Forwarder" }),
+            vaultFeeRecipient: createUser({ name: "Vault Fee Recipient" }),
             naruto: createUser({ name: "Naruto Uzumaki" }),
             sasuke: createUser({ name: "Sasuke Uchiha" }),
             sakura: createUser({ name: "Sakura Haruno" }),
@@ -282,7 +283,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         bool isTest = true;
         setupPerpMarketsCreditConfig(isTest);
 
-        marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(users.owner.account);
+        marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(users.vaultFeeRecipient.account);
 
         marketMakingEngine.configureCollateral(
             address(usdc),
@@ -575,6 +576,15 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         deal({ token: address(wBtc), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wEth), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wBtc), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
+    }
+
+    function fundUserAndDepositInVault(address user, uint128 vaultId, uint128 assetsToDeposit) internal {
+        address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(vaultId);
+        deal(vaultAsset, user, assetsToDeposit);
+
+        vm.startPrank(user);
+        marketMakingEngine.deposit(vaultId, assetsToDeposit, 0, "", false);
+        vm.stopPrank();
     }
 
     function depositInVault(uint128 vaultId, uint128 assetsToDeposit) internal {
