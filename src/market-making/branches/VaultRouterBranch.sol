@@ -453,8 +453,10 @@ contract VaultRouterBranch {
     /// The withdrawalRequest MUST NOT be already fulfilled.
     /// The withdrawal delay period MUST have elapsed.
     /// Redeemed assets MUST meet or exceed minAssets.
+    /// Redeemed assets MUST be > 0 even when minAssets = 0.
     /// The Vault MUST exist.
     /// The Vault MUST be live.
+    /// No shares should remain stuck in this contract.
     /// @param vaultId The vault identifier.
     /// @param withdrawalRequestId The previously initiated withdrawal request id.
     /// @param minAssets The minimum amount of collateral to receive, in the underlying ERC20 decimals.
@@ -524,6 +526,9 @@ contract VaultRouterBranch {
 
         // require at least min assets amount returned
         if (assets < minAssets) revert Errors.SlippageCheckFailed(minAssets, assets);
+
+        // invariant: received assets must be > 0 even when minAssets = 0
+        if(assets == 0) revert Errors.RedeemMustReceiveAssets();
 
         // if the credit capacity delta is greater than the locked credit capacity before the state transition, revert
         if (
