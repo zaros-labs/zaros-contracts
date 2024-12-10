@@ -618,9 +618,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         (, uint256 oldFeeRecipientShares) = marketMakingEngineConfiguration.protocolFeeRecipients.tryGet(feeRecipient);
 
         // update protocol total fee recipients shares value
-
         if (oldFeeRecipientShares > 0) {
-            if (share < oldFeeRecipientShares) {
+            if (oldFeeRecipientShares > share) {
                 marketMakingEngineConfiguration.totalFeeRecipientsShares -=
                     (oldFeeRecipientShares - share).toUint128();
             } else {
