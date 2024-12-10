@@ -207,8 +207,8 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
     function _authorizeUpgrade(address) internal override onlyOwner { }
 
     function updateAssetAllowance(uint256 amount) external onlyMarketMakingEngine {
-        ZlpVaultStorage storage zlpVaultStorage = _getZlpVaultStorage();
-
-        IERC20(asset()).approve(zlpVaultStorage.marketMakingEngine, amount);
+        // modifier `onlyMarketMakingEngine` ensures caller is market making engine
+        // so pass `msg.sender` directly to `approve` saving 1 storage read
+        IERC20(asset()).approve(msg.sender, amount);
     }
 }
