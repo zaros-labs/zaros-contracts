@@ -16,8 +16,6 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18, convert as convertToUd60x18 } from "@prb-math/UD60x18.sol";
 
-import { console } from "forge-std/console.sol";
-
 contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -208,9 +206,6 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         uint256 amountWeth =
             marketMakingEngine.workaround_getPendingProtocolWethReward(fuzzPerpMarketCreditConfig.marketId);
 
-        console.log("expectedPendingProtocolWethRewardX18: ", expectedPendingProtocolWethRewardX18.intoUint128());
-        console.log("amountWeth: ", amountWeth);
-
         UD60x18 expectedFeePerRecipientX18 =
             ud60x18(amountWeth).mul(sharePerFeeRecipientX18).div(ctx.totalFeeRecipientsSharesX18);
 
@@ -227,10 +222,6 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
 
         emit FeeDistributionBranch.LogSendWethToFeeRecipients(
             uint128(fuzzPerpMarketCreditConfig.marketId), expectedPendingProtocolWethRewardX18.intoUint256()
-        );
-
-        console.log(
-            "expectedPendingProtocolWethRewardX18.intoUint256(): ", expectedPendingProtocolWethRewardX18.intoUint256()
         );
 
         marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketId);
