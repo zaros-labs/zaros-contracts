@@ -260,4 +260,102 @@ contract Redeem_Integration_Test is Base_Test {
                  assetsToDeposit,
                  "All deposited assets accounted");
     }
+
+    // fuzz test a "first depositor" style exploit
+    function testFuzz_firstDepositorExploit(
+        uint128 vaultId, uint128 userDeposit, uint128 attackerDeposit, uint128 attackerDirectTransfer
+    ) external {
+        // ensure valid vault and load vault config
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        // bound amounts to not breach deposit cap
+        userDeposit = uint128(bound(userDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap/3));
+        attackerDeposit = uint128(bound(attackerDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap/3));
+        attackerDirectTransfer = uint128(bound(attackerDirectTransfer, 1, fuzzVaultConfig.depositCap/3));
+
+        // define user and attacker
+        address innocentUser = users.naruto.account;
+        address attacker     = users.madara.account;
+
+        // fund initial deposits
+        deal(fuzzVaultConfig.asset, innocentUser, userDeposit);
+        deal(fuzzVaultConfig.asset, attacker, attackerDeposit);
+
+        // attacker front-runs first deposit by innocent user to:
+        // 1) make an initial deposit
+        vm.startPrank(attacker);
+        marketMakingEngine.deposit(vaultId, attackerDeposit, 0, "", false);
+        // 2) transfer a large amount of asset tokens directly into the vault
+        deal(fuzzVaultConfig.asset, attacker, attackerDirectTransfer);
+        IERC20(fuzzVaultConfig.asset).transfer(fuzzVaultConfig.indexToken, attackerDirectTransfer);
+
+        // 3) innocent user's deposit then goes through
+        vm.startPrank(innocentUser);
+
+        // calculate expected fees to ensure user's deposit wont revert due to receiving no shares
+        UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, userDeposit);
+        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(vaultsConfig[vaultId].depositFee));
+        uint256 expectedAssetFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
+        vm.assume(IERC4626(fuzzVaultConfig.indexToken).previewDeposit(userDeposit - expectedAssetFees)  > 0);
+        marketMakingEngine.deposit(vaultId, userDeposit, 0, "", false);
+
+        // 4) attacker redeems their shares
+        vm.startPrank(attacker);
+        uint128 attackerVaultShares = uint128(IERC20(fuzzVaultConfig.indexToken).balanceOf(attacker));
+        marketMakingEngine.initiateWithdrawal(vaultId, attackerVaultShares);
+        // fast forward block.timestamp to after withdraw delay has passed
+        skip(fuzzVaultConfig.withdrawalDelay + 1);
+        // perform the redemption
+        marketMakingEngine.redeem(vaultId, WITHDRAW_REQUEST_ID, 0);
+
+        // verify attacker did not make a profit; attacker total spent > attacker final balance
+        assertGt(attackerDeposit+attackerDirectTransfer,
+                 IERC20(fuzzVaultConfig.asset).balanceOf(attacker),
+                 "Attacker did not make a profit");
+    }
+
+    // manual test of a "first-depositor" style exploit for human scenario exploration
+    function test_firstDepositorExploit() external {
+        uint128 vaultId = 8; // USDC_CORE_VAULT_ID
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        // ensure valid deposit amount
+        address innocentUser = users.naruto.account;
+        address attacker     = users.madara.account;
+
+        uint128 userDeposit = 1000e6;
+        deal(fuzzVaultConfig.asset, innocentUser, userDeposit);
+        deal(fuzzVaultConfig.asset, attacker, userDeposit);
+
+        // attacker front-runs first deposit by innocent user to:
+        // 1) make an initial deposit
+        vm.startPrank(attacker);
+        marketMakingEngine.deposit(vaultId, userDeposit, 0, "", false);
+        // 2) transfer a large amount of asset tokens directly into the vault
+        uint128 largeDirectTransfer = userDeposit * 100;
+        deal(fuzzVaultConfig.asset, attacker, largeDirectTransfer);
+        IERC20(fuzzVaultConfig.asset).transfer(fuzzVaultConfig.indexToken, largeDirectTransfer);
+
+        // 3) innocent user's deposit then goes through
+        vm.startPrank(innocentUser);
+        marketMakingEngine.deposit(vaultId, userDeposit, 0, "", false);
+
+        // 4) attacker redeems their shares
+        vm.startPrank(attacker);
+        uint128 attackerVaultShares = uint128(IERC20(fuzzVaultConfig.indexToken).balanceOf(attacker));
+        marketMakingEngine.initiateWithdrawal(vaultId, attackerVaultShares);
+        // fast forward block.timestamp to after withdraw delay has passed
+        skip(fuzzVaultConfig.withdrawalDelay + 1);
+        // perform the redemption
+        marketMakingEngine.redeem(vaultId, WITHDRAW_REQUEST_ID, 0);
+
+        uint256 attackerTotalSpent = userDeposit + largeDirectTransfer;
+        assertEq(attackerTotalSpent,  101000000000);
+
+        uint256 attackerBalanceAfter = IERC20(fuzzVaultConfig.asset).balanceOf(attacker);
+        assertEq(attackerBalanceAfter, 95940499931);
+
+        // attacker generated a loss
+    }
 }
