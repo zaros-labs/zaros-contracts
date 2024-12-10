@@ -403,6 +403,7 @@ contract VaultRouterBranch {
         // emit an event
         emit LogStake(vaultId, msg.sender, shares);
 
+        // is necessary call the `recalculateVaultsCreditCapacity` after the stake to update the earned fees to the user
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
     }
 
