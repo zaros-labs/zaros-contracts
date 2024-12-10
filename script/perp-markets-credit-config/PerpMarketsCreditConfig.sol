@@ -14,10 +14,6 @@ import { StdCheats, StdUtils } from "forge-std/Test.sol";
 import { BtcPerpMarketCreditConfig } from "script/perp-markets-credit-config/BtcPerpMarketCreditConfig.sol";
 import { EthPerpMarketCreditConfig } from "script/perp-markets-credit-config/EthPerpMarketCreditConfig.sol";
 
-// PRB Math dependencies
-import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
-
 /// @notice PerpMarketsCreditConfig contract
 abstract contract PerpMarketsCreditConfig is
     StdCheats,
