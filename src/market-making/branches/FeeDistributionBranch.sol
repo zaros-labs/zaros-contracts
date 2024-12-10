@@ -282,6 +282,10 @@ contract FeeDistributionBranch is EngineAccessControl {
         // load the vault data storage pointer
         Vault.Data storage vault = Vault.load(vaultId);
 
+        // prepare the `Vault::recalculateVaultsCreditCapacity` call
+        uint256[] memory vaultsIds = new uint256[](1);
+        vaultsIds[0] = uint256(vaultId);
+
         // get the actor id
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 

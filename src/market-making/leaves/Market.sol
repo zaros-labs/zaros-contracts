@@ -309,11 +309,8 @@ library Market {
                 vaultCreditShareX18
             )
             : UD60x18_ZERO;
-        wethRewardChangeX18 = !lastVaultDistributedWethRewardPerShareX18.isZero()
-            ? ud60x18(self.wethRewardPerVaultShare).sub(lastVaultDistributedWethRewardPerShareX18).mul(
-                vaultCreditShareX18
-            )
-            : UD60x18_ZERO;
+
+        wethRewardChangeX18 = ud60x18(self.wethRewardPerVaultShare).sub(lastVaultDistributedWethRewardPerShareX18);
     }
 
     /// @notice Returns whether the market has reached the auto deleverage start threshold, i.e, if the ADL system

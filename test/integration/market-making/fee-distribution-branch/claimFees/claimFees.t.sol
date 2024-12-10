@@ -151,7 +151,8 @@ contract ClaimFees_Integration_Test is Base_Test {
             "the user should have the expected wEth reward"
         );
 
-        // TODO
         // it should update accumulate actor
+        earnedFees = marketMakingEngine.getEarnedFees(fuzzVaultConfig.vaultId, users.naruto.account);
+        assertEq(earnedFees, 0, "the user should have zero fees to claim");
     }
 }

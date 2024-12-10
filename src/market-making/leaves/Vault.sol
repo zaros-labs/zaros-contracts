@@ -415,7 +415,7 @@ library Vault {
             }
 
             // distributes the vault's total WETH reward change, earned from its connected markets
-            if (!vaultTotalWethRewardChangeX18.isZero()) {
+            if (!vaultTotalWethRewardChangeX18.isZero() && self.wethRewardDistribution.totalShares != 0) {
                 SD59x18 vaultTotalWethRewardChangeSD59X18 =
                     sd59x18(int256(vaultTotalWethRewardChangeX18.intoUint256()));
                 self.wethRewardDistribution.distributeValue(vaultTotalWethRewardChangeSD59X18);

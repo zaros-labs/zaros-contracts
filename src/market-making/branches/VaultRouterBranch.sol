@@ -402,6 +402,8 @@ contract VaultRouterBranch {
 
         // emit an event
         emit LogStake(vaultId, msg.sender, shares);
+
+        Vault.recalculateVaultsCreditCapacity(vaultsIds);
     }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
