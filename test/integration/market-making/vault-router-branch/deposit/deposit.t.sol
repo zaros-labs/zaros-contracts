@@ -26,12 +26,14 @@ contract Deposit_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function test_RevertWhen_VaultDoesNotExist(uint128 amountToDeposit) external {
+    function test_RevertWhen_VaultDoesNotExist(uint128 assetsToDeposit) external {
+        assetsToDeposit = uint128(bound(assetsToDeposit, 1, type(uint128).max));
+
         uint128 minSharesOut = 0;
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector, INVALID_VAULT_ID));
-        marketMakingEngine.deposit(INVALID_VAULT_ID, amountToDeposit, minSharesOut, "", false);
+        marketMakingEngine.deposit(INVALID_VAULT_ID, assetsToDeposit, minSharesOut, "", false);
     }
 
     modifier whenVaultDoesExist() {

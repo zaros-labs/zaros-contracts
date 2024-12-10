@@ -229,7 +229,6 @@ contract VaultRouterBranch {
         uint8 vaultAssetDecimals;
         UD60x18 assetsX18;
         UD60x18 assetFeesX18;
-        UD60x18 assetsMinusFeesX18;
         uint256 assetFees;
         uint256 assetsMinusFees;
         uint256 shares;
@@ -255,6 +254,8 @@ contract VaultRouterBranch {
     )
         external
     {
+        if (assets == 0) revert Errors.ZeroInput("assets");
+
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
