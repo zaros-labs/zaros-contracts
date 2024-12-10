@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies test
 import { Base_Test } from "test/Base.t.sol";
+import { MockEngine } from "test/mocks/MockEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
@@ -239,6 +240,9 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
     function testFuzz_WhenSlippageCheckPassesAndThePremiumOrDiscountIsNotZero(
         uint256 vaultId,
+        uint256 marketId,
+        uint256 vaultAssetsBalance,
+        int256 vaultTotalDebtUsd,
         uint256 swapAmount
     )
         external
@@ -252,11 +256,33 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
+        uint256 oneAsset = 10 ** fuzzVaultConfig.decimals;
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint96).max });
+        // bound the vault assets balance to be between 1 asset unit and the deposit cap
+        bound({ x: vaultAssetsBalance, min: oneAsset, max: fuzzVaultConfig.depositCap });
+
+        // bound the vault's total credit or debt to be between the vault's assets balance - 1 asset unit
+        // note: negative debt equals credit, thus, we add one asset unit to the bound function
+        bound({
+            x: vaultTotalDebtUsd,
+            min: -(int256(vaultAssetsBalance) + int256(oneAsset)),
+            max: int256(vaultAssetsBalance) - int256(oneAsset)
+        });
+
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
+
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: int256(vaultAssetsBalance) - vaultTotalDebtUsd });
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
+
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+        MockEngine engine = MockEngine(fuzzPerpMarketCreditConfig.engine);
+        // we update the mock engine's unrealized debt in order to update the vault's total debt state
+        engine.setUnrealizedDebt(vaultTotalDebtUsd);
 
         uint128 minAmountOut = 0;
 
