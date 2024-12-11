@@ -243,7 +243,6 @@ library Vault {
 
     struct RecalculateConnectedMarketsState_Context {
         uint128 vaultId;
-        uint128 connectedMarketId;
         SD59x18 marketUnrealizedDebtUsdX18;
         SD59x18 marketRealizedDebtUsdX18;
         SD59x18 realizedDebtChangeUsdX18;
@@ -295,10 +294,8 @@ library Vault {
                 rehydratedConnectedMarketsIdsCache[i] = connectedMarketsIdsCache[i];
             }
 
-            // loads the memory cached market id
-            ctx.connectedMarketId = rehydratedConnectedMarketsIdsCache[i];
             // loads the market storage pointer
-            Market.Data storage market = Market.load(ctx.connectedMarketId);
+            Market.Data storage market = Market.load(rehydratedConnectedMarketsIdsCache[i]);
 
             // first we cache the market's unrealized and realized debt
             ctx.marketUnrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
@@ -311,7 +308,8 @@ library Vault {
             }
 
             // load the credit delegation to the given market id
-            CreditDelegation.Data storage creditDelegation = CreditDelegation.load(ctx.vaultId, ctx.connectedMarketId);
+            CreditDelegation.Data storage creditDelegation
+                = CreditDelegation.load(ctx.vaultId, rehydratedConnectedMarketsIdsCache[i]);
 
             // prevent division by zero
             if (!market.getTotalDelegatedCreditUsd().isZero()) {
