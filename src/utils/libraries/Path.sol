@@ -70,7 +70,7 @@ library Path {
         fees = new uint24[](amount);
 
         uint256 offset;
-        for (uint256 i = 0; i < amount; i++) {
+        for (uint256 i; i < amount; i++) {
             tokens[i] = path.toAddress(offset);
             offset += 20;
 

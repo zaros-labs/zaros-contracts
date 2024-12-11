@@ -72,7 +72,7 @@ contract CurveAdapter is BaseAdapter {
     /// @notice Executes a swap using the exact input single amount, coming from the swap payload passed by the Market
     /// Making Engine.
     /// @return amountOut The amount out returned.
-    function executeSwapExactInputSingle(SwapExactInputSinglePayload memory swapPayload)
+    function executeSwapExactInputSingle(SwapExactInputSinglePayload calldata swapPayload)
         external
         returns (uint256 amountOut)
     {
@@ -80,7 +80,8 @@ contract CurveAdapter is BaseAdapter {
         IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
 
         // approve the tokenIn to the swap router
-        IERC20(swapPayload.tokenIn).approve(curveStrategyRouter, swapPayload.amountIn);
+        address curveStrategyRouterCache = curveStrategyRouter;
+        IERC20(swapPayload.tokenIn).approve(curveStrategyRouterCache, swapPayload.amountIn);
 
         // get the expected output amount
         uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
@@ -88,7 +89,7 @@ contract CurveAdapter is BaseAdapter {
         // Calculate the minimum acceptable output based on the slippage tolerance
         uint256 amountOutMinimum = calculateAmountOutMin(expectedAmountOut);
 
-        return ICurveSwapRouter(curveStrategyRouter).exchange_with_best_rate({
+        return ICurveSwapRouter(curveStrategyRouterCache).exchange_with_best_rate({
             _from: swapPayload.tokenIn,
             _to: swapPayload.tokenOut,
             _amount: swapPayload.amountIn,
@@ -110,9 +111,12 @@ contract CurveAdapter is BaseAdapter {
         // declare amountIn as initial token amountIn
         uint256 amountIn = swapPayload.amountIn;
 
+        // cache to prevent identicla storage reads during loop
+        address curveStrategyRouterCache = curveStrategyRouter;
+
         for (uint256 i; i < tokens.length - 1; i++) {
             // approve the tokenIn to the swap router
-            IERC20(tokens[i]).approve(curveStrategyRouter, amountIn);
+            IERC20(tokens[i]).approve(curveStrategyRouterCache, amountIn);
 
             // get the expected output amount
             uint256 expectedAmountOut = getExpectedOutput(tokens[i], tokens[i + 1], amountIn);
@@ -124,7 +128,7 @@ contract CurveAdapter is BaseAdapter {
             address receiver = (i == tokens.length - 2) ? swapPayload.recipient : address(this);
 
             // make single exchange
-            amountIn = ICurveSwapRouter(curveStrategyRouter).exchange_with_best_rate({
+            amountIn = ICurveSwapRouter(curveStrategyRouterCache).exchange_with_best_rate({
                 _from: tokens[i],
                 _to: tokens[i + 1],
                 _amount: amountIn,

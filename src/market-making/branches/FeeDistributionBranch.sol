@@ -351,7 +351,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         assets = new address[](length);
         feesCollected = new uint256[](length);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i < length; i++) {
             (assets[i], feesCollected[i]) = receivedMarketFees.at(i);
         }
     }

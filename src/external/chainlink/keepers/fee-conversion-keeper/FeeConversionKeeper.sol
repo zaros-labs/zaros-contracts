@@ -116,7 +116,7 @@ contract FeeConversionKeeper is IAutomationCompatible, BaseKeeper {
         (uint128[] memory marketIds, address[] memory assets) = abi.decode(performData, (uint128[], address[]));
 
         // convert accumulated fees to weth for decoded markets and assets
-        for (uint256 i = 0; i < marketIds.length; i++) {
+        for (uint256 i; i < marketIds.length; i++) {
             marketMakingEngine.convertAccumulatedFeesToWeth(marketIds[i], assets[i], self.dexSwapStrategyId, "");
         }
     }

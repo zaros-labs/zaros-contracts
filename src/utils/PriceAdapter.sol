@@ -94,11 +94,13 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /// @return priceUsdX18 The USD quote of the token.
     function getPrice() external view returns (UD60x18 priceUsdX18) {
         if (useEthPriceFeed) {
+            address sequencerUptimeFeedCache = sequencerUptimeFeed;
+
             UD60x18 quantityTokenInEth = ChainlinkUtil.getPrice(
                 ChainlinkUtil.GetPriceParams({
                     priceFeed: IAggregatorV3(priceFeed),
                     priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
-                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
+                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeedCache)
                 })
             );
 
@@ -106,7 +108,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                 ChainlinkUtil.GetPriceParams({
                     priceFeed: IAggregatorV3(ethUsdPriceFeed),
                     priceFeedHeartbeatSeconds: ethUsdPriceFeedHeartbeatSeconds,
-                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
+                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeedCache)
                 })
             );
 

@@ -54,8 +54,10 @@ library StabilityConfiguration {
     /// @return priceX18 The offchain price.
     function verifyOffchainPrice(Data storage self, bytes memory priceData) internal returns (UD60x18 priceX18) {
         bytes memory reportData = ChainlinkUtil.getReportData(priceData);
-        (FeeAsset memory fee) = ChainlinkUtil.getEthVericationFee(self.chainlinkVerifier, reportData);
-        bytes memory verifiedPricetData = ChainlinkUtil.verifyReport(self.chainlinkVerifier, fee, priceData);
+
+        IVerifierProxy chainlinkVerifier = self.chainlinkVerifier;
+        (FeeAsset memory fee) = ChainlinkUtil.getEthVericationFee(chainlinkVerifier, reportData);
+        bytes memory verifiedPricetData = ChainlinkUtil.verifyReport(chainlinkVerifier, fee, priceData);
 
         PremiumReport memory premiumReport = abi.decode(verifiedPricetData, (PremiumReport));
 
