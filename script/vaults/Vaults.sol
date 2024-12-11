@@ -100,11 +100,19 @@ abstract contract Vaults is
             address vaultAsset = vaultsConfig[i].asset;
             VaultTypes vaultType = vaultsConfig[i].vaultType;
 
-            ZlpVault zlpVault = new ZlpVault();
-            uint8 decimalOffset = Constants.SYSTEM_DECIMALS - vaultsConfig[i].decimals;
-            zlpVault.initialize(marketMakingEngine, decimalOffset, owner, IERC20(vaultAsset), vaultsConfig[i].vaultId);
-            zlpVaults[vaultAsset][vaultType] = zlpVault;
+            // deploy zlp vault as an upgradeable proxy
+            address zlpVaultImpl = address(new ZlpVault());
+            bytes memory zlpVaultInitData = abi.encodeWithSelector(
+                ZlpVault.initialize.selector,
+                marketMakingEngine,
+                Constants.SYSTEM_DECIMALS - vaultsConfig[i].decimals,
+                owner,
+                IERC20(vaultAsset),
+                vaultsConfig[i].vaultId
+            );
+            ZlpVault zlpVault = ZlpVault(address(new ERC1967Proxy(zlpVaultImpl, zlpVaultInitData)));
 
+            zlpVaults[vaultAsset][vaultType] = zlpVault;
             vaultsConfig[i].indexToken = address(zlpVault);
 
             if (usdTokenSwapKeepers[vaultAsset] == address(0)) {
