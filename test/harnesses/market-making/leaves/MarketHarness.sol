@@ -79,4 +79,9 @@ contract MarketHarness {
         Market.Data storage market = Market.load(marketId);
         market.totalDelegatedCreditUsd = totalDelegatedCreditUsd;
     }
+
+    function workaround_getMarketCreditDeposit(uint128 marketId, address asset) external view returns (uint256) {
+        Market.Data storage market = Market.load(marketId);
+        return market.creditDeposits.get(asset);
+    }
 }

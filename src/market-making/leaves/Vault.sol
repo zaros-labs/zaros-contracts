@@ -89,7 +89,7 @@ library Vault {
     /// earned per share.
     /// @param connectedMarkets The list of connected market ids. Whenever there's an update, a new
     /// `EnumerableSet.UintSet` is created.
-    /// @param withdrawalRequestIdCounter Counter for user withdraw requiest ids
+    /// @param withdrawalRequestIdCounter Counter for user withdraw request ids
     struct Data {
         uint256 depositFee;
         uint256 redeemFee;
@@ -214,7 +214,7 @@ library Vault {
         creditCapacityUsdX18 = totalAssetsUsdX18.intoSD59x18().sub(getTotalDebt(self));
     }
 
-    /// @notice Returns the vault's total debt distributed from conneted markets.
+    /// @notice Returns the vault's total debt distributed from connected markets.
     /// @dev Takes into account the unrealized debt, the unsettled (yet to be settled) realized debt and the usdc
     /// credit deposited by markets.
     /// @param self The vault storage pointer.

@@ -179,7 +179,8 @@ library Market {
     /// @param self The market storage pointer.
     /// @return connectedVaults The vaults ids delegating credit to the market.
     function getConnectedVaultsIds(Data storage self) internal view returns (uint256[] memory connectedVaults) {
-        connectedVaults = self.connectedVaults[self.connectedVaults.length].values();
+        // loads the connected vaults ids by taking the last configured vault ids uint set
+        connectedVaults = self.connectedVaults[self.connectedVaults.length - 1].values();
     }
 
     /// @notice Returns a market's credit capacity in USD based on its delegated credit and total debt.
@@ -255,7 +256,8 @@ library Market {
     /// @param self The market storage pointer.
     /// @return unrealizedDebtUsdX18 The market's total unrealized debt in USD.
     function getUnrealizedDebtUsd(Data storage self) internal view returns (SD59x18 unrealizedDebtUsdX18) {
-        unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.id));
+        unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.id)); // TODO error no engine set
+            // to market
     }
 
     /// @notice Calculates the latest debt, usdc credit and weth reward values a vault is entitled to receive from the
@@ -421,7 +423,7 @@ library Market {
         // if there is zero delegated credit and we're trying to distribute debt to vaults, we should revert and the
         // market is considered to be in a panic state
         if (totalVaultSharesX18.isZero()) {
-            revert Errors.NoDelegatedCredit(self.id);
+            revert Errors.NoDelegatedCredit(self.id); // here
         }
 
         // update storage values
@@ -444,6 +446,7 @@ library Market {
         // add the usdc acquired to the accumulated usdc credit variable
         self.usdcCreditPerVaultShare =
             ud60x18(self.usdcCreditPerVaultShare).add(addedUsdcPerCreditShareX18).intoUint128();
+
         // deduct the amount of usdc credit from the realized debt per vault share, so we don't double count it
         self.realizedDebtUsdPerVaultShare = sd59x18(self.realizedDebtUsdPerVaultShare).sub(
             addedUsdcPerCreditShareX18.intoSD59x18()
