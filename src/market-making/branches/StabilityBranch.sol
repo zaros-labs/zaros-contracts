@@ -246,7 +246,7 @@ contract StabilityBranch is EngineAccessControl {
         UD60x18 priceX18;
         uint120 deadline;
         uint128 vaultId;
-        uint128 amoutIn;
+        uint128 amountIn;
         uint128 minAmountOut;
         uint256 amountOut;
         UD60x18 amountOutBeforeFeesX18;
@@ -312,8 +312,8 @@ contract StabilityBranch is EngineAccessControl {
         ctx.priceX18 = stabilityConfiguration.verifyOffchainPrice(priceData);
 
         // get amount out asset
-        ctx.amoutIn = request.amountIn;
-        ctx.amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(ctx.amoutIn), ctx.priceX18);
+        ctx.amountIn = request.amountIn;
+        ctx.amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(ctx.amountIn), ctx.priceX18);
 
         // gets the base fee and swap fee for the given amount out before fees
         (ctx.baseFeeX18, ctx.swapFeeX18) = getFeesForAssetsAmountOut(ctx.amountOutBeforeFeesX18, ctx.priceX18);
@@ -341,10 +341,10 @@ contract StabilityBranch is EngineAccessControl {
         ctx.protocolReward = collateral.convertUd60x18ToTokenAmount(ctx.baseFeeX18.add(ctx.protocolSwapFeeX18));
 
         // update vault debt
-        vault.marketsRealizedDebtUsd -= int128(ctx.amoutIn);
+        vault.marketsRealizedDebtUsd -= int128(ctx.amountIn);
 
         // burn usd amount from address(this)
-        ctx.usdToken.burn(ctx.amoutIn);
+        ctx.usdToken.burn(ctx.amountIn);
 
         // transfer the required assets from the vault to the mm engine contract before distributions
         // note: as the swap fee stays in the ZLP Vault, it is technically a net gain to share holders, i.e it is auto
@@ -363,7 +363,7 @@ contract StabilityBranch is EngineAccessControl {
             user,
             requestId,
             ctx.vaultId,
-            ctx.amoutIn,
+            ctx.amountIn,
             ctx.minAmountOut,
             request.assetOut,
             ctx.deadline,
