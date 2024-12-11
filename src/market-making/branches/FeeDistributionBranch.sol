@@ -132,31 +132,26 @@ contract FeeDistributionBranch is EngineAccessControl {
         uint128 marketId,
         address asset,
         uint128 dexSwapStrategyId,
-        bytes memory path
+        bytes calldata path
     )
         external
         onlyRegisteredSystemKeepers
     {
-        // loads the collateral data storage pointer
+        // loads the collateral data storage pointer, collateral must be enabled
         Collateral.Data storage collateral = Collateral.load(asset);
-
-        // reverts if the collateral isn't enabled
         collateral.verifyIsEnabled();
 
         // loads the market data storage pointer
         Market.Data storage market = Market.loadExisting(marketId);
 
         // reverts if the market hasn't received any fees for the given asset
-        if (!market.receivedFees.contains(asset)) revert Errors.MarketDoesNotContainTheAsset(asset);
+        (bool exists, uint256 receivedFees) = market.receivedFees.tryGet(asset);
+        if (!exists) revert Errors.MarketDoesNotContainTheAsset(asset);
+        if (receivedFees == 0) revert Errors.AssetAmountIsZero(asset);
 
-        // working data
+        // working data, converted receivedFees uint256 -> UD60x18 
         ConvertAccumulatedFeesToWethContext memory ctx;
-
-        // get the amount of asset received as fees
-        ctx.assetAmountX18 = ud60x18(market.receivedFees.get(asset));
-
-        // reverts if the amount is zero
-        if (ctx.assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
+        ctx.assetAmountX18 = ud60x18(receivedFees);
 
         // convert the asset amount to token amount
         ctx.assetAmount = collateral.convertUd60x18ToTokenAmount(ctx.assetAmountX18);

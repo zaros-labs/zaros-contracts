@@ -33,11 +33,12 @@ library AssetToAmountMap {
         UD60x18 newAmount;
 
         // check if the asset is already in the `assetToAmountMap`
-        if (assetToAmountMap.contains(asset)) {
+        (bool exists, uint256 value) = assetToAmountMap.tryGet(asset);
+
+        if (exists) {
             // if it is, increment or decrement the amount value
             newAmount = shouldIncrement
-                ? amountX18.add(ud60x18(assetToAmountMap.get(asset)))
-                : ud60x18(assetToAmountMap.get(asset)).sub(amountX18);
+                ? amountX18.add(ud60x18(value)) : ud60x18(value).sub(amountX18);
         } else if (shouldIncrement) {
             // if the asset is not in the map and incrementing its amount, set the new amount to the amount to be
             // stored
