@@ -96,7 +96,7 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IReferral
-    function getReferrerAddress(address engine, bytes memory referrerCode) public view returns (address referrer) {
+    function getReferrerAddress(address engine, bytes calldata referrerCode) public view returns (address referrer) {
         // load the referral configuration from storage
         ReferralConfiguration.Data storage referralConfiguration = ReferralConfiguration.load(engine);
 
@@ -105,7 +105,7 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @inheritdoc IReferral
-    function getCustomReferralCodeReferrer(string memory customReferralCode)
+    function getCustomReferralCodeReferrer(string calldata customReferralCode)
         external
         view
         returns (address referrer)
@@ -116,7 +116,7 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     /// @inheritdoc IReferral
     function createCustomReferralCode(
         address referrer,
-        string memory customReferralCode
+        string calldata customReferralCode
     )
         external
         onlyRegisteredEngines
@@ -127,7 +127,7 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @inheritdoc IReferral
-    function getUserReferralData(bytes memory referrer)
+    function getUserReferralData(bytes calldata referrer)
         external
         view
         returns (bytes memory referralCode, bool isCustomReferralCode)
@@ -153,22 +153,19 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
 
     /// @inheritdoc IReferral
     function registerReferral(
-        bytes memory referrerCode,
+        bytes calldata referrerCode,
         address referrerAddress,
-        bytes memory referralCode,
+        bytes calldata referralCode,
         bool isCustomReferralCode
     )
-        public
+        external
         onlyRegisteredEngines
     {
         // load the referral configuration from storage
         ReferralConfiguration.Data storage referralConfiguration = ReferralConfiguration.load(msg.sender);
 
-        // check if the referrer already has a referral
-        bool userHasReferral = verifyIfUserHasReferral(referrerCode);
-
         // revert if the referrer already has a referral
-        if (userHasReferral) {
+        if (verifyIfUserHasReferral(referrerCode)) {
             revert ReferralAlreadyExists();
         }
 
@@ -181,7 +178,8 @@ contract Referral is IReferral, OwnableUpgradeable, UUPSUpgradeable {
                     CustomReferralConfiguration.load(string(referralCode));
 
                 // revert if the custom referral code is not valid
-                if (customReferral.referrer == address(0) || customReferral.referrer == referrerAddress) {
+                address referrerCache = customReferral.referrer;
+                if (referrerCache == address(0) || referrerCache == referrerAddress) {
                     revert InvalidReferralCode();
                 }
 
