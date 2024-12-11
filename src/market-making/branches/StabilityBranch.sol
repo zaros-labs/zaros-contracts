@@ -222,7 +222,8 @@ contract StabilityBranch is EngineAccessControl {
             swapRequest.minAmountOut = minAmountsOut[i];
             swapRequest.vaultId = vaultIds[i];
             swapRequest.assetOut = ctx.initialVaultCollateralAsset;
-            swapRequest.deadline = uint120(block.timestamp) + uint120(tokenSwapData.maxExecutionTime);
+            uint120 deadlineCache = uint120(block.timestamp) + uint120(tokenSwapData.maxExecutionTime);
+            swapRequest.deadline = deadlineCache;
             swapRequest.amountIn = amountsIn[i];
 
             emit LogInitiateSwap(
@@ -231,8 +232,8 @@ contract StabilityBranch is EngineAccessControl {
                 vaultIds[i],
                 amountsIn[i],
                 minAmountsOut[i],
-                swapRequest.assetOut,
-                swapRequest.deadline
+                ctx.initialVaultCollateralAsset,
+                deadlineCache
             );
         }
     }
@@ -243,6 +244,10 @@ contract StabilityBranch is EngineAccessControl {
         UD60x18 swapFeeX18;
         address asset;
         UD60x18 priceX18;
+        uint120 deadline;
+        uint128 vaultId;
+        uint128 amountIn;
+        uint128 minAmountOut;
         uint256 amountOut;
         UD60x18 amountOutBeforeFeesX18;
         UD60x18 protocolSwapFeeX18;
@@ -277,23 +282,25 @@ contract StabilityBranch is EngineAccessControl {
             revert Errors.RequestAlreadyProcessed(user, requestId);
         }
 
+        // working data
+        FulfillSwapContext memory ctx;
+
         // if request dealine expired revert
-        if (request.deadline < block.timestamp) {
-            revert Errors.SwapRequestExpired(user, requestId, request.deadline);
+        ctx.deadline = request.deadline;
+        if (ctx.deadline < block.timestamp) {
+            revert Errors.SwapRequestExpired(user, requestId, ctx.deadline);
         }
 
         // set request processed to true
         request.processed = true;
-
-        // working data
-        FulfillSwapContext memory ctx;
 
         // load market making engine config
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
 
         // load vault data
-        Vault.Data storage vault = Vault.load(request.vaultId);
+        ctx.vaultId = request.vaultId;
+        Vault.Data storage vault = Vault.load(ctx.vaultId);
 
         // get usd token of engine
         ctx.usdToken = UsdToken(marketMakingEngineConfiguration.usdTokenOfEngine[engine]);
@@ -305,7 +312,8 @@ contract StabilityBranch is EngineAccessControl {
         ctx.priceX18 = stabilityConfiguration.verifyOffchainPrice(priceData);
 
         // get amount out asset
-        ctx.amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(request.amountIn), ctx.priceX18);
+        ctx.amountIn = request.amountIn;
+        ctx.amountOutBeforeFeesX18 = getAmountOfAssetOut(ud60x18(ctx.amountIn), ctx.priceX18);
 
         // gets the base fee and swap fee for the given amount out before fees
         (ctx.baseFeeX18, ctx.swapFeeX18) = getFeesForAssetsAmountOut(ctx.amountOutBeforeFeesX18, ctx.priceX18);
@@ -321,8 +329,9 @@ contract StabilityBranch is EngineAccessControl {
             collateral.convertUd60x18ToTokenAmount(ctx.amountOutBeforeFeesX18.sub(ctx.baseFeeX18.add(ctx.swapFeeX18)));
 
         // slippage check
-        if (ctx.amountOut < request.minAmountOut) {
-            revert Errors.SlippageCheckFailed(request.minAmountOut, ctx.amountOut);
+        ctx.minAmountOut = request.minAmountOut;
+        if (ctx.amountOut < ctx.minAmountOut) {
+            revert Errors.SlippageCheckFailed(ctx.minAmountOut, ctx.amountOut);
         }
 
         // calculates the protocol's share of the swap fee by multiplying the total swap fee by the protocol's fee
@@ -332,10 +341,10 @@ contract StabilityBranch is EngineAccessControl {
         ctx.protocolReward = collateral.convertUd60x18ToTokenAmount(ctx.baseFeeX18.add(ctx.protocolSwapFeeX18));
 
         // update vault debt
-        vault.marketsRealizedDebtUsd -= int128(request.amountIn);
+        vault.marketsRealizedDebtUsd -= int128(ctx.amountIn);
 
         // burn usd amount from address(this)
-        ctx.usdToken.burn(request.amountIn);
+        ctx.usdToken.burn(ctx.amountIn);
 
         // transfer the required assets from the vault to the mm engine contract before distributions
         // note: as the swap fee stays in the ZLP Vault, it is technically a net gain to share holders, i.e it is auto
@@ -353,11 +362,11 @@ contract StabilityBranch is EngineAccessControl {
         emit LogFulfillSwap(
             user,
             requestId,
-            request.vaultId,
-            request.amountIn,
-            request.minAmountOut,
+            ctx.vaultId,
+            ctx.amountIn,
+            ctx.minAmountOut,
             request.assetOut,
-            request.deadline,
+            ctx.deadline,
             ctx.amountOut,
             ctx.baseFeeX18.intoUint256(),
             ctx.swapFeeX18.intoUint256(),
@@ -380,7 +389,8 @@ contract StabilityBranch is EngineAccessControl {
         }
 
         // if dealine has not yet passed revert
-        if (request.deadline > block.timestamp) {
+        uint120 deadlineCache = request.deadline;
+        if (deadlineCache > block.timestamp) {
             revert Errors.RequestNotExpired(msg.sender, requestId);
         }
 
@@ -416,7 +426,7 @@ contract StabilityBranch is EngineAccessControl {
             depositedUsdToken,
             request.minAmountOut,
             request.assetOut,
-            request.deadline,
+            deadlineCache,
             baseFeeUsd,
             refundAmountUsd
         );

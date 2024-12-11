@@ -47,14 +47,13 @@ library LiveMarkets {
 
     /// @notice Retrieves all market IDs currently in the set of live market IDs.
     /// @param self The storage pointer to the market data.
-    /// @return An array of live market IDs.
-    function getLiveMarketsIds(Data storage self) internal view returns (uint128[] memory) {
-        uint128[] memory marketIds = new uint128[](self.liveMarketIds.length());
+    /// @return marketIds An array of live market IDs.
+    function getLiveMarketsIds(Data storage self) internal view returns (uint128[] memory marketIds) {
+        uint256 liveMarketsLength = self.liveMarketIds.length();
+        marketIds = new uint128[](liveMarketsLength);
 
-        for (uint256 i = 0; i < self.liveMarketIds.length(); i++) {
+        for (uint256 i; i < liveMarketsLength; i++) {
             marketIds[i] = uint128(self.liveMarketIds.at(i));
         }
-
-        return marketIds;
     }
 }

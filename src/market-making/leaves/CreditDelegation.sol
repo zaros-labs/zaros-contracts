@@ -52,14 +52,14 @@ library CreditDelegation {
     /// @dev Called when a vault's credit share is fully undelegated from a market.
     /// @param self The credit delegation storage pointer.
     function clear(Data storage self) internal {
-        self.vaultId = 0;
-        self.marketId = 0;
-        self.weight = 0;
-        self.valueUsd = 0;
-        self.lastVaultDistributedRealizedDebtUsdPerShare = 0;
-        self.lastVaultDistributedUnrealizedDebtUsdPerShare = 0;
-        self.lastVaultDistributedUsdcCreditPerShare = 0;
-        self.lastVaultDistributedWethRewardPerShare = 0;
+        delete self.vaultId;
+        delete self.marketId;
+        delete self.weight;
+        delete self.valueUsd;
+        delete self.lastVaultDistributedRealizedDebtUsdPerShare;
+        delete self.lastVaultDistributedUnrealizedDebtUsdPerShare;
+        delete self.lastVaultDistributedUsdcCreditPerShare;
+        delete self.lastVaultDistributedWethRewardPerShare;
     }
 
     /// @notice Updates this vault's credit delegation last distributed debt and reward values.

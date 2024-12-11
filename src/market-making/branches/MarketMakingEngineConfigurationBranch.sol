@@ -136,6 +136,24 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param vaultDepositAndRedeemFeeRecipient The vault deposit and redeem fee recipient address.
     event LogConfigureVaultDepositAndRedeemFeeRecipient(address vaultDepositAndRedeemFeeRecipient);
 
+    /// @notice Emitted when a market is paused.
+    /// @param marketId The market being paused.
+    event LogMarketPaused(uint128 marketId);
+
+    /// @notice Emitted when a market is unpaused.
+    /// @param marketId The market being unpaused.
+    event LogMarketUnpaused(uint128 marketId);
+
+    /// @notice Emitted when stability config is updated
+    /// @param chainlinkVerifier The new chainlink verifier address.
+    /// @param maxVerificationDelay The new maximum verification delay.
+    event LogUpdateStabilityConfig(address chainlinkVerifier, uint128 maxVerificationDelay);
+
+    /// @notice Emitted when a vault's asset allowance is updated
+    /// @param vaultId The new vault id being updated.
+    /// @param allowance The new asset allowance for the vault.
+    event LogUpdateVaultAssetAllowance(uint128 vaultId, uint256 allowance);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -148,7 +166,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @notice Creates a custom referral code.
     /// @param referrer The address of the referrer.
     /// @param customReferralCode The custom referral code.
-    function createCustomReferralCode(address referrer, string memory customReferralCode) external onlyOwner {
+    function createCustomReferralCode(address referrer, string calldata customReferralCode) external onlyOwner {
         // load the market making engine configuration from storage
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
@@ -225,10 +243,12 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         // push new array of connectd markets
         vault.connectedMarkets.push();
 
+        // use [vault.connectedMarkets.length - 1] to get the last connected markets array
+        uint256 connectedMarketsConfigIndex = vault.connectedMarkets.length - 1;
+
         // add markets ids to connected markets
         for (uint256 i; i < marketsIds.length; i++) {
-            // use [vault.connectedMarkets.length - 1] to get the last connected markets array
-            vault.connectedMarkets[vault.connectedMarkets.length - 1].add(marketsIds[i]);
+            vault.connectedMarkets[connectedMarketsConfigIndex].add(marketsIds[i]);
         }
 
         // emit event LogConfigureVaultConnectedMarkets
@@ -419,16 +439,18 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Unpauses a specific market by adding its ID from the list of live markets.
     /// @param marketId The ID of the market to be unpaused.
-    /// @return A boolean indicating whether the operation was successful.
-    function unpauseMarket(uint128 marketId) external onlyOwner returns (bool) {
-        return LiveMarkets.load().addMarket(marketId);
+    /// @return success A boolean indicating whether the operation was successful.
+    function unpauseMarket(uint128 marketId) external onlyOwner returns (bool success) {
+        success = LiveMarkets.load().addMarket(marketId);
+        if (success) emit LogMarketUnpaused(marketId);
     }
 
     /// @notice Pauses a specific market by removing its ID from the list of live markets.
     /// @param marketId The ID of the market to be paused.
-    /// @return A boolean indicating whether the operation was successful.
-    function pauseMarket(uint128 marketId) external onlyOwner returns (bool) {
-        return LiveMarkets.load().removeMarket(marketId);
+    /// @return success A boolean indicating whether the operation was successful.
+    function pauseMarket(uint128 marketId) external onlyOwner returns (bool success) {
+        success = LiveMarkets.load().removeMarket(marketId);
+        if (success) emit LogMarketPaused(marketId);
     }
 
     /// @notice Configure dex swap strategy on Market Making Engine
@@ -512,6 +534,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         }
 
         StabilityConfiguration.update(chainlinkVerifier, maxVerificationDelay);
+
+        emit LogUpdateStabilityConfig(chainlinkVerifier, maxVerificationDelay);
     }
 
     /// @notice Updates the asset allowance for a specific vault.
@@ -521,6 +545,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         Vault.Data storage vault = Vault.load(vaultId);
 
         ZlpVault(vault.indexToken).updateAssetAllowance(allowance);
+
+        emit LogUpdateVaultAssetAllowance(vaultId, allowance);
     }
 
     /// @notice Configures the USD token swap parameters.
@@ -539,6 +565,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("maxExecutionTime");
         }
 
+        // emits event internally
         UsdTokenSwapConfig.update(baseFeeUsd, swapSettlementFeeBps, maxExecutionTime);
     }
 
@@ -554,15 +581,14 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
     /// @notice Retrieves the collateral data for a given asset.
     /// @param asset The address of the asset for which the collateral data is being retrieved.
-    /// @return The collateral data associated with the specified asset.
-    function getCollateralData(address asset) external pure returns (Collateral.Data memory) {
-        return Collateral.load(asset);
+    /// @return data The collateral data associated with the specified asset.
+    function getCollateralData(address asset) external pure returns (Collateral.Data memory data) {
+        data = Collateral.load(asset);
     }
 
     /// @notice Configures the referral module.
     /// @dev Only owner can configure the referral module.
     /// @param referralModule The address of the referral module.
-
     function configureReferralModule(address referralModule) external onlyOwner {
         // revert if the referral module is zero
         if (referralModule == address(0)) {
@@ -645,8 +671,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     function configureAssetCustomSwapPath(
         address asset,
         bool enabled,
-        address[] memory assets,
-        uint128[] memory dexSwapStrategyIds
+        address[] calldata assets,
+        uint128[] calldata dexSwapStrategyIds
     )
         external
         onlyOwner
@@ -657,7 +683,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         }
 
         AssetSwapPath.Data storage swapPath = AssetSwapPath.load(asset);
-
         swapPath.configure(enabled, assets, dexSwapStrategyIds);
 
         emit LogConfiguredSwapPath(asset, assets, dexSwapStrategyIds, enabled);
@@ -679,8 +704,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     }
 
     /// @notice Retrieves the IDs of all live markets.
-    /// @return An array of `uint128` values representing the IDs of the live markets.
-    function getLiveMarketIds() external view returns (uint128[] memory) {
-        return LiveMarkets.load().getLiveMarketsIds();
+    /// @return ids An array of `uint128` values representing the IDs of the live markets.
+    function getLiveMarketIds() external view returns (uint128[] memory ids) {
+        ids = LiveMarkets.load().getLiveMarketsIds();
     }
 }

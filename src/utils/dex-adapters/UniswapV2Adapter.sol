@@ -80,7 +80,8 @@ contract UniswapV2Adapter is BaseAdapter {
         IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
 
         // aprove the tokenIn to the swap router
-        IERC20(swapPayload.tokenIn).approve(uniswapV2SwapStrategyRouter, swapPayload.amountIn);
+        address uniswapV2SwapStrategyRouterCache = uniswapV2SwapStrategyRouter;
+        IERC20(swapPayload.tokenIn).approve(uniswapV2SwapStrategyRouterCache, swapPayload.amountIn);
 
         // get the expected output amount
         uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
@@ -93,7 +94,7 @@ contract UniswapV2Adapter is BaseAdapter {
         path[0] = swapPayload.tokenIn;
         path[1] = swapPayload.tokenOut;
 
-        uint256[] memory amountsOut = IUniswapV2Router02(uniswapV2SwapStrategyRouter).swapExactTokensForTokens({
+        uint256[] memory amountsOut = IUniswapV2Router02(uniswapV2SwapStrategyRouterCache).swapExactTokensForTokens({
             amountIn: swapPayload.amountIn,
             amountOutMin: amountOutMinimum,
             path: path,
@@ -110,7 +111,8 @@ contract UniswapV2Adapter is BaseAdapter {
         IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
 
         // aprove the tokenIn to the swap router
-        IERC20(swapPayload.tokenIn).approve(uniswapV2SwapStrategyRouter, swapPayload.amountIn);
+        address uniswapV2SwapStrategyRouterCache = uniswapV2SwapStrategyRouter;
+        IERC20(swapPayload.tokenIn).approve(uniswapV2SwapStrategyRouterCache, swapPayload.amountIn);
 
         // get the expected output amount
         uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
@@ -122,7 +124,7 @@ contract UniswapV2Adapter is BaseAdapter {
         (address[] memory tokens,) = swapPayload.path.decodePath();
 
         // execute trade
-        uint256[] memory amountsOut = IUniswapV2Router02(uniswapV2SwapStrategyRouter).swapExactTokensForTokens({
+        uint256[] memory amountsOut = IUniswapV2Router02(uniswapV2SwapStrategyRouterCache).swapExactTokensForTokens({
             amountIn: swapPayload.amountIn,
             amountOutMin: amountOutMinimum,
             path: tokens,

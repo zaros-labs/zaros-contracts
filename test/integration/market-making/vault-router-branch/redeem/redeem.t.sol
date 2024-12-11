@@ -14,7 +14,7 @@ import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBran
 import { IERC20, IERC4626 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
 // PRB Math
-import { UD60x18, ud60x18 } from "@prb-math/ud60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract Redeem_Integration_Test is Base_Test {
     uint128 constant WITHDRAW_REQUEST_ID = 1;

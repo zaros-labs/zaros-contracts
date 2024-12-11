@@ -376,7 +376,7 @@ library Market {
         EnumerableSet.UintSet[] storage connectedVaults = self.connectedVaults;
 
         // add the vauls ids to a new UintSet instance in the connectedVaults array
-        for (uint256 i = 0; i < vaultsIds.length; i++) {
+        for (uint256 i; i < vaultsIds.length; i++) {
             connectedVaults[connectedVaults.length].add(vaultsIds[i]);
         }
     }

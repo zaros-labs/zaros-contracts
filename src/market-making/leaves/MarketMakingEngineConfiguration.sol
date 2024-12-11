@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // PRB Math dependencies
-import { ud60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
@@ -57,8 +57,10 @@ library MarketMakingEngineConfiguration {
     /// @param asset The asset to be distributed as reward.
     /// @param amount The accumulated reward amount.
     function distributeProtocolAssetReward(Data storage self, address asset, uint256 amount) internal {
-        // cache the length of the protocol fee recipients
+        // cache unchanging variables before loop
         uint256 feeRecipientsLength = self.protocolFeeRecipients.length();
+        UD60x18 totalFeeRecipientsSharesX18 = ud60x18(self.totalFeeRecipientsShares);
+        UD60x18 amountX18 = ud60x18(amount);
 
         // iterate over the protocol configured fee recipients
         for (uint256 i; i < feeRecipientsLength; i++) {
@@ -66,8 +68,7 @@ library MarketMakingEngineConfiguration {
             (address feeRecipient, uint256 shares) = self.protocolFeeRecipients.at(i);
 
             // Calculate the fee recipient reward
-            uint256 feeRecipientReward =
-                ud60x18(amount).mul(ud60x18(shares).div(ud60x18(self.totalFeeRecipientsShares))).intoUint256();
+            uint256 feeRecipientReward = amountX18.mul(ud60x18(shares).div(totalFeeRecipientsSharesX18)).intoUint256();
 
             // Transfer the fee recipient reward
             IERC20(asset).safeTransfer(feeRecipient, feeRecipientReward);
