@@ -400,11 +400,11 @@ contract VaultRouterBranch {
         // transfer shares from actor
         IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
 
-        // emit an event
-        emit LogStake(vaultId, msg.sender, shares);
-
         // is necessary call the `recalculateVaultsCreditCapacity` after the stake to update the earned fees to the user
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
+
+        // emit an event
+        emit LogStake(vaultId, msg.sender, shares);
     }
 
     ///.@notice Initiates a withdrawal request for a given amount of index tokens from the provided vault.
