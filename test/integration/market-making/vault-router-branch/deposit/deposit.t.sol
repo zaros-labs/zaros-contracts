@@ -15,7 +15,7 @@ import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { ERC4626Upgradeable } from "@openzeppelin-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 
 // PRB Math
-import { UD60x18, ud60x18 } from "@prb-math/ud60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract Deposit_Integration_Test is Base_Test {
     function setUp() public virtual override {
