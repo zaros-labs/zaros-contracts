@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLCICENSED
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
 // Zaros dependencies
@@ -46,6 +46,11 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
             revert Errors.Unauthorized(msg.sender);
         }
         _;
+    }
+
+    /// @dev Disables initialize functions at the implementation.
+    constructor() {
+        _disableInitializers();
     }
 
     /// @notice Initializes the ZlpVault UUPS contract.
