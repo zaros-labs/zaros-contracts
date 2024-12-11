@@ -101,7 +101,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the credit capacity of the given market id.
-    /// @dev `CreditDelegationBranch::updateCreditDelegation` must be called before calling this function in order to
+    /// @dev `CreditDelegationBranch::updateMarketCreditDelegations` must be called before calling this function in order to
     /// retrieve the latest state.
     /// @dev Each engine can implement its own debt accounting schema according to its business logic, thus, this
     /// function will simply return the credit capacity in USD for the given market id.
