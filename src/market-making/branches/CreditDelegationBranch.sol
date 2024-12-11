@@ -101,7 +101,8 @@ contract CreditDelegationBranch is EngineAccessControl {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the credit capacity of the given market id.
-    /// @dev `CreditDelegationBranch::updateMarketCreditDelegations` must be called before calling this function in order to
+    /// @dev `CreditDelegationBranch::updateMarketCreditDelegations` must be called before calling this function in
+    /// order to
     /// retrieve the latest state.
     /// @dev Each engine can implement its own debt accounting schema according to its business logic, thus, this
     /// function will simply return the credit capacity in USD for the given market id.
@@ -370,9 +371,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             market.settleCreditDeposit(assets[i], usdcCollateral.convertTokenAmountToUd60x18(usdcOut));
 
             // emit an event
-            emit LogConvertMarketCreditDepositsToUsdc(
-                marketId, assets[i], creditDeposits, usdcOut
-            );
+            emit LogConvertMarketCreditDepositsToUsdc(marketId, assets[i], creditDeposits, usdcOut);
         }
     }
 
@@ -659,9 +658,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         ctx.inDebtVaultCollateralAsset = inDebtVault.collateral.asset;
         ctx.dexAdapter = dexSwapStrategy.dexAdapter;
 
-        uint256 depositAmount = IDexAdapter(ctx.dexAdapter).getExpectedOutput(
-            usdc, ctx.inDebtVaultCollateralAsset, depositAmountUsdc
-        );
+        uint256 depositAmount =
+            IDexAdapter(ctx.dexAdapter).getExpectedOutput(usdc, ctx.inDebtVaultCollateralAsset, depositAmountUsdc);
 
         // prepare the data for executing the swap asset -> usdc
         SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
@@ -714,7 +712,10 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @notice Called by a registered to update a market's credit delegations and return its credit capacity.
     /// @param marketId The engine's market id.
     /// @return creditCapacity creditCapacityUsdX18 The current credit capacity of the given market id in USD.
-    function updateMarketCreditDelegationsAndReturnCapacity(uint128 marketId) external returns (SD59x18 creditCapacity) {
+    function updateMarketCreditDelegationsAndReturnCapacity(uint128 marketId)
+        external
+        returns (SD59x18 creditCapacity)
+    {
         updateMarketCreditDelegations(marketId);
         creditCapacity = getCreditCapacityForMarketId(marketId);
     }

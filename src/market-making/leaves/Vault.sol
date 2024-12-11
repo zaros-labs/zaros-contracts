@@ -308,8 +308,8 @@ library Vault {
             }
 
             // load the credit delegation to the given market id
-            CreditDelegation.Data storage creditDelegation
-                = CreditDelegation.load(ctx.vaultId, rehydratedConnectedMarketsIdsCache[i]);
+            CreditDelegation.Data storage creditDelegation =
+                CreditDelegation.load(ctx.vaultId, rehydratedConnectedMarketsIdsCache[i]);
 
             // prevent division by zero
             if (!market.getTotalDelegatedCreditUsd().isZero()) {

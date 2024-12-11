@@ -37,8 +37,7 @@ library AssetToAmountMap {
 
         if (exists) {
             // if it is, increment or decrement the amount value
-            newAmount = shouldIncrement
-                ? amountX18.add(ud60x18(value)) : ud60x18(value).sub(amountX18);
+            newAmount = shouldIncrement ? amountX18.add(ud60x18(value)) : ud60x18(value).sub(amountX18);
         } else if (shouldIncrement) {
             // if the asset is not in the map and incrementing its amount, set the new amount to the amount to be
             // stored

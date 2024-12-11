@@ -149,7 +149,7 @@ contract FeeDistributionBranch is EngineAccessControl {
         if (!exists) revert Errors.MarketDoesNotContainTheAsset(asset);
         if (receivedFees == 0) revert Errors.AssetAmountIsZero(asset);
 
-        // working data, converted receivedFees uint256 -> UD60x18 
+        // working data, converted receivedFees uint256 -> UD60x18
         ConvertAccumulatedFeesToWethContext memory ctx;
         ctx.assetAmountX18 = ud60x18(receivedFees);
 

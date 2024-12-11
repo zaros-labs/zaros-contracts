@@ -442,7 +442,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @return success A boolean indicating whether the operation was successful.
     function unpauseMarket(uint128 marketId) external onlyOwner returns (bool success) {
         success = LiveMarkets.load().addMarket(marketId);
-        if(success) emit LogMarketUnpaused(marketId);
+        if (success) emit LogMarketUnpaused(marketId);
     }
 
     /// @notice Pauses a specific market by removing its ID from the list of live markets.
@@ -450,7 +450,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @return success A boolean indicating whether the operation was successful.
     function pauseMarket(uint128 marketId) external onlyOwner returns (bool success) {
         success = LiveMarkets.load().removeMarket(marketId);
-        if(success) emit LogMarketPaused(marketId);
+        if (success) emit LogMarketPaused(marketId);
     }
 
     /// @notice Configure dex swap strategy on Market Making Engine
