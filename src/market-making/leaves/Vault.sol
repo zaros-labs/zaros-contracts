@@ -360,6 +360,8 @@ library Vault {
     /// assets and debt usd denonimated values.
     /// @dev We use a `uint256` array because a market's connected vaults ids are stored at a `EnumerableSet.UintSet`.
     /// @param vaultsIds The array of vaults ids to recalculate the credit capacity.
+    // todo: implement tstore/tload logic to avoid recalculating vaults that don't need to have their credit capacity
+    // updated in the current system state & execution context
     function recalculateVaultsCreditCapacity(uint256[] memory vaultsIds) internal {
         for (uint256 i; i < vaultsIds.length; i++) {
             // uint256 -> uint128

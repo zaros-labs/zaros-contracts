@@ -265,10 +265,14 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             }
         }
 
+        // todo: implement tstore/tload logic to avoid recalculating vaults that don't need to have their credit
+        // capacity updated in the current system state & execution context perform state updates for vaults connected
+        // to each market id
         for (uint256 i; i < marketIds.length; i++) {
             _configureMarketConnectedVaults(marketIds[i].toUint128(), vaultIds);
         }
 
+        // perform state updates for markets connected to each market id
         for (uint256 i; i < vaultIds.length; i++) {
             _configureVaultConnectedMarkets(vaultIds[i].toUint128(), marketIds);
         }
