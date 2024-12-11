@@ -7,8 +7,8 @@ import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/Mar
 import { StabilityConfiguration } from "@zaros/market-making/leaves/StabilityConfiguration.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
-import { Market } from "src/market-making/leaves/Market.sol";
-import { DexSwapStrategy } from "src/market-making/leaves/DexSwapStrategy.sol";
+import { Market } from "@zaros/market-making/leaves/Market.sol";
+import { DexSwapStrategy } from "@zaros/market-making/leaves/DexSwapStrategy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { Vault } from "@zaros/market-making/leaves/Vault.sol";
@@ -102,6 +102,14 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param weth The address of the wETH token.
     event LogSetWeth(address weth);
 
+    /// @notice Emitted when the USDC address is set or updated.
+    /// @param usdc The address of the USDC token.
+    event LogSetUsdc(address usdc);
+
+    /// @notice Emitted when the settlementBaseFeeUsdX18 is set or updated.
+    /// @param settlementBaseFeeUsdX18 The amount of the USDC token fee.
+    event LogSetSettlementBaseFeeUsdX18(uint128 settlementBaseFeeUsdX18);
+
     /// @notice Emitted when a fee recipient is configured.
     /// @param feeRecipient The address of the fee recipient.
     /// @param share The share of the fee recipient, example 0.5e18 (50%).
@@ -110,7 +118,12 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @notice Emitted when connected markets are configured on a vault.
     /// @param vaultId The vault id.
     /// @param marketsIds The markets ids.
-    event LogConfigureVaultConnectedMarkets(uint128 vaultId, uint128[] marketsIds);
+    event LogConfigureVaultConnectedMarkets(uint128 vaultId, uint256[] marketsIds);
+
+    /// @notice Emitted when connected vaults are configured on a market.
+    /// @param marketId The market id.
+    /// @param vaultIds The vaults ids.
+    event LogConfigureMarketConnectedVaults(uint128 marketId, uint256[] vaultIds);
 
     /// @notice Emitted whe the referral module is configured.
     /// @param sender The address that configured the referral module.
@@ -222,25 +235,98 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         emit LogUpdateVaultConfiguration(msg.sender, params.vaultId);
     }
 
+    /// @notice Configure connected vaults on market
+    /// @dev Only owner can call this function
+    /// @param marketIds The market ids.
+    /// @param vaultIds The vault ids.
+    function connectVaultsAndMarkets(uint256[] calldata marketIds, uint256[] calldata vaultIds) external onlyOwner {
+        // revert if no marketIds are provided
+        if (marketIds.length == 0) {
+            revert Errors.ZeroInput("connectedMarketIds");
+        }
+
+        // revert if no vaultIds are provided
+        if (vaultIds.length == 0) {
+            revert Errors.ZeroInput("connectedVaultIds");
+        }
+
+        // define array that will contain a single vault id to recalculate credit for
+        uint256[] memory vaultIdToRecalculate = new uint256[](1);
+
+        // iterate over vault ids
+        for (uint128 i; i < vaultIds.length; i++) {
+            // if vault has connected markets
+            if (Vault.load(vaultIds[i].toUint128()).connectedMarkets.length > 0) {
+                // cache vault id
+                vaultIdToRecalculate[0] = vaultIds[i];
+
+                // recalculate the credit capacity of the vault
+                Vault.recalculateVaultsCreditCapacity(vaultIdToRecalculate);
+            }
+        }
+
+        // todo: implement tstore/tload logic to avoid recalculating vaults that don't need to have their credit
+        // capacity updated in the current system state & execution context perform state updates for vaults connected
+        // to each market id
+        for (uint256 i; i < marketIds.length; i++) {
+            _configureMarketConnectedVaults(marketIds[i].toUint128(), vaultIds);
+        }
+
+        // perform state updates for markets connected to each market id
+        for (uint256 i; i < vaultIds.length; i++) {
+            _configureVaultConnectedMarkets(vaultIds[i].toUint128(), marketIds);
+        }
+    }
+
+    /// @notice Configure connected vaults on market
+    /// @dev Only owner can call this function
+    /// @param marketId The market id.
+    /// @param vaultIds The vault ids.
+    function _configureMarketConnectedVaults(uint128 marketId, uint256[] calldata vaultIds) internal {
+        // revert if vaultId is set to zero
+        if (marketId == 0) {
+            revert Errors.ZeroInput("marketId");
+        }
+
+        // load vault data from storage
+        Market.Data storage market = Market.load(marketId);
+
+        // if market has connected vaults
+        if (market.connectedVaults.length > 0) {
+            // Make sure that vaults connected to markets that are updated but not passed as an argument
+            uint256[] memory vaultIdToRecalculate = market.connectedVaults[market.connectedVaults.length - 1].values();
+
+            // recalculate the credit capacity for current market vaults
+            Vault.recalculateVaultsCreditCapacity(vaultIdToRecalculate);
+        }
+
+        // push new array of connected markets
+        market.connectedVaults.push();
+
+        // add markets ids to connected markets
+        for (uint256 i; i < vaultIds.length; i++) {
+            // use [vault.connectedVaults.length - 1] to get the last connected markets array
+            market.connectedVaults[market.connectedVaults.length - 1].add(vaultIds[i]);
+        }
+
+        // emit event LogConfigureMarketConnectedVaults
+        emit LogConfigureMarketConnectedVaults(marketId, vaultIds);
+    }
+
     /// @notice Configure connected markets on vault
     /// @dev Only owner can call this function
     /// @param vaultId The vault id.
     /// @param marketsIds The markets ids.
-    function configureVaultConnectedMarkets(uint128 vaultId, uint128[] calldata marketsIds) external onlyOwner {
+    function _configureVaultConnectedMarkets(uint128 vaultId, uint256[] calldata marketsIds) internal {
         // revert if vaultId is set to zero
         if (vaultId == 0) {
             revert Errors.ZeroInput("vaultId");
         }
 
-        // revert if marketsIds is empty
-        if (marketsIds.length == 0) {
-            revert Errors.ZeroInput("connectedMarketsIds");
-        }
-
         // load vault data from storage
         Vault.Data storage vault = Vault.load(vaultId);
 
-        // push new array of connectd markets
+        // push new array of connected markets
         vault.connectedMarkets.push();
 
         // use [vault.connectedMarkets.length - 1] to get the last connected markets array
@@ -344,6 +430,31 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
 
         // emit event LogSetWeth
         emit LogSetWeth(weth);
+    }
+
+    /// @notice Set the USDC address
+    /// @dev Only owner can call this function
+    /// @param usdc The address of the wETH token.
+    function setUsdc(address usdc) external onlyOwner {
+        // revert if usdc is set to zero
+        if (usdc == address(0)) revert Errors.ZeroInput("usdc");
+
+        // update usdc address
+        MarketMakingEngineConfiguration.load().usdc = usdc;
+
+        // emit event LogSetUsdc
+        emit LogSetUsdc(usdc);
+    }
+
+    /// @notice Set the settlementBaseFeeUsdX18 amount
+    /// @dev Only owner can call this function
+    /// @param settlementBaseFeeUsdX18 The fee amount in usdc in 18 dex
+    function setSettlementBaseFeeUsdX18(uint128 settlementBaseFeeUsdX18) external onlyOwner {
+        // update fee
+        MarketMakingEngineConfiguration.load().settlementBaseFeeUsdX18 = settlementBaseFeeUsdX18;
+
+        // emit event LogSetSettlementBaseFeeUsdX18
+        emit LogSetSettlementBaseFeeUsdX18(settlementBaseFeeUsdX18);
     }
 
     /// @notice Configure collateral on Market Making Engine

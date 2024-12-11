@@ -62,8 +62,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @param marketId The engine's market id.
     /// @param requestedUsdTokenAmount The requested amount of USD Token to minted.
     /// @param mintedUsdTokenAmount The actual amount of USD Token minted, potentially factored by the market's auto
-    /// deleverage
-    /// system.
+    /// deleverage system.
     event LogWithdrawUsdTokenFromMarket(
         address indexed engine,
         uint128 indexed marketId,
@@ -406,6 +405,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// allocates the USDC acquired in case of a debt settlement to the engine's USD Token accordingly.
     /// @param vaultsIds The vaults' identifiers to settle.
     function settleVaultsDebt(uint256[] calldata vaultsIds) external onlyRegisteredSystemKeepers {
+        // todo test
         // first, we need to update the credit capacity of the vaults
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
@@ -604,6 +604,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @dev The actual increase or decrease in the vaults' unsettled realized debt happen at `settleVaultsDebt`.
     /// @param vaultsIds The vaults' identifiers to rebalance.
     function rebalanceVaultsAssets(uint128[2] calldata vaultsIds) external onlyRegisteredSystemKeepers {
+        // todo: tests
         // load the storage pointers of the vaults in net credit and net debt
         Vault.Data storage inCreditVault = Vault.loadExisting(vaultsIds[0]);
         Vault.Data storage inDebtVault = Vault.loadExisting(vaultsIds[1]);
@@ -698,6 +699,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @notice Updates the credit delegations from ZLP Vaults to the given market id.
     /// @dev Must be called whenever an engine needs to know the current credit capacity of a given market id.
     function updateMarketCreditDelegations(uint128 marketId) public {
+        // todo test
         // load the market's data storage pointer
         Market.Data storage market = Market.loadLive(marketId);
 
@@ -716,6 +718,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         external
         returns (SD59x18 creditCapacity)
     {
+        // todo: tests
         updateMarketCreditDelegations(marketId);
         creditCapacity = getCreditCapacityForMarketId(marketId);
     }

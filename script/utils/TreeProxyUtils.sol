@@ -435,7 +435,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](26);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](28);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -454,7 +454,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.configureDexSwapStrategy.selector;
     marketMakingEngineConfigBranchSelectors[11] = MarketMakingEngineConfigurationBranch.configureFeeRecipient.selector;
     marketMakingEngineConfigBranchSelectors[12] =
-        MarketMakingEngineConfigurationBranch.configureVaultConnectedMarkets.selector;
+        MarketMakingEngineConfigurationBranch.connectVaultsAndMarkets.selector;
     marketMakingEngineConfigBranchSelectors[13] =
         MarketMakingEngineConfigurationBranch.configureReferralModule.selector;
     marketMakingEngineConfigBranchSelectors[14] =
@@ -475,6 +475,9 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.configureDepositAndRedeemFees.selector;
     marketMakingEngineConfigBranchSelectors[25] =
         MarketMakingEngineConfigurationBranch.configureVaultDepositAndRedeemFeeRecipient.selector;
+    marketMakingEngineConfigBranchSelectors[26] = MarketMakingEngineConfigurationBranch.setUsdc.selector;
+    marketMakingEngineConfigBranchSelectors[27] =
+        MarketMakingEngineConfigurationBranch.setSettlementBaseFeeUsdX18.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](10);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -508,7 +511,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     stabilityBranchSelectors[5] = StabilityBranch.fulfillSwap.selector;
     stabilityBranchSelectors[6] = StabilityBranch.refundSwap.selector;
 
-    bytes4[] memory creditDelegationBranchSelectors = new bytes4[](9);
+    bytes4[] memory creditDelegationBranchSelectors = new bytes4[](11);
     creditDelegationBranchSelectors[0] = CreditDelegationBranch.getCreditCapacityForMarketId.selector;
     creditDelegationBranchSelectors[1] = CreditDelegationBranch.getAdjustedProfitForMarketId.selector;
     creditDelegationBranchSelectors[2] = CreditDelegationBranch.depositCreditForMarket.selector;
@@ -519,6 +522,8 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     creditDelegationBranchSelectors[7] =
         CreditDelegationBranch.updateMarketCreditDelegationsAndReturnCapacity.selector;
     creditDelegationBranchSelectors[8] = CreditDelegationBranch.updateVaultCreditCapacity.selector;
+    creditDelegationBranchSelectors[9] = CreditDelegationBranch.calculateSwapAmount.selector;
+    creditDelegationBranchSelectors[10] = CreditDelegationBranch.convertMarketsCreditDepositsToUsdc.selector;
 
     selectors[0] = upgradeBranchSelectors;
     selectors[1] = marketMakingEngineConfigBranchSelectors;
@@ -624,7 +629,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     distributionHarnessSelectors[2] = DistributionHarness.exposed_accumulateActor.selector;
     distributionHarnessSelectors[3] = DistributionHarness.exposed_getActorValueChange.selector;
 
-    bytes4[] memory marketHarnessSelectors = new bytes4[](11);
+    bytes4[] memory marketHarnessSelectors = new bytes4[](12);
     marketHarnessSelectors[0] = MarketHarness.workaround_getMarketId.selector;
     marketHarnessSelectors[1] = MarketHarness.workaround_setMarketId.selector;
     marketHarnessSelectors[2] = MarketHarness.workaround_getReceivedMarketFees.selector;
@@ -636,6 +641,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketHarnessSelectors[8] = MarketHarness.workaround_getAutoDeleverageEndThreshold.selector;
     marketHarnessSelectors[9] = MarketHarness.workaround_getAutoDeleveragePowerScale.selector;
     marketHarnessSelectors[10] = MarketHarness.workaround_updateMarketTotalDelegatedCreditUsd.selector;
+    marketHarnessSelectors[11] = MarketHarness.workaround_getMarketCreditDeposit.selector;
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](7);
     marketMakingEngineConfigurationSelectors[0] =

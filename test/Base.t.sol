@@ -309,6 +309,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketMakingEngine.configureFeeRecipient(address(perpsEngine), share);
 
         marketMakingEngine.setWeth(address(wEth));
+        marketMakingEngine.setUsdc(address(usdc));
 
         // Dex Adapters Set Up
         setUpDexAdapters();
@@ -321,19 +322,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         setupVaultsConfig();
         createZlpVaults(address(marketMakingEngine), users.owner.account, vaultsIdsRange);
 
-        uint128[] memory perpMarketsCreditConfigIds =
-            new uint128[](FINAL_PERP_MARKET_CREDIT_CONFIG_ID - INITIAL_PERP_MARKET_CREDIT_CONFIG_ID + 1);
-        uint256 indexArray = 0;
-
-        for (uint256 i = INITIAL_PERP_MARKET_CREDIT_CONFIG_ID; i <= FINAL_PERP_MARKET_CREDIT_CONFIG_ID; i++) {
-            marketMakingEngine.workaround_updateMarketTotalDelegatedCreditUsd(uint128(i), 1e10);
-            perpMarketsCreditConfigIds[indexArray++] = uint128(i);
-        }
-
-        for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
-            marketMakingEngine.configureVaultConnectedMarkets(uint128(i), perpMarketsCreditConfigIds);
-            marketMakingEngine.workaround_Vault_setTotalCreditDelegationWeight(uint128(i), 1e10);
-        }
+        connectMarketsAndVaults();
 
         // Referral Module setup
         changePrank({ msgSender: users.owner.account });
@@ -513,6 +502,30 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         );
     }
 
+    function connectMarketsAndVaults() internal {
+        uint256[] memory perpMarketsCreditConfigIds =
+            new uint256[](FINAL_PERP_MARKET_CREDIT_CONFIG_ID - INITIAL_PERP_MARKET_CREDIT_CONFIG_ID + 1);
+
+        uint256[] memory vaultIds = new uint256[](FINAL_VAULT_ID - INITIAL_VAULT_ID + 1);
+
+        uint256 arrayIndex = 0;
+
+        for (uint256 i = INITIAL_PERP_MARKET_CREDIT_CONFIG_ID; i <= FINAL_PERP_MARKET_CREDIT_CONFIG_ID; i++) {
+            marketMakingEngine.workaround_updateMarketTotalDelegatedCreditUsd(uint128(i), 1e10);
+            perpMarketsCreditConfigIds[arrayIndex++] = i;
+        }
+
+        arrayIndex = 0;
+
+        for (uint256 i = INITIAL_VAULT_ID; i <= FINAL_VAULT_ID; i++) {
+            // marketMakingEngine.configureVaultConnectedMarkets(uint128(i), perpMarketsCreditConfigIds);
+            marketMakingEngine.workaround_Vault_setTotalCreditDelegationWeight(uint128(i), 1e10);
+            vaultIds[arrayIndex++] = i;
+        }
+
+        marketMakingEngine.connectVaultsAndMarkets(perpMarketsCreditConfigIds, vaultIds);
+    }
+
     function setUpDexAdapters() internal {
         address[] memory collaterals = new address[](3);
         collaterals[0] = address(usdc);
@@ -572,10 +585,15 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         deal({ token: address(wEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wBtc), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(usdc), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
+
         deal({ token: address(wEth), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wBtc), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(usdc), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
+
         deal({ token: address(wEth), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wBtc), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(usdc), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
     }
 
     function fundUserAndDepositInVault(address user, uint128 vaultId, uint128 assetsToDeposit) internal {
