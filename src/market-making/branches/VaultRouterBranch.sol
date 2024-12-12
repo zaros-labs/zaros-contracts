@@ -388,6 +388,9 @@ contract VaultRouterBranch {
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
+        // accumulate the actor's pending reward before staking
+        wethRewardDistribution.accumulateActor(actorId);
+
         // load actor distribution data
         Distribution.Actor storage actor = wethRewardDistribution.actor[actorId];
 
@@ -400,8 +403,10 @@ contract VaultRouterBranch {
         // transfer shares from actor
         IERC20(vault.indexToken).safeTransferFrom(msg.sender, address(this), shares);
 
-        // is necessary call the `recalculateVaultsCreditCapacity` after the stake to update the earned fees to the user
-        Vault.recalculateVaultsCreditCapacity(vaultsIds);
+        // todo: do we?
+        // we need to call `recalculateVaultsCreditCapacity` again to update the vault's credit capacity after the
+        // stake to reflect the new shares and user's rewards
+        // Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
         // emit an event
         emit LogStake(vaultId, msg.sender, shares);
