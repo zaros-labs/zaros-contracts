@@ -22,7 +22,7 @@ contract CreditDelegationBranch_SettleVaultsDebt_Integration_Test is Base_Test {
         invalidVaultIds[0] = INVALID_VAULT_ID;
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.NoMarketsConnectedToVault.selector, INVALID_VAULT_ID));
+        vm.expectRevert(abi.encodeWithSelector(Errors.VaultDoesNotExist.selector, INVALID_VAULT_ID));
 
         changePrank({ msgSender: address(perpsEngine) });
         marketMakingEngine.settleVaultsDebt(invalidVaultIds);
