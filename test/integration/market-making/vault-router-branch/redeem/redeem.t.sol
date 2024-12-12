@@ -191,7 +191,7 @@ contract Redeem_Integration_Test is Base_Test {
             uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
 
         // peform the deposit
-        fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
+        fundUserAndDepositInVault(user, vaultId, assetsToDeposit);
 
         uint128 userVaultShares = uint128(IERC20(fuzzVaultConfig.indexToken).balanceOf(user));
         sharesToWithdraw = uint128(bound(sharesToWithdraw, 1, userVaultShares));
