@@ -108,6 +108,12 @@ contract FeeDistributionBranch is EngineAccessControl {
             market.depositFee(asset, amountX18);
         }
 
+        // get vaults connected to the market
+        uint256[] memory connectedVaultsIds = market.getConnectedVaultsIds();
+
+        // recalculate markes' vaults credit delegations after receiving fees to push reward distribution
+        Vault.recalculateVaultsCreditCapacity(connectedVaultsIds);
+
         // emit event to log the received fee
         emit LogReceiveMarketFee(asset, marketId, amount);
     }
