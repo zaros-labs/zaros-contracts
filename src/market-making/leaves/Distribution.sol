@@ -71,6 +71,21 @@ library Distribution {
         return ud60x18(self.actor[actorId].shares);
     }
 
+    function getTotalAndActorRawData(
+        Data storage self,
+        bytes32 actorId
+    )
+        internal
+        view
+        returns (uint128 totalShares, int128 valuePerShare, uint128 accountShares, int128 accountLastValuePerShare)
+    {
+        // global values
+        (totalShares, valuePerShare) = (self.totalShares, self.valuePerShare);
+        // account values
+        (accountShares, accountLastValuePerShare) =
+            (self.actor[actorId].shares, self.actor[actorId].lastValuePerShare);
+    }
+
     function getValuePerShare(Data storage self) internal view returns (SD59x18) {
         return sd59x18(self.valuePerShare);
     }

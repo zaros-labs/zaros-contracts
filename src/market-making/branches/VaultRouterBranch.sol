@@ -378,8 +378,8 @@ contract VaultRouterBranch {
         uint256[] memory vaultsIds = new uint256[](1);
         vaultsIds[0] = uint256(vaultId);
 
-        // updates the vault's credit capacity and perform all vault state transitions before updating `msg.sender`'s
-        // staked shares
+        // updates the vault's credit capacity and perform all vault state
+        // transitions before updating `msg.sender` staked shares
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
         // load distribution data
@@ -570,8 +570,8 @@ contract VaultRouterBranch {
         uint256[] memory vaultsIds = new uint256[](1);
         vaultsIds[0] = uint256(vaultId);
 
-        // updates the vault's credit capacity and perform all vault state transitions before updating `msg.sender`'s
-        // staked shares
+        // updates the vault's credit capacity and perform all vault
+        // state transitions before updating `msg.sender` staked shares
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
         // get vault staking fee distribution data
@@ -583,10 +583,10 @@ contract VaultRouterBranch {
         // Accumulate shares before unstaking
         wethRewardDistribution.accumulateActor(actorId);
 
-        // get acctor staked shares
+        // get actor staked shares
         UD60x18 actorShares = wethRewardDistribution.getActorShares(actorId);
 
-        // verify actora has shares amount
+        // verify actor has shares they are attempting to unstake
         if (actorShares.lt(ud60x18(shares))) revert Errors.NotEnoughShares();
 
         UD60x18 updatedActorShares = actorShares.sub(ud60x18(shares));
@@ -605,19 +605,45 @@ contract VaultRouterBranch {
     /// @param vaultId The vault identifier.
     /// @param account The address of the account to query.
     /// @return The amount of shares staked by the account.
-    function getStakedSharesOfAccount(uint128 vaultId, address account) public view returns (uint256) {
+    function getStakedSharesOfAccount(uint128 vaultId, address account) external view returns (uint256) {
         // fetch storage slot for vault by id
         Vault.Data storage vault = Vault.loadLive(vaultId);
 
         // get vault staking fee distribution data
         Distribution.Data storage distributionData = vault.wethRewardDistribution;
 
-        // cast actor address to bytes32
+        // cast account address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(account)));
 
-        // get acctor staked shares
+        // get account staked shares
         UD60x18 actorShares = distributionData.getActorShares(actorId);
 
         return actorShares.intoUint256();
+    }
+
+    /// @notice Returns total and account-related staking share info.
+    /// @param vaultId The vault identifier.
+    /// @param account The address of the account to query.
+    /// @return totalShares The shares of all stakers.
+    /// @return valuePerShare The current global value per share.
+    /// @return accountShares The shares of the input account.
+    /// @return accountLastValuePerShare The last value per share of the input account.
+    function getTotalAndAccountStakingData(
+        uint128 vaultId,
+        address account
+    )
+        external
+        view
+        returns (uint128 totalShares, int128 valuePerShare, uint128 accountShares, int128 accountLastValuePerShare)
+    {
+        // get vault staking fee distribution data
+        Distribution.Data storage distributionData = Vault.loadLive(vaultId).wethRewardDistribution;
+
+        // cast account address to bytes32
+        bytes32 actorId = bytes32(uint256(uint160(account)));
+
+        // output the raw data
+        (totalShares, valuePerShare, accountShares, accountLastValuePerShare)
+            = distributionData.getTotalAndActorRawData(actorId);
     }
 }
