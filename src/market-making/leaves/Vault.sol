@@ -252,6 +252,7 @@ library Vault {
     }
 
     /// @notice Recalculates the latest debt of each market connected to a vault, distributing its total debt to it.
+    /// @dev We assume this function's caller checks that connectedMarketsIdsCache > 0.
     /// @param self The vault storage pointer.
     /// @param connectedMarketsIdsCache The cached connected markets ids.
     /// @param shouldRehydrateCache Whether the connected markets ids cache should be rehydrated or not.
@@ -280,9 +281,8 @@ library Vault {
         // cache the vault id
         ctx.vaultId = self.id;
 
-        // make sure there are markets connected to the vault
+        // cache the connected markets length
         uint256 connectedMarketsConfigLength = self.connectedMarkets.length;
-        if (connectedMarketsConfigLength == 0) revert Errors.NoMarketsConnectedToVault(ctx.vaultId);
 
         // loads the connected markets storage pointer by taking the last configured market ids uint set
         EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[connectedMarketsConfigLength - 1];
@@ -359,6 +359,7 @@ library Vault {
     /// @notice Recalculates the latest credit capacity of the provided vaults ids taking into account their latest
     /// assets and debt usd denonimated values.
     /// @dev We use a `uint256` array because a market's connected vaults ids are stored at a `EnumerableSet.UintSet`.
+    /// @dev We assume this function's caller checks that connectedMarketsIdsCache > 0.
     /// @param vaultsIds The array of vaults ids to recalculate the credit capacity.
     // todo: implement tstore/tload logic to avoid recalculating vaults that don't need to have their credit capacity
     // updated in the current system state & execution context
@@ -372,7 +373,7 @@ library Vault {
 
             // make sure there are markets connected to the vault
             uint256 connectedMarketsConfigLength = self.connectedMarkets.length;
-            if (connectedMarketsConfigLength == 0) revert Errors.NoMarketsConnectedToVault(vaultId);
+            if (connectedMarketsConfigLength == 0) continue;
 
             // loads the connected markets storage pointer by taking the last configured market ids uint set
             EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[connectedMarketsConfigLength - 1];
@@ -515,9 +516,8 @@ library Vault {
         // cache the vault id
         uint128 vaultId = self.id;
 
-        // make sure there are markets connected to the vault
+        // cache the connected markets length
         uint256 connectedMarketsConfigLength = self.connectedMarkets.length;
-        if (connectedMarketsConfigLength == 0) revert Errors.NoMarketsConnectedToVault(vaultId);
 
         // loads the connected markets storage pointer by taking the last configured market ids uint set
         EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[connectedMarketsConfigLength - 1];
