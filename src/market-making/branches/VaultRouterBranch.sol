@@ -646,7 +646,7 @@ contract VaultRouterBranch {
         bytes32 actorId = bytes32(uint256(uint160(account)));
 
         // output the raw data
-        (totalShares, valuePerShare, accountShares, accountLastValuePerShare)
-            = distributionData.getTotalAndActorRawData(actorId);
+        (totalShares, valuePerShare, accountShares, accountLastValuePerShare) =
+            distributionData.getTotalAndActorRawData(actorId);
     }
 }

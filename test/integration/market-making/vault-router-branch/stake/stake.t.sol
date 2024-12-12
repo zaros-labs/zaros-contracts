@@ -38,12 +38,20 @@ contract Stake_Integration_Test is Base_Test {
         int128 stakerLastValuePerShare;
     }
 
-    function _getStakeState(address staker, uint128 vaultId, IERC20 vault) internal view returns (StakeState memory state) {
+    function _getStakeState(
+        address staker,
+        uint128 vaultId,
+        IERC20 vault
+    )
+        internal
+        view
+        returns (StakeState memory state)
+    {
         state.stakerVaultBal = uint128(vault.balanceOf(staker));
         state.marketEngineVaultBal = uint128(vault.balanceOf(address(marketMakingEngine)));
 
-        (state.totalShares, state.valuePerShare, state.stakerShares, state.stakerLastValuePerShare)
-            = marketMakingEngine.getTotalAndAccountStakingData(vaultId, staker);
+        (state.totalShares, state.valuePerShare, state.stakerShares, state.stakerLastValuePerShare) =
+            marketMakingEngine.getTotalAndAccountStakingData(vaultId, staker);
     }
 
     function testFuzz_WhenUserHasShares(uint128 vaultId, uint128 assetsToDeposit) external whenVaultIdIsValid {
