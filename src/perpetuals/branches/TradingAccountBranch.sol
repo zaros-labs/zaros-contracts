@@ -24,6 +24,8 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 /// @title Trading Account Branch.
 /// @notice This branch is used by users in order to mint trading account nfts
 /// to use them as trading subaccounts, managing their cross margin collateral and
@@ -377,6 +379,29 @@ contract TradingAccountBranch {
         // so that they couldn't be liquidated very soon afterwards if their position
         // goes against them even a little bit
         tradingAccount.validateMarginRequirement(requiredInitialMarginUsdX18, marginBalanceUsdX18, UD60x18_ZERO);
+
+        // variable to control if the user have open position
+        bool userHaveOpenPosition = !requiredInitialMarginUsdX18.isZero();
+
+        if (userHaveOpenPosition) {
+            // load perps engine configuration from storage
+            PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+
+            // get the margin balance usd without the unrealized pnl, like the amount of all collaterals that the user
+            // contains
+            SD59x18 marginBalanceUsdWithoutUnrealizedPnlUsdX18 = tradingAccount.getMarginBalanceUsd(sd59x18(0));
+
+            // verify if after the withdraw the account will contain a value greater than or equal a liquidation fee
+            if (
+                marginBalanceUsdWithoutUnrealizedPnlUsdX18.lt(
+                    sd59x18(int128(perpsEngineConfiguration.liquidationFeeUsdX18))
+                )
+            ) {
+                revert Errors.TheMarginBalanceWithoutUnrealizedPnlMustBeGreaterThanOrEqualToTheLiquidationFee(
+                    perpsEngineConfiguration.liquidationFeeUsdX18
+                );
+            }
+        }
 
         // finally send the tokens
         IERC20(collateralType).safeTransfer(msg.sender, amount);
