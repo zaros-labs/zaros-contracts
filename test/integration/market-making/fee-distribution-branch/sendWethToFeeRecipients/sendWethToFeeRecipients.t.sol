@@ -133,37 +133,56 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: address(perpsEngine) });
 
+        // create context variable
         TestFuzz_WhenThereAreFeeRecipientsShares_Context memory ctx;
 
+        // get fuzz dex adapter
         IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
 
+        // get fuzz perp market credit config
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
+        // fuzz the usdc amount
         ctx.amount = bound({
             x: amount,
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
+
+        // deposit the usdc to the perps engine
         deal({ token: address(usdc), to: address(perpsEngine), give: ctx.amount });
 
+        // perps engine deposit the usdc
+        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), ctx.amount);
+
+        // fuzz the quantity of fee recipients
         ctx.quantityOfFeeRecipients = bound({ x: quantityOfFeeRecipients, min: 1, max: 10 });
+
+        // uint256 -> UD60x18
         UD60x18 quantityOfFeeRecipientsX18 = convertToUd60x18(ctx.quantityOfFeeRecipients);
 
+        // fuzz the total fee recipients shares
         ctx.totalFeeRecipientsShares = bound({
             x: totalFeeRecipientsShares,
             min: 0.001e18,
             max: Constants.MAX_CONFIGURABLE_PROTOCOL_FEE_SHARES / 2
         });
+
+        // uint256 -> UD60x18
         ctx.totalFeeRecipientsSharesX18 = ud60x18(ctx.totalFeeRecipientsShares);
 
+        // get the share value per fee recipient
         UD60x18 sharePerFeeRecipientX18 = ctx.totalFeeRecipientsSharesX18.div(quantityOfFeeRecipientsX18);
 
+        // create an array of fee recipeints
         address[] memory feeRecipients = new address[](ctx.quantityOfFeeRecipients);
 
         changePrank({ msgSender: address(users.owner.account) });
 
+        // set perps engine to not receive fees
         marketMakingEngine.configureFeeRecipient(address(perpsEngine), 0);
 
+        // configure the fee recipients
         for (uint256 i = 0; i < ctx.quantityOfFeeRecipients; i++) {
             feeRecipients[i] = address(uint160(i + 1));
             marketMakingEngine.configureFeeRecipient(feeRecipients[i], sharePerFeeRecipientX18.intoUint256());
@@ -171,17 +190,19 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
 
         changePrank({ msgSender: address(perpsEngine) });
 
+        // calculate the expected pending protocol weth reward
         uint256 expectedTokenAmount = adapter.getExpectedOutput(address(usdc), address(wEth), ctx.amount);
         uint256 amountOutMin = adapter.calculateAmountOutMin(expectedTokenAmount);
         UD60x18 amountOutMinX18 = Math.convertTokenAmountToUd60x18(wEth.decimals(), amountOutMin);
-
         UD60x18 expectedPendingProtocolWethRewardX18 =
             amountOutMinX18.mul(ud60x18(marketMakingEngine.exposed_getTotalFeeRecipientsShares()));
 
+        // convert accumulated fees to weth
         marketMakingEngine.convertAccumulatedFeesToWeth(
             fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), bytes("")
         );
 
+        // get pending protocol weth reward
         uint256 amountWeth =
             marketMakingEngine.workaround_getPendingProtocolWethReward(fuzzPerpMarketCreditConfig.marketId);
 

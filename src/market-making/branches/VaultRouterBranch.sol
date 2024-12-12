@@ -388,6 +388,9 @@ contract VaultRouterBranch {
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
+        // accumulate the actor's pending reward before staking
+        wethRewardDistribution.accumulateActor(actorId);
+
         // load actor distribution data
         Distribution.Actor storage actor = wethRewardDistribution.actor[actorId];
 
@@ -580,7 +583,7 @@ contract VaultRouterBranch {
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
-        // Accumulate shares before unstaking
+        // accumulate the actor's pending reward before unstaking
         wethRewardDistribution.accumulateActor(actorId);
 
         // get actor staked shares
@@ -643,7 +646,7 @@ contract VaultRouterBranch {
         bytes32 actorId = bytes32(uint256(uint160(account)));
 
         // output the raw data
-        (totalShares, valuePerShare, accountShares, accountLastValuePerShare)
-            = distributionData.getTotalAndActorRawData(actorId);
+        (totalShares, valuePerShare, accountShares, accountLastValuePerShare) =
+            distributionData.getTotalAndActorRawData(actorId);
     }
 }

@@ -95,11 +95,24 @@ contract FeeDistributionBranch is EngineAccessControl {
         // convert uint256 -> UD60x18; scales input amount to 18 decimals
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
-        // increment received fees amount
-        market.depositFee(asset, amountX18);
-
         // transfer fee amount
+        // note: we're calling `ERC20::transferFrom` before state transitions as `_handleWethRewardDistribution`
+        // requires assets to be in the contract
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
+
+        if (asset == MarketMakingEngineConfiguration.load().weth) {
+            // if asset is weth, we can skip straight to handling the weth reward distribution
+            _handleWethRewardDistribution(market, address(0), amountX18);
+        } else {
+            // update [asset => received fees] mapping
+            market.depositFee(asset, amountX18);
+        }
+
+        // get vaults connected to the market
+        uint256[] memory connectedVaultsIds = market.getConnectedVaultsIds();
+
+        // recalculate markes' vaults credit delegations after receiving fees to push reward distribution
+        Vault.recalculateVaultsCreditCapacity(connectedVaultsIds);
 
         // emit event to log the received fee
         emit LogReceiveMarketFee(asset, marketId, amount);
@@ -214,17 +227,8 @@ contract FeeDistributionBranch is EngineAccessControl {
             ctx.receivedWethX18 = wethCollateral.convertTokenAmountToUd60x18(ctx.tokensSwapped);
         }
 
-        // get the total fee recipients shares
-        ctx.feeRecipientsSharesX18 = ud60x18(MarketMakingEngineConfiguration.load().totalFeeRecipientsShares);
-
-        // calculate the weth rewards for protocol and vaults
-        ctx.receivedProtocolWethRewardX18 = ctx.receivedWethX18.mul(ctx.feeRecipientsSharesX18);
-        ctx.receivedVaultsWethRewardX18 =
-            ctx.receivedWethX18.mul(ud60x18(Constants.MAX_SHARES).sub(ctx.feeRecipientsSharesX18));
-
-        // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine as
-        // fees, and remove its balance from the market's `receivedMarketFees` map
-        market.receiveWethReward(asset, ctx.receivedProtocolWethRewardX18, ctx.receivedVaultsWethRewardX18);
+        // handles distribution of the weth reward between the protocol and market
+        _handleWethRewardDistribution(market, asset, ctx.receivedWethX18);
 
         // emit event to log the conversion of fees to weth
         emit LogConvertAccumulatedFeesToWeth(ctx.receivedWethX18.intoUint256());
@@ -361,6 +365,25 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @return The data of the specified DEX swap strategy.
     function getDexSwapStrategy(uint128 dexSwapStrategyId) external pure returns (DexSwapStrategy.Data memory) {
         return DexSwapStrategy.load(dexSwapStrategyId);
+    }
+
+    function _handleWethRewardDistribution(
+        Market.Data storage market,
+        address assetOut,
+        UD60x18 receivedWethX18
+    )
+        internal
+    {
+        // cache the total fee recipients shares as UD60x18
+        UD60x18 feeRecipientsSharesX18 = ud60x18(MarketMakingEngineConfiguration.load().totalFeeRecipientsShares);
+        // calculate the weth rewards for protocol and vaults
+        UD60x18 receivedProtocolWethRewardX18 = receivedWethX18.mul(feeRecipientsSharesX18);
+        UD60x18 receivedVaultsWethRewardX18 =
+            receivedWethX18.mul(ud60x18(Constants.MAX_SHARES).sub(feeRecipientsSharesX18));
+
+        // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine
+        // as fees, and remove its balance from the market's `receivedMarketFees` map
+        market.receiveWethReward(assetOut, receivedProtocolWethRewardX18, receivedVaultsWethRewardX18);
     }
 
     /// @notice Performs a custom swap path across multiple assets using specified DEX swap strategies.

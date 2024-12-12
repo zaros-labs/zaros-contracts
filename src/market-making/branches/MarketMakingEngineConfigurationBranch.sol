@@ -615,11 +615,23 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             }
         }
 
-        // update protocol fee recipient
-        marketMakingEngineConfiguration.protocolFeeRecipients.set(feeRecipient, share);
+        (, uint256 oldFeeRecipientShares) = marketMakingEngineConfiguration.protocolFeeRecipients.tryGet(feeRecipient);
 
         // update protocol total fee recipients shares value
-        marketMakingEngineConfiguration.totalFeeRecipientsShares += share.toUint128();
+        if (oldFeeRecipientShares > 0) {
+            if (oldFeeRecipientShares > share) {
+                marketMakingEngineConfiguration.totalFeeRecipientsShares -=
+                    (oldFeeRecipientShares - share).toUint128();
+            } else {
+                marketMakingEngineConfiguration.totalFeeRecipientsShares +=
+                    (share - oldFeeRecipientShares).toUint128();
+            }
+        } else {
+            marketMakingEngineConfiguration.totalFeeRecipientsShares += share.toUint128();
+        }
+
+        // update protocol fee recipient
+        marketMakingEngineConfiguration.protocolFeeRecipients.set(feeRecipient, share);
 
         // emit event LogConfigureFeeRecipient
         emit LogConfigureFeeRecipient(feeRecipient, share);

@@ -309,11 +309,9 @@ library Market {
                 vaultCreditShareX18
             )
             : UD60x18_ZERO;
-        wethRewardChangeX18 = !lastVaultDistributedWethRewardPerShareX18.isZero()
-            ? ud60x18(self.wethRewardPerVaultShare).sub(lastVaultDistributedWethRewardPerShareX18).mul(
-                vaultCreditShareX18
-            )
-            : UD60x18_ZERO;
+
+        // TODO: fix the vaultCreditShareX18 flow to multiply by `wethRewardChangeX18`
+        wethRewardChangeX18 = ud60x18(self.wethRewardPerVaultShare).sub(lastVaultDistributedWethRewardPerShareX18);
     }
 
     /// @notice Returns whether the market has reached the auto deleverage start threshold, i.e, if the ADL system
@@ -505,9 +503,12 @@ library Market {
     )
         internal
     {
-        // removes the given asset from the received market fees enumerable map as we assume it's been fully swapped
-        // to weth
-        self.receivedFees.remove(asset);
+        // if a market credit deposit asset has been used to acquire the received weth, we need to reset its balance
+        if (asset != address(0)) {
+            // removes the given asset from the received market fees enumerable map as we assume it's been fully
+            // swapped to weth
+            self.receivedFees.remove(asset);
+        }
 
         // increment the amount of pending weth reward to be distributed to fee recipients
         self.availableProtocolWethReward =

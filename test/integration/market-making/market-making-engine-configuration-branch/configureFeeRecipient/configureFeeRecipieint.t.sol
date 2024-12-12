@@ -57,7 +57,7 @@ contract MarketMakingEngineConfigurationBranch_ConfigureFeeRecipient_Integration
         givenTheSenderIsTheOwner
         whenFeeRecipientIsNotZero
     {
-        UD60x18 maxOfSharesX18 = ud60x18(Constants.MAX_CONFIGURABLE_PROTOCOL_FEE_SHARES / 2);
+        UD60x18 maxOfSharesX18 = ud60x18(Constants.MAX_CONFIGURABLE_PROTOCOL_FEE_SHARES);
 
         quantityOfFeeRecipients = bound({ x: quantityOfFeeRecipients, min: 1, max: 10 });
 

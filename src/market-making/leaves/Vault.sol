@@ -361,8 +361,7 @@ library Vault {
     /// @dev We use a `uint256` array because a market's connected vaults ids are stored at a `EnumerableSet.UintSet`.
     /// @dev We assume this function's caller checks that connectedMarketsIdsCache > 0.
     /// @param vaultsIds The array of vaults ids to recalculate the credit capacity.
-    // todo: implement tstore/tload logic to avoid recalculating vaults that don't need to have their credit capacity
-    // updated in the current system state & execution context
+    // todo: check where we're messing with the `continue` statement
     function recalculateVaultsCreditCapacity(uint256[] memory vaultsIds) internal {
         for (uint256 i; i < vaultsIds.length; i++) {
             // uint256 -> uint128
@@ -415,7 +414,7 @@ library Vault {
             }
 
             // distributes the vault's total WETH reward change, earned from its connected markets
-            if (!vaultTotalWethRewardChangeX18.isZero()) {
+            if (!vaultTotalWethRewardChangeX18.isZero() && self.wethRewardDistribution.totalShares != 0) {
                 SD59x18 vaultTotalWethRewardChangeSD59X18 =
                     sd59x18(int256(vaultTotalWethRewardChangeX18.intoUint256()));
                 self.wethRewardDistribution.distributeValue(vaultTotalWethRewardChangeSD59X18);
