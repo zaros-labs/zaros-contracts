@@ -378,26 +378,24 @@ contract TradingAccountBranch {
         // goes against them even a little bit
         tradingAccount.validateMarginRequirement(requiredInitialMarginUsdX18, marginBalanceUsdX18, UD60x18_ZERO);
 
-        // variable to control if the user have open position
-        bool userHaveOpenPosition = !requiredInitialMarginUsdX18.isZero();
+        // cache whether the trader has an active position or not
+        bool userHasOpenPosition = !requiredInitialMarginUsdX18.isZero();
 
-        if (userHaveOpenPosition) {
+        if (userHasOpenPosition) {
             // load perps engine configuration from storage
             PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
-            // get the margin balance usd without the unrealized pnl, like the amount of all collaterals that the user
-            // contains
-            SD59x18 marginBalanceUsdWithoutUnrealizedPnlUsdX18 = tradingAccount.getMarginBalanceUsd(sd59x18(0));
+            // save the trader's magin balance without taking the unrealized pnl into account
+            SD59x18 marginBalanceUsdWithoutUnrealizedPnlUsdX18 = tradingAccount.getMarginBalanceUsd(SD59x18_ZERO);
 
-            // verify if after the withdraw the account will contain a value greater than or equal a liquidation fee
+            // verify if after the withdrawal the account will still own enough collateral to cover the liquidation
+            // fee value
             if (
                 marginBalanceUsdWithoutUnrealizedPnlUsdX18.lt(
                     sd59x18(int128(perpsEngineConfiguration.liquidationFeeUsdX18))
                 )
             ) {
-                revert Errors.TheMarginBalanceWithoutUnrealizedPnlMustBeGreaterThanOrEqualToTheLiquidationFee(
-                    perpsEngineConfiguration.liquidationFeeUsdX18
-                );
+                revert Errors.NotEnoughCollateralForLiquidationFee(perpsEngineConfiguration.liquidationFeeUsdX18);
             }
         }
 

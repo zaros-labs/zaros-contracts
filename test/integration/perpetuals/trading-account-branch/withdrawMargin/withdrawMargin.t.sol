@@ -411,10 +411,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         // it should revert
         vm.expectRevert({
-            revertData: abi.encodeWithSelector(
-                Errors.TheMarginBalanceWithoutUnrealizedPnlMustBeGreaterThanOrEqualToTheLiquidationFee.selector,
-                LIQUIDATION_FEE_USD
-            )
+            revertData: abi.encodeWithSelector(Errors.NotEnoughCollateralForLiquidationFee.selector, LIQUIDATION_FEE_USD)
         });
 
         perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), newMarginCollateralBalance);
@@ -469,11 +466,10 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         // it should transfer the withdrawn amount to the sender
         expectCallToTransfer(wstEth, users.naruto.account, amountToWithdraw);
-        perpsEngine.withdrawMargin(
-            tradingAccountId, address(wstEth), amountToWithdraw
-        );
+        perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
 
-        uint256 expectedMargin = convertTokenAmountToUd60x18(address(wstEth), newMarginCollateralBalance - amountToWithdraw).intoUint256();
+        uint256 expectedMargin =
+            convertTokenAmountToUd60x18(address(wstEth), newMarginCollateralBalance - amountToWithdraw).intoUint256();
         newMarginCollateralBalance =
             perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth)).intoUint256();
 
