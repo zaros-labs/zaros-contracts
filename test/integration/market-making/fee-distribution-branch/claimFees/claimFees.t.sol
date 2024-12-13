@@ -157,10 +157,10 @@ contract ClaimFees_Integration_Test is Base_Test {
     }
 
     struct ClaimFeesState {
-        // asset balances
-        uint256 stakerAssetBal;
-        uint256 vaultAssetBal;
-        uint256 marketEngineAssetBal;
+        // fee balances
+        uint256 stakerFeesBal;
+        uint256 vaultFeesBal;
+        uint256 marketEngineFeesBal;
         // vault balances
         uint128 stakerVaultBal;
         uint128 marketEngineVaultBal;
@@ -175,16 +175,16 @@ contract ClaimFees_Integration_Test is Base_Test {
     function _getClaimFeesState(
         address staker,
         uint128 vaultId,
-        IERC20 assetToken,
+        IERC20 feeToken,
         IERC20 vault
     )
         internal
         view
         returns (ClaimFeesState memory state)
     {
-        state.stakerAssetBal = assetToken.balanceOf(staker);
-        state.vaultAssetBal = assetToken.balanceOf(address(vault));
-        state.marketEngineAssetBal = assetToken.balanceOf(address(marketMakingEngine));
+        state.stakerFeesBal = feeToken.balanceOf(staker);
+        state.vaultFeesBal = feeToken.balanceOf(address(vault));
+        state.marketEngineFeesBal = feeToken.balanceOf(address(marketMakingEngine));
 
         state.stakerVaultBal = uint128(vault.balanceOf(staker));
         state.marketEngineVaultBal = uint128(vault.balanceOf(address(marketMakingEngine)));
@@ -194,10 +194,13 @@ contract ClaimFees_Integration_Test is Base_Test {
     }
 
     // only for WETH vault & associated market at the moment
-    function testFuzz_stakerClaimsEarnedFees(uint128 assetsToDeposit, uint128 marketFees) external {
+    function testFuzz_WhenAmountToClaimIsGreaterThenZero_Passing(uint128 assetsToDeposit, uint128 marketFees) external {
         // ensure valid vault and load vault config
         uint128 vaultId = WETH_CORE_VAULT_ID;
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        // all fees paid in WETH
+        IERC20 wethFeeToken = IERC20(getFuzzVaultConfig(WETH_CORE_VAULT_ID).asset);
 
         // ensure valid deposit amount and perform the deposit
         address user = users.naruto.account;
@@ -207,7 +210,7 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // save and verify pre stake state
         ClaimFeesState memory preStakeState =
-            _getClaimFeesState(user, vaultId, IERC20(fuzzVaultConfig.asset), IERC20(fuzzVaultConfig.indexToken));
+            _getClaimFeesState(user, vaultId, wethFeeToken, IERC20(fuzzVaultConfig.indexToken));
         assertGt(preStakeState.stakerVaultBal, 0, "Staker vault balance > 0 after deposit");
 
         // perform the stake
@@ -216,7 +219,7 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // save and verify post stake state
         ClaimFeesState memory postStakeState =
-            _getClaimFeesState(user, vaultId, IERC20(fuzzVaultConfig.asset), IERC20(fuzzVaultConfig.indexToken));
+            _getClaimFeesState(user, vaultId, wethFeeToken, IERC20(fuzzVaultConfig.indexToken));
         assertEq(postStakeState.stakerVaultBal, 0, "Staker has no vault shares after staking them");
         assertEq(
             postStakeState.marketEngineVaultBal,
@@ -250,11 +253,106 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // save and verify post claim fees state
         ClaimFeesState memory postClaimFeesState =
-            _getClaimFeesState(user, vaultId, IERC20(fuzzVaultConfig.asset), IERC20(fuzzVaultConfig.indexToken));
+            _getClaimFeesState(user, vaultId, wethFeeToken, IERC20(fuzzVaultConfig.indexToken));
         assertEq(
-            postClaimFeesState.stakerAssetBal,
+            postClaimFeesState.stakerFeesBal,
             stakerEarnedFees,
             "Staker received asset tokens after claiming fees"
+        );
+
+        // attempting to claim again fails
+        vm.expectRevert(Errors.NoFeesToClaim.selector);
+        marketMakingEngine.claimFees(vaultId);
+    }
+
+
+    // generic one for any vault & market, failing when swapping
+    // from asset -> weth as getPrice() returns 0. If this can be fixed it should
+    // ideally replace both the weth-only working version and testFuzz_WhenAmountToClaimIsGreaterThenZero
+    // which is currently failing
+    function testFuzz_WhenAmountToClaimIsGreaterThenZero_Failing(
+        uint128 vaultId,
+        uint128 marketId,
+        uint128 assetsToDeposit,
+        uint128 marketFees,
+        uint128 adapterIndex
+    )
+        external
+    {
+        // ensure valid vault and load vault config
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        // all fees paid in WETH
+        IERC20 wethFeeToken = IERC20(getFuzzVaultConfig(WETH_CORE_VAULT_ID).asset);
+
+        // ensure valid deposit amount and perform the deposit
+        address user = users.naruto.account;
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 2));
+        fundUserAndDepositInVault(user, vaultId, assetsToDeposit);
+
+        // save and verify pre stake state
+        ClaimFeesState memory preStakeState =
+            _getClaimFeesState(user, vaultId, wethFeeToken, IERC20(fuzzVaultConfig.indexToken));
+        assertGt(preStakeState.stakerVaultBal, 0, "Staker vault balance > 0 after deposit");
+
+        // perform the stake
+        vm.startPrank(user);
+        marketMakingEngine.stake(vaultId, preStakeState.stakerVaultBal);
+
+        // save and verify post stake state
+        ClaimFeesState memory postStakeState =
+            _getClaimFeesState(user, vaultId, wethFeeToken, IERC20(fuzzVaultConfig.indexToken));
+        assertEq(postStakeState.stakerVaultBal, 0, "Staker has no vault shares after staking them");
+        assertEq(
+            postStakeState.marketEngineVaultBal,
+            preStakeState.stakerVaultBal,
+            "MarketEngine received stakers vault shares"
+        );
+        assertEq(
+            postStakeState.totalShares, preStakeState.stakerVaultBal, "Staking totalShares == staked vault balance"
+        );
+        assertEq(postStakeState.valuePerShare, 0, "Staking valuePerShare 0 as no value distributed");
+        assertEq(postStakeState.stakerShares, preStakeState.stakerVaultBal, "Staker shares == staked vault balance");
+        assertEq(postStakeState.stakerLastValuePerShare, 0, "Staker has no value per share as no value distributed");
+
+        // sent market fees from PerpsEngine -> MarketEngine
+        marketFees = uint128(bound(marketFees, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 2));
+
+        IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
+        PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+        deal(fuzzVaultConfig.asset, address(perpsEngine), marketFees);
+
+        changePrank({ msgSender: address(perpsEngine) });
+        vm.expectEmit({ emitter: address(marketMakingEngine) });
+        emit FeeDistributionBranch.LogReceiveMarketFee(
+            fuzzVaultConfig.asset, fuzzPerpMarketCreditConfig.marketId, marketFees
+        );
+        marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, fuzzVaultConfig.asset, marketFees);
+        assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(address(marketMakingEngine)), marketFees);
+
+        // optionally convert asset to WETH if not on WETH vault
+        if (vaultId != WETH_CORE_VAULT_ID) {
+            marketMakingEngine.convertAccumulatedFeesToWeth(
+                fuzzPerpMarketCreditConfig.marketId, fuzzVaultConfig.asset, adapter.STRATEGY_ID(), bytes("")
+            );
+        }
+
+        // verify the staker has earned rewards which are not yet claimed
+        uint256 stakerEarnedFees = marketMakingEngine.getEarnedFees(vaultId, user);
+        assertGt(stakerEarnedFees, 0, "Staker has earned fees");
+        assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(user), 0, "Staker has no asset tokens prior to unstake");
+
+        // staker claims rewards
+        changePrank({ msgSender: user });
+        marketMakingEngine.claimFees(vaultId);
+
+        // save and verify post claim fees state
+        ClaimFeesState memory postClaimFeesState =
+            _getClaimFeesState(user, vaultId, wethFeeToken, IERC20(fuzzVaultConfig.indexToken));
+        assertEq(
+            postClaimFeesState.stakerFeesBal, stakerEarnedFees, "Staker received asset tokens after claiming fees"
         );
 
         // attempting to claim again fails
