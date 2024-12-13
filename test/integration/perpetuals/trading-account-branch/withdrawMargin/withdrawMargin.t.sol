@@ -385,11 +385,11 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
         uint128 marketId = 0;
-        int128 amount = 10e18;
+        int128 amountToCreateOrder = 10e18;
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         perpsEngine.createMarketOrder(
-            OrderBranch.CreateMarketOrderParams(tradingAccountId, fuzzMarketConfig.marketId, amount)
+            OrderBranch.CreateMarketOrderParams(tradingAccountId, fuzzMarketConfig.marketId, amountToCreateOrder)
         );
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
@@ -435,11 +435,11 @@ contract WithdrawMargin_Integration_Test is Base_Test {
 
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
         uint128 marketId = 0;
-        int128 amount = 10e18;
+        int128 amountToCreateOrder = 10e18;
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
         perpsEngine.createMarketOrder(
-            OrderBranch.CreateMarketOrderParams(tradingAccountId, fuzzMarketConfig.marketId, amount)
+            OrderBranch.CreateMarketOrderParams(tradingAccountId, fuzzMarketConfig.marketId, amountToCreateOrder)
         );
         bytes memory mockSignedReport =
             getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
@@ -459,13 +459,26 @@ contract WithdrawMargin_Integration_Test is Base_Test {
             address(wstEth), perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth))
         );
 
-        perpsEngine.withdrawMargin(
-            tradingAccountId, address(wstEth), newMarginCollateralBalance - LIQUIDATION_FEE_USD
-        );
+        uint256 amountToWithdraw = newMarginCollateralBalance - LIQUIDATION_FEE_USD;
 
         // it should emit a {LogWithdrawMargin} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit TradingAccountBranch.LogWithdrawMargin(
+            users.naruto.account, tradingAccountId, address(wstEth), amountToWithdraw
+        );
+
         // it should transfer the withdrawn amount to the sender
+        expectCallToTransfer(wstEth, users.naruto.account, amountToWithdraw);
+        perpsEngine.withdrawMargin(
+            tradingAccountId, address(wstEth), amountToWithdraw
+        );
+
+        uint256 expectedMargin = convertTokenAmountToUd60x18(address(wstEth), newMarginCollateralBalance - amountToWithdraw).intoUint256();
+        newMarginCollateralBalance =
+            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth)).intoUint256();
+
         // it should decrease the margin collateral balance
+        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
     }
 
     function testFuzz_GivenTheAccountDoesntHaveAnOpenPosition(
