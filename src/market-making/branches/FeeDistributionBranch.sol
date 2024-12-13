@@ -428,4 +428,19 @@ contract FeeDistributionBranch is EngineAccessControl {
         // return the last swap amount out
         return amountIn;
     }
+
+    /// @notice Returns the raw available weth rewards for a given market id
+    /// @param marketId The live market id
+    /// @return availableProtocolWethReward market available protocol rewards
+    /// @return wethRewardPerVaultShare market avaiable staking rewards
+    function getWethRewardDataRaw(uint128 marketId)
+        external
+        view
+        returns (uint128 availableProtocolWethReward, uint128 wethRewardPerVaultShare)
+    {
+        Market.Data storage market = Market.loadExisting(marketId);
+
+        (availableProtocolWethReward, wethRewardPerVaultShare) =
+            (market.availableProtocolWethReward, market.wethRewardPerVaultShare);
+    }
 }

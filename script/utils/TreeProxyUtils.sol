@@ -492,7 +492,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     vaultRouterBranchSelectors[9] = VaultRouterBranch.getDepositCap.selector;
     vaultRouterBranchSelectors[10] = VaultRouterBranch.getTotalAndAccountStakingData.selector;
 
-    bytes4[] memory feeDistributionBranchSelectors = new bytes4[](8);
+    bytes4[] memory feeDistributionBranchSelectors = new bytes4[](9);
     feeDistributionBranchSelectors[0] = FeeDistributionBranch.getEarnedFees.selector;
     feeDistributionBranchSelectors[1] = FeeDistributionBranch.receiveMarketFee.selector;
     feeDistributionBranchSelectors[2] = FeeDistributionBranch.convertAccumulatedFeesToWeth.selector;
@@ -501,6 +501,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     feeDistributionBranchSelectors[5] = FeeDistributionBranch.getAssetValue.selector;
     feeDistributionBranchSelectors[6] = FeeDistributionBranch.getReceivedMarketFees.selector;
     feeDistributionBranchSelectors[7] = FeeDistributionBranch.getDexSwapStrategy.selector;
+    feeDistributionBranchSelectors[8] = FeeDistributionBranch.getWethRewardDataRaw.selector;
 
     bytes4[] memory stabilityBranchSelectors = new bytes4[](7);
 
