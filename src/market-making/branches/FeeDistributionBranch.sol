@@ -108,12 +108,6 @@ contract FeeDistributionBranch is EngineAccessControl {
             market.depositFee(asset, amountX18);
         }
 
-        // get vaults connected to the market
-        uint256[] memory connectedVaultsIds = market.getConnectedVaultsIds();
-
-        // recalculate markes' vaults credit delegations after receiving fees to push reward distribution
-        Vault.recalculateVaultsCreditCapacity(connectedVaultsIds);
-
         // emit event to log the received fee
         emit LogReceiveMarketFee(asset, marketId, amount);
     }
@@ -384,6 +378,9 @@ contract FeeDistributionBranch is EngineAccessControl {
         // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine
         // as fees, and remove its balance from the market's `receivedMarketFees` map
         market.receiveWethReward(assetOut, receivedProtocolWethRewardX18, receivedVaultsWethRewardX18);
+
+        // recalculate markes' vaults credit delegations after receiving fees to push reward distribution
+        Vault.recalculateVaultsCreditCapacity(market.getConnectedVaultsIds());
     }
 
     /// @notice Performs a custom swap path across multiple assets using specified DEX swap strategies.
