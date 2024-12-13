@@ -468,4 +468,53 @@ contract ClaimFees_Integration_Test is Base_Test {
         // @audit in total 2 wei was lost from the rewards
         assertEq(stakerReceivedRewards + perpEngineReceivedRewards, marketFees - 2);
     }
+
+    function test_protocolFeesLostDueToRounding() external {
+        // ensure valid vault and load vault config
+        uint128 vaultId = WETH_CORE_VAULT_ID;
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        // ensure valid deposit amount and perform the deposit
+        address user = users.naruto.account;
+        uint128 assetsToDeposit = uint128(calculateMinOfSharesToStake(vaultId));
+        fundUserAndDepositInVault(user, vaultId, assetsToDeposit);
+
+        // perform the stake
+        vm.startPrank(user);
+        marketMakingEngine.stake(vaultId, uint128(IERC20(fuzzVaultConfig.indexToken).balanceOf(user)));
+
+        // sent WETH market fees from PerpsEngine -> MarketEngine
+        uint256 marketFees = 1_000_000_000_000_000_001;
+        deal(fuzzVaultConfig.asset, address(perpsEngine), marketFees);
+        changePrank({ msgSender: address(perpsEngine) });
+        vm.expectEmit({ emitter: address(marketMakingEngine) });
+        emit FeeDistributionBranch.LogReceiveMarketFee(fuzzVaultConfig.asset, ETH_USD_MARKET_ID, marketFees);
+        marketMakingEngine.receiveMarketFee(ETH_USD_MARKET_ID, fuzzVaultConfig.asset, marketFees);
+        assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(address(marketMakingEngine)), marketFees);
+
+        // verify protocol rewards available
+        MarketWethRewards memory marketWethRewards1 = _getMarketWethRewards(ETH_USD_MARKET_ID);
+        assertEq(marketWethRewards1.availableProtocolWethReward, 100_000_000_000_000_000);
+        assertEq(marketWethRewards1.wethRewardPerVaultShare, 900_000_000_000_000_000);
+
+        // Base.t configures address(perpsEngine) to receive 0.1e18 of protocol rewards
+        // we'll configure another address to receive some rewards too
+        changePrank({ msgSender: users.owner.account });
+        marketMakingEngine.configureFeeRecipient(users.sasuke.account, 0.1e17);
+
+        // save previous balances for protocol fee recipients
+        uint256 perpEngineWethBalPre = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine));
+        uint256 sasukeWethBalPre = IERC20(fuzzVaultConfig.asset).balanceOf(users.sasuke.account);
+
+        // send the protocol fees to our two recipients
+        changePrank({ msgSender: address(perpsEngine) });
+        marketMakingEngine.sendWethToFeeRecipients(ETH_USD_MARKET_ID);
+
+        uint256 prepEngineFeesReceived = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine)) - perpEngineWethBalPre;
+        uint256 sasukeFeesReceived = IERC20(fuzzVaultConfig.asset).balanceOf(users.sasuke.account) - sasukeWethBalPre;
+
+        // @audit 1 wei remained stuck in the contract
+        assertEq(prepEngineFeesReceived + sasukeFeesReceived, 99999999999999999);
+        assertEq(marketWethRewards1.availableProtocolWethReward, 100000000000000000);
+    }
 }
