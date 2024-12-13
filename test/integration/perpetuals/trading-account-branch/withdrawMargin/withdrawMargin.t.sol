@@ -263,7 +263,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         bytes mockSignedReport;
     }
 
-    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirement(
+    function testFuzz_RevertGiven_TheAccountWontMeetTheMarginRequirements(
         uint256 marginValueUsd,
         bool isLong,
         uint256 marketId
@@ -362,7 +362,122 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         });
     }
 
-    function testFuzz_GivenTheAccountMeetsTheMarginRequirement(
+    modifier givenTheAccountMeetsTheMarginRequirements() {
+        _;
+    }
+
+    modifier givenTheAccountHaveAnOpenPosition() {
+        _;
+    }
+
+    function test_RevertWhen_TheMarginBalanceUsdWithoutUnrealizedIsLessThanTheLiquidationFeeUsd()
+        external
+        givenTheAccountExists
+        givenTheSenderIsAuthorized
+        whenTheAmountIsNotZero
+        givenThereIsEnoughMarginCollateral
+        givenTheAccountMeetsTheMarginRequirements
+        givenTheAccountHaveAnOpenPosition
+    {
+        uint256 amountToDeposit = 100e18;
+
+        deal({ token: address(wstEth), to: users.naruto.account, give: amountToDeposit });
+
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
+        uint128 marketId = 0;
+        int128 amountToCreateOrder = 10e18;
+
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams(tradingAccountId, fuzzMarketConfig.marketId, amountToCreateOrder)
+        );
+        bytes memory mockSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+
+        changePrank({ msgSender: marketOrderKeeper });
+
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
+
+        //Price updated to make the position with enough profit so collateral can be withdrawn
+        updateMockPriceFeed(uint128(fuzzMarketConfig.marketId), 2e23);
+
+        // it should transfer the withdrawn amount to the sender
+        changePrank({ msgSender: users.naruto.account });
+
+        uint256 newMarginCollateralBalance = convertUd60x18ToTokenAmount(
+            address(wstEth), perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth))
+        );
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(Errors.NotEnoughCollateralForLiquidationFee.selector, LIQUIDATION_FEE_USD)
+        });
+
+        perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), newMarginCollateralBalance);
+    }
+
+    function test_WhenTheMarginBalanceUsdWithoutUnrealizedPnlIsGreaterThanOrEqualTheLiquidationFeeUsd()
+        external
+        givenTheAccountExists
+        givenTheSenderIsAuthorized
+        whenTheAmountIsNotZero
+        givenThereIsEnoughMarginCollateral
+        givenTheAccountMeetsTheMarginRequirements
+        givenTheAccountHaveAnOpenPosition
+    {
+        uint256 amountToDeposit = 100e18;
+
+        deal({ token: address(wstEth), to: users.naruto.account, give: amountToDeposit });
+
+        uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
+        uint128 marketId = 0;
+        int128 amountToCreateOrder = 10e18;
+
+        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
+        perpsEngine.createMarketOrder(
+            OrderBranch.CreateMarketOrderParams(tradingAccountId, fuzzMarketConfig.marketId, amountToCreateOrder)
+        );
+        bytes memory mockSignedReport =
+            getMockedSignedReport(fuzzMarketConfig.streamId, fuzzMarketConfig.mockUsdPrice);
+        address marketOrderKeeper = marketOrderKeepers[fuzzMarketConfig.marketId];
+
+        changePrank({ msgSender: marketOrderKeeper });
+
+        perpsEngine.fillMarketOrder(tradingAccountId, fuzzMarketConfig.marketId, mockSignedReport);
+
+        //Price updated to make the position with enough profit so collateral can be withdrawn
+        updateMockPriceFeed(uint128(fuzzMarketConfig.marketId), 2e23);
+
+        // it should transfer the withdrawn amount to the sender
+        changePrank({ msgSender: users.naruto.account });
+
+        uint256 newMarginCollateralBalance = convertUd60x18ToTokenAmount(
+            address(wstEth), perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth))
+        );
+
+        uint256 amountToWithdraw = newMarginCollateralBalance - LIQUIDATION_FEE_USD;
+
+        // it should emit a {LogWithdrawMargin} event
+        vm.expectEmit({ emitter: address(perpsEngine) });
+        emit TradingAccountBranch.LogWithdrawMargin(
+            users.naruto.account, tradingAccountId, address(wstEth), amountToWithdraw
+        );
+
+        // it should transfer the withdrawn amount to the sender
+        expectCallToTransfer(wstEth, users.naruto.account, amountToWithdraw);
+        perpsEngine.withdrawMargin(tradingAccountId, address(wstEth), amountToWithdraw);
+
+        uint256 expectedMargin =
+            convertTokenAmountToUd60x18(address(wstEth), newMarginCollateralBalance - amountToWithdraw).intoUint256();
+        newMarginCollateralBalance =
+            perpsEngine.getAccountMarginCollateralBalance(tradingAccountId, address(wstEth)).intoUint256();
+
+        // it should decrease the margin collateral balance
+        assertEq(expectedMargin, newMarginCollateralBalance, "withdrawMargin");
+    }
+
+    function testFuzz_GivenTheAccountDoesntHaveAnOpenPosition(
         uint256 amountToDeposit,
         uint256 amountToWithdraw
     )
@@ -371,6 +486,7 @@ contract WithdrawMargin_Integration_Test is Base_Test {
         givenTheSenderIsAuthorized
         whenTheAmountIsNotZero
         givenThereIsEnoughMarginCollateral
+        givenTheAccountMeetsTheMarginRequirements
     {
         // Test with wstEth that has 18 decimals
 

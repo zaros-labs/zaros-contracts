@@ -378,6 +378,27 @@ contract TradingAccountBranch {
         // goes against them even a little bit
         tradingAccount.validateMarginRequirement(requiredInitialMarginUsdX18, marginBalanceUsdX18, UD60x18_ZERO);
 
+        // cache whether the trader has an active position or not
+        bool userHasOpenPosition = !requiredInitialMarginUsdX18.isZero();
+
+        if (userHasOpenPosition) {
+            // load perps engine configuration from storage
+            PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+
+            // save the trader's magin balance without taking the unrealized pnl into account
+            SD59x18 marginBalanceUsdWithoutUnrealizedPnlUsdX18 = tradingAccount.getMarginBalanceUsd(SD59x18_ZERO);
+
+            // verify if after the withdrawal the account will still own enough collateral to cover the liquidation
+            // fee value
+            if (
+                marginBalanceUsdWithoutUnrealizedPnlUsdX18.lt(
+                    sd59x18(int128(perpsEngineConfiguration.liquidationFeeUsdX18))
+                )
+            ) {
+                revert Errors.NotEnoughCollateralForLiquidationFee(perpsEngineConfiguration.liquidationFeeUsdX18);
+            }
+        }
+
         // finally send the tokens
         IERC20(collateralType).safeTransfer(msg.sender, amount);
 

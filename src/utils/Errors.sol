@@ -87,6 +87,8 @@ library Errors {
     error InvalidReferralCode();
     /// @notice Thrown when trying to withdraw margin while having active order.
     error ActiveMarketOrder(uint128 tradingAccountId, uint128 marketId, int128 sizeDelta, uint256 timestamp);
+    /// @notice Thrown when the user tries to withdraw more margin than is allowed while having open position
+    error NotEnoughCollateralForLiquidationFee(uint256 liquidationFeeUsdX18);
 
     /// @notice PerpsEngine.PerpsEngineConfigurationBranch
 
