@@ -176,8 +176,12 @@ contract StabilityBranch is EngineAccessControl {
     }
 
     struct InitiateSwapContext {
+        address initialVaultIndexToken;
         address initialVaultCollateralAsset;
         uint128 requestId;
+        uint120 deadlineCache;
+        uint256 vaultAssetBalance;
+        uint256 expectedAssetOut;
     }
 
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
@@ -208,8 +212,10 @@ contract StabilityBranch is EngineAccessControl {
         // working data
         InitiateSwapContext memory ctx;
 
-        // cache the collateral asset's address
-        ctx.initialVaultCollateralAsset = Vault.load(vaultIds[0]).collateral.asset;
+        // cache the vault's index token and asset addresses
+        Vault.Data storage initialVault = Vault.load(vaultIds[0]);
+        ctx.initialVaultIndexToken = initialVault.indexToken;
+        ctx.initialVaultCollateralAsset = initialVault.collateral.asset;
 
         // load collateral data
         Collateral.Data storage collateral = Collateral.load(ctx.initialVaultCollateralAsset);
@@ -223,10 +229,22 @@ contract StabilityBranch is EngineAccessControl {
         // load usd token swap data
         UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
 
+        ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(ctx.initialVaultIndexToken);
+
         for (uint256 i; i < amountsIn.length; i++) {
             // if trying to create a swap request with a different collateral asset, we must revert
             if (Vault.load(vaultIds[i]).collateral.asset != ctx.initialVaultCollateralAsset) {
                 revert Errors.VaultsCollateralAssetsMismatch();
+            }
+
+            // cache the expected amount of assets acquired with the provided parameters
+            ctx.expectedAssetOut = getAmountOfAssetOut(
+                vaultIds[i], ud60x18(amountsIn[i]), initialVault.collateral.getPrice()
+            ).intoUint256();
+
+            // if there aren't enough assets in the vault to fulfill the swap request, we must revert
+            if (ctx.vaultAssetBalance < ctx.expectedAssetOut) {
+                revert Errors.InsufficientVaultBalance(vaultIds[i], ctx.vaultAssetBalance, ctx.expectedAssetOut);
             }
 
             // transfer USD: user => address(this) - burned in fulfillSwap
@@ -244,8 +262,8 @@ contract StabilityBranch is EngineAccessControl {
             swapRequest.minAmountOut = minAmountsOut[i];
             swapRequest.vaultId = vaultIds[i];
             swapRequest.assetOut = ctx.initialVaultCollateralAsset;
-            uint120 deadlineCache = uint120(block.timestamp) + uint120(tokenSwapData.maxExecutionTime);
-            swapRequest.deadline = deadlineCache;
+            ctx.deadlineCache = uint120(block.timestamp) + uint120(tokenSwapData.maxExecutionTime);
+            swapRequest.deadline = ctx.deadlineCache;
             swapRequest.amountIn = amountsIn[i];
 
             emit LogInitiateSwap(
@@ -255,7 +273,7 @@ contract StabilityBranch is EngineAccessControl {
                 amountsIn[i],
                 minAmountsOut[i],
                 ctx.initialVaultCollateralAsset,
-                deadlineCache
+                ctx.deadlineCache
             );
         }
     }

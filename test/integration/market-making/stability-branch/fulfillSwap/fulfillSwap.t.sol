@@ -289,11 +289,10 @@ contract FulfillSwap_Integration_Test is Base_Test {
         deal({
             token: address(ctx.fuzzVaultConfig.asset),
             to: ctx.fuzzVaultConfig.indexToken,
-            give: ctx.fuzzVaultConfig.depositCap
+            give: vaultAssetsBalance
         });
 
-        swapAmount = bound({ x: swapAmount, min: ctx.oneAsset, max: vaultAssetsBalance - vaultDebtAbsUsd });
-
+        swapAmount = vaultAssetsBalance / 10;
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
         ctx.fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);

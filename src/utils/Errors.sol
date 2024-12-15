@@ -232,6 +232,12 @@ library Errors {
     /// @param amountOut The result of the swap execution
     error SlippageCheckFailed(uint256 minAmountOut, uint256 amountOut);
 
+    /// @notice Thrown when a vault has insufficient balance to fulfill a swap request.
+    /// @param vaultId The ID of the vault to swap assets from.
+    /// @param vaultAssetBalance The current balance of the vault's asset.
+    /// @param expectedAmountOut The amount of assets expected to receive after the swap.
+    error InsufficientVaultBalance(uint256 vaultId, uint256 vaultAssetBalance, uint256 expectedAmountOut);
+
     /// @notice Thrown when a user does not have enough shares.
     error NotEnoughShares();
 
