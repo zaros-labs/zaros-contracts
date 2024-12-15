@@ -10,7 +10,11 @@ FulfillSwap_Integration_Test
         └── when swap request not expired
             ├── when slippage check fails
             │   └── it should revert
-            └── when slippage check passes
+            └── when slippage check passes and the premium or discount is zero
+            │    ├── it should transfer assets to user
+            │    ├── it should emit {LogFulfillSwap} event
+            │    └── it should burn USD token from contract
+            └── when slippage check passes and the premium or discount is not zero
                 ├── it should transfer assets to user
                 ├── it should emit {LogFulfillSwap} event
                 └── it should burn USD token from contract
