@@ -101,6 +101,9 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
         view
         returns (uint256 expectedAmountOut)
     {
+        // fail fast for zero input
+        if(amountIn == 0) revert Errors.ZeroExpectedSwapOutput();
+
         // get the price of the tokenIn
         UD60x18 priceTokenInX18 = IPriceAdapter(swapAssetConfigData[tokenIn].priceAdapter).getPrice();
 
@@ -114,6 +117,11 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
         expectedAmountOut = Math.convertUd60x18ToTokenAmount(
             swapAssetConfigData[tokenOut].decimals, amountInX18.mul(priceTokenInX18).div(priceTokenOutX18)
         );
+
+        // revert when calculated expected output is zero; must revert here
+        // otherwise the subsequent slippage bps calculation will also
+        // return a minimum swap output of zero giving away the input tokens
+        if(expectedAmountOut == 0) revert Errors.ZeroExpectedSwapOutput();
     }
 
     /// @notice Calculate the amount out min

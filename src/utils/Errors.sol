@@ -330,6 +330,9 @@ library Errors {
     /// @notice Thrown when swap path is invalid - assets and swap strategy ids mismatch
     error InvalidSwapPathParamsLength();
 
+    /// @notice Thrown when a swap's expected output calculates to zero
+    error ZeroExpectedSwapOutput();
+
     /// @notice Thrown when a deposit would be eaten up by fees
     error DepositTooSmall();
 

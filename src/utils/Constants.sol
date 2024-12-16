@@ -33,8 +33,9 @@ library Constants {
     /// @notice minimum allowed slippage tolerance
     uint256 internal constant MIN_SLIPPAGE_BPS = 100;
 
-    /// @notice maximum allowed slippage tolerance
-    uint256 internal constant MAX_SLIPPAGE_BPS = BPS_DENOMINATOR;
+    /// @notice maximum allowed slippage tolerance; should be smaller than
+    // BPS_DENOMINATOR as otherwise would result in slippage calculated to zero
+    uint256 internal constant MAX_SLIPPAGE_BPS = BPS_DENOMINATOR - 1;
 
     /// @notice Maximum value for shares, example 0.5e18 is 50%.
     /// @dev This is used to avoid overflows when calculating shares.
