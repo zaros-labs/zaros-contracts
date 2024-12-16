@@ -34,8 +34,8 @@ library Math {
     }
 
     /// @notice Converts a native amount of ERC20 tokens to 18 decimals.
-    /// @dev This function assumes decimals is always <= 18, thus, configuration functions must enforce this
-    /// invariant.
+    /// @dev This function assumes decimals is always <= 18, thus configuration functions must enforce this
+    /// invariant. This invariant is enforced in `MarketMakingEngineConfigurationBranch::configureCollateral`
     /// @param decimals The decimals value of an ERC20 token.
     /// @param amount The ERC20 token amount to convert to 18 decimals.
     /// @return amountX18 The ERC20 token amount represented in 18 decimals.

@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { MarketMakingEngineConfigurationBranch } from
     "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
@@ -116,6 +117,34 @@ contract MarketMakingEngineConfigurationBranch_ConfigureCollateral_Integration_T
             MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO,
             isEnabled,
             0
+        );
+    }
+
+    function test_RevertWhen_DecimalsGreaterThanSystemDecimals(
+        bool isEnabled,
+        uint8 decimals
+    )
+        external
+        givenTheSenderIsTheOwner
+        whenCollateralIsNotZero
+        whenPriceAdapterIsNotZero
+        whenCreditRatioIsNotZero
+    {
+        decimals = uint8(bound(decimals, Constants.SYSTEM_DECIMALS + 1, type(uint8).max));
+
+        // it should revert
+        vm.expectRevert({
+            revertData: abi.encodeWithSelector(
+                Errors.InvalidMarginCollateralConfiguration.selector, address(usdc), decimals, address(0)
+            )
+        });
+
+        marketMakingEngine.configureCollateral(
+            address(usdc),
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter,
+            MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO,
+            isEnabled,
+            decimals
         );
     }
 

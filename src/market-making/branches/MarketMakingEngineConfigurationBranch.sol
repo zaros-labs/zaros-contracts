@@ -474,17 +474,21 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         external
         onlyOwner
     {
-        // check if collateral is set to zero
+        // revert if collateral is set to zero
         if (collateral == address(0)) revert Errors.ZeroInput("collateral");
 
-        // check if price adapter is set to zero
+        // revert if price adapter is set to zero
         if (priceAdapter == address(0)) revert Errors.ZeroInput("priceAdapter");
 
-        // check id credit ratio is set to zero
+        // revert id credit ratio is set to zero
         if (creditRatio == 0) revert Errors.ZeroInput("creditRatio");
 
-        // check if decimals is set to zero
+        // revert if decimals is set to zero or greater than system decimals per
+        // invariant described in Math::convertTokenAmountToUd60x18 dev note
         if (decimals == 0) revert Errors.ZeroInput("decimals");
+        if (decimals > Constants.SYSTEM_DECIMALS) {
+            revert Errors.InvalidMarginCollateralConfiguration(collateral, decimals, address(0));
+        }
 
         // load collateral data from storage
         Collateral.Data storage collateralData = Collateral.load(collateral);
