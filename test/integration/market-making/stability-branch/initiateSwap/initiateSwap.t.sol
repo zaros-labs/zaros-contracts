@@ -7,6 +7,11 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
+
+// PRB Math dependencies
+import { ud60x18, UD60x18 } from "@prb-math/UD60x18.sol";
 
 contract InitiateSwap_Integration_Test is Base_Test {
     using Collateral for Collateral.Data;
@@ -97,7 +102,13 @@ contract InitiateSwap_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint128).max });
+        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
+
+        UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
+        uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
+
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: maxSwapAmount});
 
         uint128[] memory vaultIds = new uint128[](1);
         vaultIds[0] = fuzzVaultConfig.vaultId;

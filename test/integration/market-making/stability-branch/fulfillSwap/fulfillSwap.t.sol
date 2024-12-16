@@ -8,16 +8,13 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
 // PRB Math dependencies
 import { ud60x18, UD60x18 } from "@prb-math/UD60x18.sol";
-
-import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
-
-import { console } from "forge-std/console.sol";
 
 contract FulfillSwap_Integration_Test is Base_Test {
     function setUp() public virtual override {
