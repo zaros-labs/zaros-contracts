@@ -87,8 +87,7 @@ contract UniswapV2Adapter is BaseAdapter {
         uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
 
         // Calculate the minimum acceptable output based on the slippage tolerance
-        uint256 amountOutMinimum =
-            (expectedAmountOut * (Constants.BPS_DENOMINATOR - slippageToleranceBps)) / Constants.BPS_DENOMINATOR;
+        uint256 amountOutMinimum = calculateAmountOutMin(expectedAmountOut);
 
         address[] memory path = new address[](2);
         path[0] = swapPayload.tokenIn;
