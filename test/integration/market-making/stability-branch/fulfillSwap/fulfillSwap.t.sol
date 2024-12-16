@@ -144,9 +144,13 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
+        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint80).max });
+        UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
+        uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
+
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: maxSwapAmount});
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
@@ -154,18 +158,18 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), swapAmount, minAmountOut);
 
-        uint256 price = 1e10;
-        bytes memory priceData = getMockedSignedReport(fuzzVaultConfig.streamId, price);
+        uint256 assetPrice = assetPriceX18.intoUint256();
+        bytes memory priceData = getMockedSignedReport(fuzzVaultConfig.streamId, assetPrice);
         address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
         uint128 requestId = 1;
         changePrank({ msgSender: usdTokenSwapKeeper });
 
         UD60x18 amountOut =
-            marketMakingEngine.getAmountOfAssetOut(fuzzVaultConfig.vaultId, ud60x18(swapAmount), ud60x18(price));
+            marketMakingEngine.getAmountOfAssetOut(fuzzVaultConfig.vaultId, ud60x18(swapAmount), ud60x18(assetPrice));
 
         (UD60x18 baseFeeX18, UD60x18 swapFeeX18) =
-            marketMakingEngine.getFeesForAssetsAmountOut(amountOut, ud60x18(price));
+            marketMakingEngine.getFeesForAssetsAmountOut(amountOut, ud60x18(assetPrice));
 
         uint256 amountOutAfterFee =
             convertUd60x18ToTokenAmount(fuzzVaultConfig.asset, amountOut.sub(baseFeeX18.add(swapFeeX18)));
