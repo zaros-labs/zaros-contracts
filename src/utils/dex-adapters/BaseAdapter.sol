@@ -126,9 +126,16 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
     }
 
     /// @notice Sets slippage tolerance
-    /// @dev the minimum is 100 (e.g. 1%)
     function setSlippageTolerance(uint256 newSlippageTolerance) public onlyOwner {
-        // revert if the new slippage tolerance is less than 100
+        // enforce min/max slippage tolerance
+        if (newSlippageTolerance < Constants.MIN_SLIPPAGE_BPS) {
+            revert Errors.MinSlippageTolerance(newSlippageTolerance, Constants.MIN_SLIPPAGE_BPS);
+        }
+        if (newSlippageTolerance > Constants.MAX_SLIPPAGE_BPS) {
+            revert Errors.MaxSlippageTolerance(newSlippageTolerance, Constants.MAX_SLIPPAGE_BPS);
+        }
+
+        // update storage
         slippageToleranceBps = newSlippageTolerance;
 
         // emit the event LogSetSlippageTolerance
