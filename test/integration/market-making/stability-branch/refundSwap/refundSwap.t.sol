@@ -24,9 +24,13 @@ contract RefundSwap_Integration_Test is Base_Test {
     function testFuzz_RevertWhen_RequestIsAlreadyProcessed(uint256 vaultId, uint256 swapAmount) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
+        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint96).max });
+        UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
+        uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
+
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: maxSwapAmount });
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
@@ -34,7 +38,7 @@ contract RefundSwap_Integration_Test is Base_Test {
 
         initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), swapAmount, minAmountOut);
 
-        bytes memory priceData = getMockedSignedReport(fuzzVaultConfig.streamId, 1e10);
+        bytes memory priceData = getMockedSignedReport(fuzzVaultConfig.streamId, assetPriceX18.intoUint256());
         address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
         uint128 requestId = 1;
