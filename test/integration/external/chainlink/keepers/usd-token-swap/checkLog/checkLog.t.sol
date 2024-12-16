@@ -29,17 +29,14 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
     }
 
     function testFuzz_WhenDeadlineHasExpored(
-        uint256 vaultId,
-        uint256 assetsToDeposit
+        uint256 vaultId
     )
         external
         givenCheckLogIsCalled
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1e18, max: fuzzVaultConfig.depositCap });
-
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
+        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap});
 
         address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
@@ -51,7 +48,9 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.naruto.account });
 
-        uint256 amountInUsd = assetsToDeposit * 1e8;
+        UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
+        uint256 amountInUsd = assetAmountX18.mul(assetPriceX18).intoUint256();
 
         deal({ token: address(usdToken), to: users.naruto.account, give: amountInUsd });
 
