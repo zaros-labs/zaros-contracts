@@ -153,10 +153,11 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
     /// @notice Sets deadline
     /// @param _deadline The new deadline
     function setDeadline(uint256 _deadline) public onlyOwner {
-        // revert if the deadline is 0
+        // revert if the deadline is 0 or in the past
         if (_deadline == 0) revert Errors.ZeroInput("deadline");
+        if (_deadline < block.timestamp) revert Errors.SwapDeadlineInThePast();
 
-        // set the new fee
+        // set the new deadline
         deadline = _deadline;
 
         // emit the event

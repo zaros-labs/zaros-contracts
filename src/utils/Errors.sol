@@ -333,6 +333,9 @@ library Errors {
     /// @notice Thrown when a swap's expected output calculates to zero
     error ZeroExpectedSwapOutput();
 
+    /// @notice Thrown when a swap's deadline is in the past
+    error SwapDeadlineInThePast();
+
     /// @notice Thrown when a deposit would be eaten up by fees
     error DepositTooSmall();
 
