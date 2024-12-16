@@ -6,6 +6,8 @@ import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
 
 // PRB Math dependencies
 import { ud60x18, UD60x18 } from "@prb-math/UD60x18.sol";
@@ -63,9 +65,13 @@ contract RefundSwap_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
+        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap});
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint128).max });
+        UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
+        uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
+
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: maxSwapAmount });
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
