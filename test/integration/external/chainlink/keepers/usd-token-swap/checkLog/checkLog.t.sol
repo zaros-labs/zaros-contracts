@@ -97,9 +97,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         VaultConfig memory initialVaultConfig = getFuzzVaultConfig(INITIAL_VAULT_ID);
         VaultConfig memory vaultConfig = getFuzzVaultConfig(FINAL_VAULT_ID);
 
-        assetsToDeposit = bound({ x: assetsToDeposit, min: 1e18, max: initialVaultConfig.depositCap });
-
-        deal({ token: address(initialVaultConfig.asset), to: initialVaultConfig.indexToken, give: type(uint256).max });
+        deal({ token: address(initialVaultConfig.asset), to: initialVaultConfig.indexToken, give: initialVaultConfig.depositCap });
 
         // use keeper of other vault than the one used in the request
         address usdTokenSwapKeeper = usdTokenSwapKeepers[vaultConfig.asset];
@@ -112,7 +110,9 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.naruto.account });
 
-        uint256 amountInUsd = assetsToDeposit * 1e8;
+        UD60x18 assetPriceX18 = IPriceAdapter(initialVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(initialVaultConfig.indexToken).totalAssets());
+        uint256 amountInUsd = assetAmountX18.mul(assetPriceX18).intoUint256();
 
         deal({ token: address(usdToken), to: users.naruto.account, give: amountInUsd });
 
