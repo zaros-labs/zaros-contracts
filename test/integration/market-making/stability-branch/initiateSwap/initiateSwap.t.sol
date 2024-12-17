@@ -191,4 +191,50 @@ contract InitiateSwap_Integration_Test is Base_Test {
         );
         marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
     }
+
+
+    function testFuzz_RevertWhen_SecondVaultHasInsufficientCollateral(
+        uint128 firstVaultId,
+        uint128 secondVaultId)
+        external
+        whenVaultIdsAndAmountsInArraysLengthMatch
+        whenAmountsInAndMinAmountsOutArraysLengthMatch
+        whenCollateralIsEnabled
+    {
+        // ensure valid different vaults
+        firstVaultId = uint128(bound(firstVaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+        secondVaultId = uint128(bound(secondVaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+        vm.assume(firstVaultId != secondVaultId);
+
+        // ensure same collateral token
+        VaultConfig memory firstVaultConfig = getFuzzVaultConfig(firstVaultId);
+        VaultConfig memory secondVaultConfig = getFuzzVaultConfig(secondVaultId);
+        vm.assume(firstVaultConfig.asset == secondVaultConfig.asset);
+
+        // fully fund the first vault
+        deal({ token: address(firstVaultConfig.asset), to: firstVaultConfig.indexToken, give: firstVaultConfig.depositCap });
+        // fund the second vault with a very small amount
+        deal({ token: address(firstVaultConfig.asset), to: secondVaultConfig.indexToken, give: 1_000_000 });
+
+        // calculate max swap amount
+        UD60x18 assetPriceX18 = IPriceAdapter(firstVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(firstVaultConfig.indexToken).totalAssets());
+        uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
+
+        // initiate swap for 2 vaults where second vault has no tokens
+        uint128[] memory vaultIds = new uint128[](2);
+        vaultIds[0] = firstVaultId;
+        vaultIds[1] = secondVaultId;
+
+        uint128[] memory amountsIn = new uint128[](2);
+        amountsIn[0] = uint128(maxSwapAmount/2);
+        amountsIn[1] = uint128(maxSwapAmount/2);
+
+        uint128[] memory minAmountsOut = new uint128[](2);
+
+        deal({ token: address(usdToken), to: users.naruto.account, give: maxSwapAmount });
+
+        vm.expectRevert();
+        marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
+    }
 }

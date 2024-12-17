@@ -216,9 +216,9 @@ contract StabilityBranch is EngineAccessControl {
         InitiateSwapContext memory ctx;
 
         // cache the vault's index token and asset addresses
-        Vault.Data storage initialVault = Vault.load(vaultIds[0]);
-        ctx.initialVaultIndexToken = initialVault.indexToken;
-        ctx.initialVaultCollateralAsset = initialVault.collateral.asset;
+        Vault.Data storage currentVault = Vault.load(vaultIds[0]);
+        ctx.initialVaultIndexToken = currentVault.indexToken;
+        ctx.initialVaultCollateralAsset = currentVault.collateral.asset;
 
         // load collateral data
         Collateral.Data storage collateral = Collateral.load(ctx.initialVaultCollateralAsset);
@@ -232,20 +232,24 @@ contract StabilityBranch is EngineAccessControl {
         // load usd token swap data
         UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
 
-        ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(ctx.initialVaultIndexToken);
-
         for (uint256 i; i < amountsIn.length; i++) {
-            // if trying to create a swap request with a different collateral asset, we must revert
-            if (Vault.load(vaultIds[i]).collateral.asset != ctx.initialVaultCollateralAsset) {
-                revert Errors.VaultsCollateralAssetsMismatch();
+            // for all but first iteration, refresh the vault and enforce same collateral asset
+            if (i != 0) {
+                 currentVault = Vault.load(vaultIds[i]);
+
+                // revert for swaps using vaults with different collateral assets
+                if (currentVault.collateral.asset != ctx.initialVaultCollateralAsset) {
+                    revert Errors.VaultsCollateralAssetsMismatch();
+                }
             }
 
             // cache the expected amount of assets acquired with the provided parameters
             ctx.expectedAssetOut = getAmountOfAssetOut(
-                vaultIds[i], ud60x18(amountsIn[i]), initialVault.collateral.getPrice()
+                vaultIds[i], ud60x18(amountsIn[i]), currentVault.collateral.getPrice()
             ).intoUint256();
 
             // if there aren't enough assets in the vault to fulfill the swap request, we must revert
+            ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(currentVault.indexToken);
             if (ctx.vaultAssetBalance < ctx.expectedAssetOut) {
                 revert Errors.InsufficientVaultBalance(vaultIds[i], ctx.vaultAssetBalance, ctx.expectedAssetOut);
             }
