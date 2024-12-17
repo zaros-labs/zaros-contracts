@@ -24,7 +24,11 @@ contract RefundSwap_Integration_Test is Base_Test {
     function testFuzz_RevertWhen_RequestIsAlreadyProcessed(uint256 vaultId, uint256 swapAmount) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
         UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
@@ -69,7 +73,11 @@ contract RefundSwap_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap});
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
         UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
@@ -98,7 +106,11 @@ contract RefundSwap_Integration_Test is Base_Test {
     function testFuzz_WhenDeadlineHasPassed(uint256 vaultId, uint256 swapAmount) external whenRequestIsNotProcessed {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
         UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());

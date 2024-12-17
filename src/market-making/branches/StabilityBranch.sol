@@ -111,7 +111,7 @@ contract StabilityBranch is EngineAccessControl {
         // fetch the vault's total assets in USD; if the vault is empty
         // revert here to prevent panic from subsequent divide by zero
         UD60x18 vaultAssetsUsdX18 = ud60x18(IERC4626(vault.indexToken).totalAssets()).mul(indexPriceX18);
-        if(vaultAssetsUsdX18.isZero()) revert Errors.InsufficientVaultBalance(vaultId, 0, 0);
+        if (vaultAssetsUsdX18.isZero()) revert Errors.InsufficientVaultBalance(vaultId, 0, 0);
 
         // we use the vault's net sum of all debt types coming from its connected markets to determine the swap rate
         SD59x18 vaultDebtUsdX18 = vault.getTotalDebt();
@@ -242,7 +242,7 @@ contract StabilityBranch is EngineAccessControl {
         for (uint256 i; i < amountsIn.length; i++) {
             // for all but first iteration, refresh the vault and enforce same collateral asset
             if (i != 0) {
-                 currentVault = Vault.load(vaultIds[i]);
+                currentVault = Vault.load(vaultIds[i]);
 
                 // revert for swaps using vaults with different collateral assets
                 if (currentVault.collateral.asset != ctx.initialVaultCollateralAsset) {
@@ -254,9 +254,14 @@ contract StabilityBranch is EngineAccessControl {
             }
 
             // cache the expected amount of assets acquired with the provided parameters
-            ctx.expectedAssetOut = getAmountOfAssetOut(
-                vaultIds[i], ud60x18(amountsIn[i]), ctx.collateralPriceX18
-            ).intoUint256();
+            ctx.expectedAssetOut =
+                getAmountOfAssetOut(vaultIds[i], ud60x18(amountsIn[i]), ctx.collateralPriceX18).intoUint256();
+
+            // revert if the slippage wouldn't pass or the expected output was 0
+            if (ctx.expectedAssetOut == 0) revert Errors.ZeroOutputTokens();
+            if (ctx.expectedAssetOut < minAmountsOut[i]) {
+                revert Errors.SlippageCheckFailed(minAmountsOut[i], ctx.expectedAssetOut);
+            }
 
             // if there aren't enough assets in the vault to fulfill the swap request, we must revert
             if (ctx.vaultAssetBalance < ctx.expectedAssetOut) {
@@ -264,9 +269,7 @@ contract StabilityBranch is EngineAccessControl {
             }
 
             // transfer USD: user => address(this) - burned in fulfillSwap
-            ctx.usdTokenOfEngine.safeTransferFrom(
-                msg.sender, address(this), amountsIn[i]
-            );
+            ctx.usdTokenOfEngine.safeTransferFrom(msg.sender, address(this), amountsIn[i]);
 
             // get next request id for user
             ctx.requestId = tokenSwapData.nextId(msg.sender);

@@ -102,13 +102,17 @@ contract InitiateSwap_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
         UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
         uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: maxSwapAmount});
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: maxSwapAmount });
 
         uint128[] memory vaultIds = new uint128[](1);
         vaultIds[0] = fuzzVaultConfig.vaultId;
@@ -149,7 +153,8 @@ contract InitiateSwap_Integration_Test is Base_Test {
 
     function testFuzz_RevertWhen_SecondVaultHasNoCollateral(
         uint128 firstVaultId,
-        uint128 secondVaultId)
+        uint128 secondVaultId
+    )
         external
         whenVaultIdsAndAmountsInArraysLengthMatch
         whenAmountsInAndMinAmountsOutArraysLengthMatch
@@ -166,7 +171,11 @@ contract InitiateSwap_Integration_Test is Base_Test {
         vm.assume(firstVaultConfig.asset == secondVaultConfig.asset);
 
         // fund only the first vault
-        deal({ token: address(firstVaultConfig.asset), to: firstVaultConfig.indexToken, give: firstVaultConfig.depositCap });
+        deal({
+            token: address(firstVaultConfig.asset),
+            to: firstVaultConfig.indexToken,
+            give: firstVaultConfig.depositCap
+        });
 
         // calculate max swap amount
         UD60x18 assetPriceX18 = IPriceAdapter(firstVaultConfig.priceAdapter).getPrice();
@@ -179,23 +188,21 @@ contract InitiateSwap_Integration_Test is Base_Test {
         vaultIds[1] = secondVaultId;
 
         uint128[] memory amountsIn = new uint128[](2);
-        amountsIn[0] = uint128(maxSwapAmount/2);
-        amountsIn[1] = uint128(maxSwapAmount/2);
+        amountsIn[0] = uint128(maxSwapAmount / 2);
+        amountsIn[1] = uint128(maxSwapAmount / 2);
 
         uint128[] memory minAmountsOut = new uint128[](2);
 
         deal({ token: address(usdToken), to: users.naruto.account, give: maxSwapAmount });
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.InsufficientVaultBalance.selector, secondVaultId, 0, 0)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.InsufficientVaultBalance.selector, secondVaultId, 0, 0));
         marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
     }
 
-
     function testFuzz_RevertWhen_SecondVaultHasInsufficientCollateral(
         uint128 firstVaultId,
-        uint128 secondVaultId)
+        uint128 secondVaultId
+    )
         external
         whenVaultIdsAndAmountsInArraysLengthMatch
         whenAmountsInAndMinAmountsOutArraysLengthMatch
@@ -212,7 +219,11 @@ contract InitiateSwap_Integration_Test is Base_Test {
         vm.assume(firstVaultConfig.asset == secondVaultConfig.asset);
 
         // fully fund the first vault
-        deal({ token: address(firstVaultConfig.asset), to: firstVaultConfig.indexToken, give: firstVaultConfig.depositCap });
+        deal({
+            token: address(firstVaultConfig.asset),
+            to: firstVaultConfig.indexToken,
+            give: firstVaultConfig.depositCap
+        });
         // fund the second vault with a very small amount
         deal({ token: address(firstVaultConfig.asset), to: secondVaultConfig.indexToken, give: 1_000_000 });
 
@@ -227,8 +238,8 @@ contract InitiateSwap_Integration_Test is Base_Test {
         vaultIds[1] = secondVaultId;
 
         uint128[] memory amountsIn = new uint128[](2);
-        amountsIn[0] = uint128(maxSwapAmount/2);
-        amountsIn[1] = uint128(maxSwapAmount/2);
+        amountsIn[0] = uint128(maxSwapAmount / 2);
+        amountsIn[1] = uint128(maxSwapAmount / 2);
 
         uint128[] memory minAmountsOut = new uint128[](2);
 

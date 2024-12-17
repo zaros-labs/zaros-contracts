@@ -56,7 +56,11 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
 
         ctx.assetsToDeposit = bound({ x: assetsToDeposit, min: 1e18, max: fuzzVaultConfig.depositCap });
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         ctx.usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 

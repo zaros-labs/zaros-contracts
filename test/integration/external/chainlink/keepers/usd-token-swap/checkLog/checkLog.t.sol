@@ -28,15 +28,14 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_WhenDeadlineHasExpored(
-        uint256 vaultId
-    )
-        external
-        givenCheckLogIsCalled
-    {
+    function testFuzz_WhenDeadlineHasExpored(uint256 vaultId) external givenCheckLogIsCalled {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap});
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         address usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
@@ -96,7 +95,11 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         VaultConfig memory initialVaultConfig = getFuzzVaultConfig(INITIAL_VAULT_ID);
         VaultConfig memory vaultConfig = getFuzzVaultConfig(FINAL_VAULT_ID);
 
-        deal({ token: address(initialVaultConfig.asset), to: initialVaultConfig.indexToken, give: initialVaultConfig.depositCap });
+        deal({
+            token: address(initialVaultConfig.asset),
+            to: initialVaultConfig.indexToken,
+            give: initialVaultConfig.depositCap
+        });
 
         // use keeper of other vault than the one used in the request
         address usdTokenSwapKeeper = usdTokenSwapKeepers[vaultConfig.asset];
@@ -143,16 +146,18 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         assertEq(upkeepNeeded, false);
     }
 
-    function testFuzz_RevertWhen_AssetsMatch(
-        uint256 vaultId
-    )
+    function testFuzz_RevertWhen_AssetsMatch(uint256 vaultId)
         external
         givenCheckLogIsCalled
         whenDeadlineHasNotExpired
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
         UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());

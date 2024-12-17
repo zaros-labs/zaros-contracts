@@ -45,13 +45,17 @@ contract FulfillSwap_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
         UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
         uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
 
-        swapAmount = bound({ x: swapAmount, min: 1, max: maxSwapAmount});
+        swapAmount = bound({ x: swapAmount, min: 1, max: maxSwapAmount });
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
@@ -92,7 +96,11 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
         UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
@@ -145,13 +153,17 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: fuzzVaultConfig.depositCap });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
         UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
         uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: maxSwapAmount});
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: maxSwapAmount });
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
@@ -199,10 +211,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         UD60x18 assetAmountX18;
     }
 
-
-    function testFuzz_WhenSlippageCheckPassesAndThePremiumOrDiscountIsZero(
-        uint256 vaultId
-    )
+    function testFuzz_WhenSlippageCheckPassesAndThePremiumOrDiscountIsZero(uint256 vaultId)
         external
         whenCallerIsKeeper
         whenRequestWasNotYetProcessed
@@ -215,7 +224,11 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         ctx.fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(ctx.fuzzVaultConfig.asset), to: ctx.fuzzVaultConfig.indexToken, give: ctx.fuzzVaultConfig.depositCap });
+        deal({
+            token: address(ctx.fuzzVaultConfig.asset),
+            to: ctx.fuzzVaultConfig.indexToken,
+            give: ctx.fuzzVaultConfig.depositCap
+        });
 
         ctx.assetPriceX18 = IPriceAdapter(ctx.fuzzVaultConfig.priceAdapter).getPrice();
         ctx.assetAmountX18 = ud60x18(IERC4626(ctx.fuzzVaultConfig.indexToken).totalAssets());
@@ -231,22 +244,24 @@ contract FulfillSwap_Integration_Test is Base_Test {
         ctx.usdTokenSwapKeeper = usdTokenSwapKeepers[ctx.fuzzVaultConfig.asset];
 
         ctx.requestId = 1;
-        ctx.request =
-            marketMakingEngine.getSwapRequest(users.naruto.account, ctx.requestId);
+        ctx.request = marketMakingEngine.getSwapRequest(users.naruto.account, ctx.requestId);
 
-        ctx.amountOut =
-            marketMakingEngine.getAmountOfAssetOut(ctx.fuzzVaultConfig.vaultId, ud60x18(ctx.swapAmount), ctx.assetPriceX18);
+        ctx.amountOut = marketMakingEngine.getAmountOfAssetOut(
+            ctx.fuzzVaultConfig.vaultId, ud60x18(ctx.swapAmount), ctx.assetPriceX18
+        );
 
         (ctx.baseFeeX18, ctx.swapFeeX18) =
             marketMakingEngine.getFeesForAssetsAmountOut(ctx.amountOut, ctx.assetPriceX18);
 
-        ctx.amountOutAfterFee =
-            convertUd60x18ToTokenAmount(ctx.fuzzVaultConfig.asset, ctx.amountOut.sub(ctx.baseFeeX18.add(ctx.swapFeeX18)));
+        ctx.amountOutAfterFee = convertUd60x18ToTokenAmount(
+            ctx.fuzzVaultConfig.asset, ctx.amountOut.sub(ctx.baseFeeX18.add(ctx.swapFeeX18))
+        );
 
         changePrank({ msgSender: ctx.usdTokenSwapKeeper });
 
         ctx.protocolSwapFee = ctx.swapFeeX18.mul(ud60x18(marketMakingEngine.exposed_getTotalFeeRecipientsShares()));
-        ctx.protocolReward = convertUd60x18ToTokenAmount(ctx.fuzzVaultConfig.asset, ctx.baseFeeX18.add(ctx.protocolSwapFee));
+        ctx.protocolReward =
+            convertUd60x18ToTokenAmount(ctx.fuzzVaultConfig.asset, ctx.baseFeeX18.add(ctx.protocolSwapFee));
 
         // it should emit {LogFulfillSwap} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
@@ -264,7 +279,9 @@ contract FulfillSwap_Integration_Test is Base_Test {
             ctx.protocolReward
         );
 
-        marketMakingEngine.fulfillSwap(users.naruto.account, ctx.requestId, ctx.priceData, address(marketMakingEngine));
+        marketMakingEngine.fulfillSwap(
+            users.naruto.account, ctx.requestId, ctx.priceData, address(marketMakingEngine)
+        );
 
         // it should transfer assets to user
         assertGt(IERC20(ctx.fuzzVaultConfig.asset).balanceOf(users.naruto.account), 0, "balance of user > 0 failed");
