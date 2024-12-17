@@ -101,6 +101,9 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
         view
         returns (uint256 expectedAmountOut)
     {
+        // fail fast for zero input
+        if (amountIn == 0) revert Errors.ZeroExpectedSwapOutput();
+
         // get the price of the tokenIn
         UD60x18 priceTokenInX18 = IPriceAdapter(swapAssetConfigData[tokenIn].priceAdapter).getPrice();
 
@@ -114,6 +117,11 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
         expectedAmountOut = Math.convertUd60x18ToTokenAmount(
             swapAssetConfigData[tokenOut].decimals, amountInX18.mul(priceTokenInX18).div(priceTokenOutX18)
         );
+
+        // revert when calculated expected output is zero; must revert here
+        // otherwise the subsequent slippage bps calculation will also
+        // return a minimum swap output of zero giving away the input tokens
+        if (expectedAmountOut == 0) revert Errors.ZeroExpectedSwapOutput();
     }
 
     /// @notice Calculate the amount out min
@@ -126,9 +134,16 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
     }
 
     /// @notice Sets slippage tolerance
-    /// @dev the minimum is 100 (e.g. 1%)
     function setSlippageTolerance(uint256 newSlippageTolerance) public onlyOwner {
-        // revert if the new slippage tolerance is less than 100
+        // enforce min/max slippage tolerance
+        if (newSlippageTolerance < Constants.MIN_SLIPPAGE_BPS) {
+            revert Errors.MinSlippageTolerance(newSlippageTolerance, Constants.MIN_SLIPPAGE_BPS);
+        }
+        if (newSlippageTolerance > Constants.MAX_SLIPPAGE_BPS) {
+            revert Errors.MaxSlippageTolerance(newSlippageTolerance, Constants.MAX_SLIPPAGE_BPS);
+        }
+
+        // update storage
         slippageToleranceBps = newSlippageTolerance;
 
         // emit the event LogSetSlippageTolerance
@@ -138,10 +153,10 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
     /// @notice Sets deadline
     /// @param _deadline The new deadline
     function setDeadline(uint256 _deadline) public onlyOwner {
-        // revert if the deadline is 0
-        if (_deadline == 0) revert Errors.ZeroInput("deadline");
+        // revert if the deadline is in the past
+        if (_deadline < block.timestamp) revert Errors.SwapDeadlineInThePast();
 
-        // set the new fee
+        // set the new deadline
         deadline = _deadline;
 
         // emit the event

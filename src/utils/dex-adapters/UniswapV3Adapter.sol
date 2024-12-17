@@ -85,11 +85,8 @@ contract UniswapV3Adapter is BaseAdapter {
         // transfer the tokenIn from the send to this contract
         IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
 
-        // instantiate the swap router
-        IUniswapV3RouterInterface swapRouter;
-
-        // get the uniswap v3 swap strategy router
-        swapRouter = IUniswapV3RouterInterface(uniswapV3SwapStrategyRouter);
+        // cache uniswap v3 swap strategy router
+        IUniswapV3RouterInterface swapRouter = IUniswapV3RouterInterface(uniswapV3SwapStrategyRouter);
 
         // approve the tokenIn to the swap router
         IERC20(swapPayload.tokenIn).approve(address(swapRouter), swapPayload.amountIn);
@@ -119,11 +116,8 @@ contract UniswapV3Adapter is BaseAdapter {
         // transfer the tokenIn from the send to this contract
         IERC20(swapPayload.tokenIn).transferFrom(msg.sender, address(this), swapPayload.amountIn);
 
-        // instantiate the swap router
-        IUniswapV3RouterInterface swapRouter;
-
-        // get the uniswap v3 swap strategy router
-        swapRouter = IUniswapV3RouterInterface(uniswapV3SwapStrategyRouter);
+        // cache uniswap v3 swap strategy router
+        IUniswapV3RouterInterface swapRouter = IUniswapV3RouterInterface(uniswapV3SwapStrategyRouter);
 
         // approve the tokenIn to the swap router
         IERC20(swapPayload.tokenIn).approve(address(swapRouter), swapPayload.amountIn);

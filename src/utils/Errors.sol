@@ -330,15 +330,31 @@ library Errors {
     /// @param expiration The request expiration time
     error SwapRequestExpired(address user, uint128 requestId, uint256 expiration);
 
-    /// Thrown when swap path is invalid - assets and swap strategy ids mismatch
+    /// @notice Thrown when swap path is invalid - assets and swap strategy ids mismatch
     error InvalidSwapPathParamsLength();
 
-    /// Thrown when a deposit would be eaten up by fees
+    /// @notice Thrown when a swap's expected output calculates to zero
+    error ZeroExpectedSwapOutput();
+
+    /// @notice Thrown when a swap's deadline is in the past
+    error SwapDeadlineInThePast();
+
+    /// @notice Thrown when a deposit would be eaten up by fees
     error DepositTooSmall();
 
-    /// Thrown when a deposit receives zero shares
+    /// @notice Thrown when a deposit receives zero shares
     error DepositMustReceiveShares();
 
-    /// Thrown when a redeem receives zero assets
+    /// @notice Thrown when a redeem receives zero assets
     error RedeemMustReceiveAssets();
+
+    /// @notice Thrown when slippage tolerance is too low
+    /// @param newSlippageTolerance proposed new slippage tolerance
+    /// @param minSlippageBps minimum allowed value
+    error MinSlippageTolerance(uint256 newSlippageTolerance, uint256 minSlippageBps);
+
+    /// @notice Thrown when slippage tolerance is too high
+    /// @param newSlippageTolerance proposed new slippage tolerance
+    /// @param maxSlippageBps minimum allowed value
+    error MaxSlippageTolerance(uint256 newSlippageTolerance, uint256 maxSlippageBps);
 }
