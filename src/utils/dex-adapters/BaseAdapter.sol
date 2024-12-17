@@ -102,7 +102,7 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
         returns (uint256 expectedAmountOut)
     {
         // fail fast for zero input
-        if(amountIn == 0) revert Errors.ZeroExpectedSwapOutput();
+        if (amountIn == 0) revert Errors.ZeroExpectedSwapOutput();
 
         // get the price of the tokenIn
         UD60x18 priceTokenInX18 = IPriceAdapter(swapAssetConfigData[tokenIn].priceAdapter).getPrice();
@@ -121,7 +121,7 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
         // revert when calculated expected output is zero; must revert here
         // otherwise the subsequent slippage bps calculation will also
         // return a minimum swap output of zero giving away the input tokens
-        if(expectedAmountOut == 0) revert Errors.ZeroExpectedSwapOutput();
+        if (expectedAmountOut == 0) revert Errors.ZeroExpectedSwapOutput();
     }
 
     /// @notice Calculate the amount out min
@@ -153,8 +153,7 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
     /// @notice Sets deadline
     /// @param _deadline The new deadline
     function setDeadline(uint256 _deadline) public onlyOwner {
-        // revert if the deadline is 0 or in the past
-        if (_deadline == 0) revert Errors.ZeroInput("deadline");
+        // revert if the deadline is in the past
         if (_deadline < block.timestamp) revert Errors.SwapDeadlineInThePast();
 
         // set the new deadline
