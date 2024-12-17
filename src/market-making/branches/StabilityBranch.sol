@@ -183,8 +183,10 @@ contract StabilityBranch is EngineAccessControl {
         address initialVaultCollateralAsset;
         uint128 requestId;
         uint120 deadlineCache;
+        uint120 maxExecTime;
         uint256 vaultAssetBalance;
         uint256 expectedAssetOut;
+        UD60x18 collateralPriceX18;
     }
 
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
@@ -220,10 +222,8 @@ contract StabilityBranch is EngineAccessControl {
         ctx.initialVaultIndexToken = currentVault.indexToken;
         ctx.initialVaultCollateralAsset = currentVault.collateral.asset;
 
-        // load collateral data
+        // load collateral data; must be enabled
         Collateral.Data storage collateral = Collateral.load(ctx.initialVaultCollateralAsset);
-
-        // Ensure the collateral asset is enabled
         collateral.verifyIsEnabled();
 
         // load market making engine config
@@ -231,6 +231,10 @@ contract StabilityBranch is EngineAccessControl {
 
         // load usd token swap data
         UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
+
+        // cache additional common fields
+        ctx.collateralPriceX18 = currentVault.collateral.getPrice();
+        ctx.maxExecTime = uint120(tokenSwapData.maxExecutionTime);
 
         for (uint256 i; i < amountsIn.length; i++) {
             // for all but first iteration, refresh the vault and enforce same collateral asset
@@ -245,7 +249,7 @@ contract StabilityBranch is EngineAccessControl {
 
             // cache the expected amount of assets acquired with the provided parameters
             ctx.expectedAssetOut = getAmountOfAssetOut(
-                vaultIds[i], ud60x18(amountsIn[i]), currentVault.collateral.getPrice()
+                vaultIds[i], ud60x18(amountsIn[i]), ctx.collateralPriceX18
             ).intoUint256();
 
             // if there aren't enough assets in the vault to fulfill the swap request, we must revert
@@ -269,7 +273,7 @@ contract StabilityBranch is EngineAccessControl {
             swapRequest.minAmountOut = minAmountsOut[i];
             swapRequest.vaultId = vaultIds[i];
             swapRequest.assetOut = ctx.initialVaultCollateralAsset;
-            ctx.deadlineCache = uint120(block.timestamp) + uint120(tokenSwapData.maxExecutionTime);
+            ctx.deadlineCache = uint120(block.timestamp) + ctx.maxExecTime;
             swapRequest.deadline = ctx.deadlineCache;
             swapRequest.amountIn = amountsIn[i];
 
