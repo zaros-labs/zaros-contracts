@@ -107,8 +107,11 @@ contract StabilityBranch is EngineAccessControl {
     {
         // fetch the vault's storage pointer
         Vault.Data storage vault = Vault.load(vaultId);
-        // fetch the vault's total assets in USD
+
+        // fetch the vault's total assets in USD; if the vault is empty
+        // revert here to prevent panic from subsequent divide by zero
         UD60x18 vaultAssetsUsdX18 = ud60x18(IERC4626(vault.indexToken).totalAssets()).mul(indexPriceX18);
+        if(vaultAssetsUsdX18.isZero()) revert Errors.InsufficientVaultBalance(vaultId, 0, 0);
 
         // we use the vault's net sum of all debt types coming from its connected markets to determine the swap rate
         SD59x18 vaultDebtUsdX18 = vault.getTotalDebt();
