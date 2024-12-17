@@ -187,6 +187,7 @@ contract StabilityBranch is EngineAccessControl {
         uint256 vaultAssetBalance;
         uint256 expectedAssetOut;
         UD60x18 collateralPriceX18;
+        IERC20 usdTokenOfEngine;
     }
 
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
@@ -235,6 +236,8 @@ contract StabilityBranch is EngineAccessControl {
         // cache additional common fields
         ctx.collateralPriceX18 = currentVault.collateral.getPrice();
         ctx.maxExecTime = uint120(tokenSwapData.maxExecutionTime);
+        ctx.usdTokenOfEngine = IERC20(configuration.usdTokenOfEngine[address(this)]);
+        ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(ctx.initialVaultIndexToken);
 
         for (uint256 i; i < amountsIn.length; i++) {
             // for all but first iteration, refresh the vault and enforce same collateral asset
@@ -245,6 +248,9 @@ contract StabilityBranch is EngineAccessControl {
                 if (currentVault.collateral.asset != ctx.initialVaultCollateralAsset) {
                     revert Errors.VaultsCollateralAssetsMismatch();
                 }
+
+                // refresh current vault balance
+                ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(currentVault.indexToken);
             }
 
             // cache the expected amount of assets acquired with the provided parameters
@@ -253,13 +259,12 @@ contract StabilityBranch is EngineAccessControl {
             ).intoUint256();
 
             // if there aren't enough assets in the vault to fulfill the swap request, we must revert
-            ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(currentVault.indexToken);
             if (ctx.vaultAssetBalance < ctx.expectedAssetOut) {
                 revert Errors.InsufficientVaultBalance(vaultIds[i], ctx.vaultAssetBalance, ctx.expectedAssetOut);
             }
 
             // transfer USD: user => address(this) - burned in fulfillSwap
-            IERC20(configuration.usdTokenOfEngine[address(this)]).safeTransferFrom(
+            ctx.usdTokenOfEngine.safeTransferFrom(
                 msg.sender, address(this), amountsIn[i]
             );
 
