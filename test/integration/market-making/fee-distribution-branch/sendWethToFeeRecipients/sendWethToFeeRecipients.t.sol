@@ -22,6 +22,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: address(users.owner.account) });
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         configureMarkets();
     }
 

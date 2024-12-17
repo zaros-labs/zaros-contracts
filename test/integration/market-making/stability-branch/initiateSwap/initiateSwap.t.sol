@@ -7,6 +7,11 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
 import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
+
+// PRB Math dependencies
+import { ud60x18, UD60x18 } from "@prb-math/UD60x18.sol";
 
 contract InitiateSwap_Integration_Test is Base_Test {
     using Collateral for Collateral.Data;
@@ -97,7 +102,17 @@ contract InitiateSwap_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        swapAmount = bound({ x: swapAmount, min: 1e18, max: type(uint128).max });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
+
+        UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
+        uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
+
+        swapAmount = bound({ x: swapAmount, min: 1e18, max: maxSwapAmount });
 
         uint128[] memory vaultIds = new uint128[](1);
         vaultIds[0] = fuzzVaultConfig.vaultId;
@@ -134,5 +149,103 @@ contract InitiateSwap_Integration_Test is Base_Test {
         assertGt(request.vaultId, 0);
         assertGt(request.deadline, 0);
         assertFalse(request.processed);
+    }
+
+    function testFuzz_RevertWhen_SecondVaultHasNoCollateral(
+        uint128 firstVaultId,
+        uint128 secondVaultId
+    )
+        external
+        whenVaultIdsAndAmountsInArraysLengthMatch
+        whenAmountsInAndMinAmountsOutArraysLengthMatch
+        whenCollateralIsEnabled
+    {
+        // ensure valid different vaults
+        firstVaultId = uint128(bound(firstVaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+        secondVaultId = uint128(bound(secondVaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+        vm.assume(firstVaultId != secondVaultId);
+
+        // ensure same collateral token
+        VaultConfig memory firstVaultConfig = getFuzzVaultConfig(firstVaultId);
+        VaultConfig memory secondVaultConfig = getFuzzVaultConfig(secondVaultId);
+        vm.assume(firstVaultConfig.asset == secondVaultConfig.asset);
+
+        // fund only the first vault
+        deal({
+            token: address(firstVaultConfig.asset),
+            to: firstVaultConfig.indexToken,
+            give: firstVaultConfig.depositCap
+        });
+
+        // calculate max swap amount
+        UD60x18 assetPriceX18 = IPriceAdapter(firstVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(firstVaultConfig.indexToken).totalAssets());
+        uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
+
+        // initiate swap for 2 vaults where second vault has no tokens
+        uint128[] memory vaultIds = new uint128[](2);
+        vaultIds[0] = firstVaultId;
+        vaultIds[1] = secondVaultId;
+
+        uint128[] memory amountsIn = new uint128[](2);
+        amountsIn[0] = uint128(maxSwapAmount / 2);
+        amountsIn[1] = uint128(maxSwapAmount / 2);
+
+        uint128[] memory minAmountsOut = new uint128[](2);
+
+        deal({ token: address(usdToken), to: users.naruto.account, give: maxSwapAmount });
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.InsufficientVaultBalance.selector, secondVaultId, 0, 0));
+        marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
+    }
+
+    function testFuzz_RevertWhen_SecondVaultHasInsufficientCollateral(
+        uint128 firstVaultId,
+        uint128 secondVaultId
+    )
+        external
+        whenVaultIdsAndAmountsInArraysLengthMatch
+        whenAmountsInAndMinAmountsOutArraysLengthMatch
+        whenCollateralIsEnabled
+    {
+        // ensure valid different vaults
+        firstVaultId = uint128(bound(firstVaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+        secondVaultId = uint128(bound(secondVaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+        vm.assume(firstVaultId != secondVaultId);
+
+        // ensure same collateral token
+        VaultConfig memory firstVaultConfig = getFuzzVaultConfig(firstVaultId);
+        VaultConfig memory secondVaultConfig = getFuzzVaultConfig(secondVaultId);
+        vm.assume(firstVaultConfig.asset == secondVaultConfig.asset);
+
+        // fully fund the first vault
+        deal({
+            token: address(firstVaultConfig.asset),
+            to: firstVaultConfig.indexToken,
+            give: firstVaultConfig.depositCap
+        });
+        // fund the second vault with a very small amount
+        deal({ token: address(firstVaultConfig.asset), to: secondVaultConfig.indexToken, give: 1_000_000 });
+
+        // calculate max swap amount
+        UD60x18 assetPriceX18 = IPriceAdapter(firstVaultConfig.priceAdapter).getPrice();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(firstVaultConfig.indexToken).totalAssets());
+        uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
+
+        // initiate swap for 2 vaults where second vault has no tokens
+        uint128[] memory vaultIds = new uint128[](2);
+        vaultIds[0] = firstVaultId;
+        vaultIds[1] = secondVaultId;
+
+        uint128[] memory amountsIn = new uint128[](2);
+        amountsIn[0] = uint128(maxSwapAmount / 2);
+        amountsIn[1] = uint128(maxSwapAmount / 2);
+
+        uint128[] memory minAmountsOut = new uint128[](2);
+
+        deal({ token: address(usdToken), to: users.naruto.account, give: maxSwapAmount });
+
+        vm.expectRevert();
+        marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
     }
 }

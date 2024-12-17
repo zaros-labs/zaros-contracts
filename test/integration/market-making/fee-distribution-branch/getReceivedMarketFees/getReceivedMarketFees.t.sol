@@ -9,6 +9,7 @@ contract MarketMakingEngineConfigurationBranch_GetReceivedMarketFees_Integration
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         configureMarkets();
     }
 

@@ -107,8 +107,11 @@ contract StabilityBranch is EngineAccessControl {
     {
         // fetch the vault's storage pointer
         Vault.Data storage vault = Vault.load(vaultId);
-        // fetch the vault's total assets in USD
+
+        // fetch the vault's total assets in USD; if the vault is empty
+        // revert here to prevent panic from subsequent divide by zero
         UD60x18 vaultAssetsUsdX18 = ud60x18(IERC4626(vault.indexToken).totalAssets()).mul(indexPriceX18);
+        if (vaultAssetsUsdX18.isZero()) revert Errors.InsufficientVaultBalance(vaultId, 0, 0);
 
         // we use the vault's net sum of all debt types coming from its connected markets to determine the swap rate
         SD59x18 vaultDebtUsdX18 = vault.getTotalDebt();
@@ -180,8 +183,11 @@ contract StabilityBranch is EngineAccessControl {
         address initialVaultCollateralAsset;
         uint128 requestId;
         uint120 deadlineCache;
+        uint120 maxExecTime;
         uint256 vaultAssetBalance;
         uint256 expectedAssetOut;
+        UD60x18 collateralPriceX18;
+        IERC20 usdTokenOfEngine;
     }
 
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
@@ -213,14 +219,12 @@ contract StabilityBranch is EngineAccessControl {
         InitiateSwapContext memory ctx;
 
         // cache the vault's index token and asset addresses
-        Vault.Data storage initialVault = Vault.load(vaultIds[0]);
-        ctx.initialVaultIndexToken = initialVault.indexToken;
-        ctx.initialVaultCollateralAsset = initialVault.collateral.asset;
+        Vault.Data storage currentVault = Vault.load(vaultIds[0]);
+        ctx.initialVaultIndexToken = currentVault.indexToken;
+        ctx.initialVaultCollateralAsset = currentVault.collateral.asset;
 
-        // load collateral data
+        // load collateral data; must be enabled
         Collateral.Data storage collateral = Collateral.load(ctx.initialVaultCollateralAsset);
-
-        // Ensure the collateral asset is enabled
         collateral.verifyIsEnabled();
 
         // load market making engine config
@@ -229,18 +233,35 @@ contract StabilityBranch is EngineAccessControl {
         // load usd token swap data
         UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
 
+        // cache additional common fields
+        ctx.collateralPriceX18 = currentVault.collateral.getPrice();
+        ctx.maxExecTime = uint120(tokenSwapData.maxExecutionTime);
+        ctx.usdTokenOfEngine = IERC20(configuration.usdTokenOfEngine[currentVault.engine]);
         ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(ctx.initialVaultIndexToken);
 
         for (uint256 i; i < amountsIn.length; i++) {
-            // if trying to create a swap request with a different collateral asset, we must revert
-            if (Vault.load(vaultIds[i]).collateral.asset != ctx.initialVaultCollateralAsset) {
-                revert Errors.VaultsCollateralAssetsMismatch();
+            // for all but first iteration, refresh the vault and enforce same collateral asset
+            if (i != 0) {
+                currentVault = Vault.load(vaultIds[i]);
+
+                // revert for swaps using vaults with different collateral assets
+                if (currentVault.collateral.asset != ctx.initialVaultCollateralAsset) {
+                    revert Errors.VaultsCollateralAssetsMismatch();
+                }
+
+                // refresh current vault balance
+                ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(currentVault.indexToken);
             }
 
             // cache the expected amount of assets acquired with the provided parameters
-            ctx.expectedAssetOut = getAmountOfAssetOut(
-                vaultIds[i], ud60x18(amountsIn[i]), initialVault.collateral.getPrice()
-            ).intoUint256();
+            ctx.expectedAssetOut =
+                getAmountOfAssetOut(vaultIds[i], ud60x18(amountsIn[i]), ctx.collateralPriceX18).intoUint256();
+
+            // revert if the slippage wouldn't pass or the expected output was 0
+            if (ctx.expectedAssetOut == 0) revert Errors.ZeroOutputTokens();
+            if (ctx.expectedAssetOut < minAmountsOut[i]) {
+                revert Errors.SlippageCheckFailed(minAmountsOut[i], ctx.expectedAssetOut);
+            }
 
             // if there aren't enough assets in the vault to fulfill the swap request, we must revert
             if (ctx.vaultAssetBalance < ctx.expectedAssetOut) {
@@ -248,9 +269,7 @@ contract StabilityBranch is EngineAccessControl {
             }
 
             // transfer USD: user => address(this) - burned in fulfillSwap
-            IERC20(configuration.usdTokenOfEngine[address(this)]).safeTransferFrom(
-                msg.sender, address(this), amountsIn[i]
-            );
+            ctx.usdTokenOfEngine.safeTransferFrom(msg.sender, address(this), amountsIn[i]);
 
             // get next request id for user
             ctx.requestId = tokenSwapData.nextId(msg.sender);
@@ -262,7 +281,7 @@ contract StabilityBranch is EngineAccessControl {
             swapRequest.minAmountOut = minAmountsOut[i];
             swapRequest.vaultId = vaultIds[i];
             swapRequest.assetOut = ctx.initialVaultCollateralAsset;
-            ctx.deadlineCache = uint120(block.timestamp) + uint120(tokenSwapData.maxExecutionTime);
+            ctx.deadlineCache = uint120(block.timestamp) + ctx.maxExecTime;
             swapRequest.deadline = ctx.deadlineCache;
             swapRequest.amountIn = amountsIn[i];
 

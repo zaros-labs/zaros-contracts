@@ -227,6 +227,9 @@ library Errors {
 
     /// @notice MarketMakingEngine.VaultRouterBranch errors
 
+    /// @notice Thrown when `expectedAssetsOut` equals zero during a swap.
+    error ZeroOutputTokens();
+
     /// @notice Thrown when a slippage check fails.
     /// @param minAmountOut The min amnount of assets to receive back
     /// @param amountOut The result of the swap execution

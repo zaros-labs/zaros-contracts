@@ -6,6 +6,8 @@ import { Base_Test } from "test/Base.t.sol";
 import { UsdTokenSwapKeeper } from "@zaros/external/chainlink/keepers/usd-token-swap-keeper/UsdTokenSwapKeeper.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
+import { IPriceAdapter } from "@zaros/utils/PriceAdapter.sol";
+import { IERC4626 } from "@openzeppelin/interfaces/IERC4626.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
@@ -54,7 +56,11 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
 
         ctx.assetsToDeposit = bound({ x: assetsToDeposit, min: 1e18, max: fuzzVaultConfig.depositCap });
 
-        deal({ token: address(fuzzVaultConfig.asset), to: fuzzVaultConfig.indexToken, give: type(uint256).max });
+        deal({
+            token: address(fuzzVaultConfig.asset),
+            to: fuzzVaultConfig.indexToken,
+            give: fuzzVaultConfig.depositCap
+        });
 
         ctx.usdTokenSwapKeeper = usdTokenSwapKeepers[fuzzVaultConfig.asset];
 
@@ -66,9 +72,9 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.naruto.account });
 
-        ctx.mockPrice = 2000e18 / 1e10;
-
-        ctx.amountInUsd = ctx.assetsToDeposit * ctx.mockPrice;
+        ctx.mockPrice = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice().intoUint256();
+        UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
+        ctx.amountInUsd = assetAmountX18.mul(ud60x18(ctx.mockPrice)).intoUint256();
 
         deal({ token: address(usdToken), to: users.naruto.account, give: ctx.amountInUsd });
 
