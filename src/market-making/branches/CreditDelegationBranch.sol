@@ -498,7 +498,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                     ctx.vaultAsset,
                     ctx.usdcInX18,
                     vault.swapStrategy.assetDexSwapPath,
-                    vault.indexToken
+                    vault.indexToken,
+                    ctx.usdc
                 );
 
                 // sanity check to ensure we didn't somehow give away the input tokens
@@ -798,7 +799,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         address asset,
         UD60x18 usdcAmountX18,
         bytes memory path,
-        address recipient
+        address recipient,
+        address usdc
     )
         internal
         returns (uint256 assetOut)
@@ -806,9 +808,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         // load the market making engine configuration storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
-
-        // cache the usdc address
-        address usdc = marketMakingEngineConfiguration.usdc;
 
         // revert if the amount is zero
         if (usdcAmountX18.isZero()) revert Errors.AssetAmountIsZero(usdc);
