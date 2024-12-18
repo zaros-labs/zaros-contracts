@@ -242,8 +242,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         // load the market's connected vaults ids and `mstore` them
         uint256[] memory connectedVaults = market.getConnectedVaultsIds();
 
-        // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
-        // market
+        // once the unrealized debt is distributed update credit delegated
+        // by these vaults to the market
         Vault.recalculateVaultsCreditCapacity(connectedVaults);
 
         // cache the market's total debt and delegated credit
@@ -269,8 +269,10 @@ contract CreditDelegationBranch is EngineAccessControl {
         // uint256 -> UD60x18
         // NOTE: we don't need to scale decimals here as it's known that USD Token has 18 decimals
         UD60x18 amountX18 = ud60x18(amount);
-        // prepare the amount of usdToken that will be minted to the perps engine
-        uint256 amountToMint;
+
+        // prepare the amount of usdToken that will be minted to the perps engine;
+        // initialize to default non-ADL state
+        uint256 amountToMint = amount;
 
         // now we realize the added usd debt of the market
         // note: USD Token is assumed to be 1:1 with the system's usd accounting
@@ -279,21 +281,20 @@ contract CreditDelegationBranch is EngineAccessControl {
             // ADL factor, which must be < 1
             UD60x18 adjustedUsdTokenToMintX18 =
                 market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(amountX18);
+
             amountToMint = adjustedUsdTokenToMintX18.intoUint256();
             market.updateNetUsdTokenIssuance(adjustedUsdTokenToMintX18.intoSD59x18());
         } else {
             // if the market is not in the ADL state, it realizes the full requested USD Token amount
-            amountToMint = amountX18.intoUint256();
             market.updateNetUsdTokenIssuance(amountX18.intoSD59x18());
         }
 
         // loads the market making engine configuration storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
-        // cache the USD Token address
-        UsdToken usdToken = UsdToken(marketMakingEngineConfiguration.usdTokenOfEngine[msg.sender]);
 
-        // mints USD Token to the perps engine
+        // mint USD Token to the perps engine
+        UsdToken usdToken = UsdToken(marketMakingEngineConfiguration.usdTokenOfEngine[msg.sender]);
         usdToken.mint(msg.sender, amountToMint);
 
         // emit an event
