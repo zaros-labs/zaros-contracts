@@ -188,17 +188,15 @@ contract CreditDelegationBranch is EngineAccessControl {
         onlyRegisteredEngine
     {
         if (amount == 0) revert Errors.ZeroInput("amount");
-        // loads the collateral's data storage pointer
-        Collateral.Data storage collateral = Collateral.load(collateralType);
 
-        // reverts if collateral isn't supported
+        // loads the collateral's data storage pointer, must be enabled
+        Collateral.Data storage collateral = Collateral.load(collateralType);
         collateral.verifyIsEnabled();
 
-        // loads the market's data storage pointer
+        // loads the market's data storage pointer, must have delegated credit so
+        // engine is not depositing credit to an empty distribution (with 0 total shares)
+        // although this should never happen if the system functions properly.
         Market.Data storage market = Market.loadLive(marketId);
-
-        // ensures that the market has delegated credit, so the engine is not depositing credit to an empty
-        // distribution (with 0 total shares), although this should never happen if the system functions properly.
         if (market.getTotalDelegatedCreditUsd().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
