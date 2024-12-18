@@ -395,9 +395,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         // first, we need to update the credit capacity of the vaults
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
+        // working data, cache usdc address
         SettleVaultDebtContext memory ctx;
-
-        // cache the usdc address
         ctx.usdc = MarketMakingEngineConfiguration.load().usdc;
 
         // load the usdc collateral data storage pointer
@@ -407,23 +406,19 @@ contract CreditDelegationBranch is EngineAccessControl {
             // load the vault storage pointer
             Vault.Data storage vault = Vault.loadExisting(vaultsIds[i].toUint128());
 
-            // cache the vault's unsettled debt
+            // cache the vault's unsettled debt, if zero skip to next vault
             ctx.vaultUnsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
+            if (ctx.vaultUnsettledRealizedDebtUsdX18.isZero()) continue;
 
-            // cache the vault asset
+            // otherwise vault has debt to be settled, cache the vault's collateral asset
             ctx.vaultAsset = vault.collateral.asset;
 
-            if (ctx.vaultUnsettledRealizedDebtUsdX18.isZero()) {
-                // proceed to the next vault if the vault has no debt that needs to be settled
-                continue;
-            } else if (ctx.vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)) {
-                // vault asset -> USDC
-                // if the vault is in debt, it will swap its assets to USDC
+            // loads the dex swap strategy data storage pointer
+            DexSwapStrategy.Data storage dexSwapStrategy =
+                DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
 
-                // loads the dex swap strategy data storage pointer
-                DexSwapStrategy.Data storage dexSwapStrategy =
-                    DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
-
+            // if the vault is in debt, swap its assets to USDC
+            if (ctx.vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)) {
                 // get swap amount
                 ctx.swapAmount = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
@@ -445,6 +440,10 @@ contract CreditDelegationBranch is EngineAccessControl {
                     address(this)
                 );
 
+                // sanity check to ensure we didn't somehow give away the input tokens
+                if(ctx.usdcOut == 0) revert Errors.ZeroOutputTokens();
+
+                // uint256 -> udc60x18
                 ctx.usdcOutX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcOut);
 
                 // use the amount of usdc bought with assets to update the vault's state
@@ -466,13 +465,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // since we're handling debt, we provide a positive value
                 ctx.settledDebt = ctx.usdcOut.toInt256();
             } else {
-                // USDC -> vault asset
-                // if the vault is in credit, it will swap its USDC previously accumulated from markets' and vaults'
-                // deposits to its underlying assets
-
-                // loads the dex swap strategy data storage pointer
-                DexSwapStrategy.Data storage dexSwapStrategy =
-                    DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
+                // else vault is in credit, swap its USDC previously accumulated
+                // from market and vault deposits into its underlying asset
 
                 // get swap amount
                 ctx.usdcIn = calculateSwapAmount(
@@ -501,6 +495,9 @@ contract CreditDelegationBranch is EngineAccessControl {
                     vault.swapStrategy.assetDexSwapPath,
                     vault.indexToken
                 );
+
+                // sanity check to ensure we didn't somehow give away the input tokens
+                if(ctx.assetOutAmount == 0) revert Errors.ZeroOutputTokens();
 
                 // use the amount of usdc swapped for assets to update the vault's state
 
