@@ -303,6 +303,11 @@ contract CreditDelegationBranch is EngineAccessControl {
                 REGISTERED SYSTEM KEEPERS ONLY PROTECTED FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    // get around stack too deep
+    struct ConvertMarketsCreditDepositsToUsdcContext {
+        uint256 creditDepositsNativeDecimals;
+    }
+
     /// @notice Converts assets deposited as credit to a given market for USDC.
     /// @dev USDC accumulated by swaps is stored at markets, and later pushed to its connected vaults in order to
     /// cover an engine's usd token.
@@ -331,27 +336,32 @@ contract CreditDelegationBranch is EngineAccessControl {
         // load the market's data storage pointer
         Market.Data storage market = Market.loadExisting(marketId);
 
+        // working area
+        ConvertMarketsCreditDepositsToUsdcContext memory ctx;
+
         for (uint256 i; i < assets.length; i++) {
             // revert if the market hasn't received any fees for the given asset
             (bool exists, uint256 creditDeposits) = market.creditDeposits.tryGet(assets[i]);
             if (!exists) revert Errors.MarketDoesNotContainTheAsset(assets[i]);
             if (creditDeposits == 0) revert Errors.AssetAmountIsZero(assets[i]);
 
-            // assets deposited as credit uint256 -> UD60x18
-            UD60x18 assetAmountX18 = ud60x18(creditDeposits);
+            // cache usdc address
+            address usdc = MarketMakingEngineConfiguration.load().usdc;
+
+            // creditDeposits in 18 decimals so convert to native token decimals
+            ctx.creditDepositsNativeDecimals =
+                Collateral.load(assets[i]).convertUd60x18ToTokenAmount(ud60x18(creditDeposits));
 
             // convert the assets to USDC
-            uint256 usdcOut =
-                _convertAssetsToUsdc(dexSwapStrategyIds[i], assets[i], assetAmountX18, paths[i], address(this));
+            uint256 usdcOut = _convertAssetsToUsdc(
+                dexSwapStrategyIds[i], assets[i], ctx.creditDepositsNativeDecimals, paths[i], address(this), usdc
+            );
 
             // sanity check to ensure we didn't somehow give away the input tokens
             if (usdcOut == 0) revert Errors.ZeroOutputTokens();
 
-            // load the usdc collateral data storage pointer
-            Collateral.Data storage usdcCollateral = Collateral.load(MarketMakingEngineConfiguration.load().usdc);
-
             // settles the credit deposit for the amount of USDC received (uint256 -> UD60x18)
-            market.settleCreditDeposit(assets[i], usdcCollateral.convertTokenAmountToUd60x18(usdcOut));
+            market.settleCreditDeposit(assets[i], Collateral.load(usdc).convertTokenAmountToUd60x18(usdcOut));
 
             // emit an event
             emit LogConvertMarketCreditDepositsToUsdc(marketId, assets[i], creditDeposits, usdcOut);
@@ -368,7 +378,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 assetOutAmount;
         int256 settledDebt;
         uint256 swapAmount;
-        UD60x18 swapAmountX18;
         uint256 usdcOut;
         UD60x18 usdcOutX18;
         uint256 usdcIn;
@@ -426,16 +435,14 @@ contract CreditDelegationBranch is EngineAccessControl {
                     ctx.usdc
                 );
 
-                // uint256 -> UD60x18
-                ctx.swapAmountX18 = Collateral.load(ctx.vaultAsset).convertTokenAmountToUd60x18(ctx.swapAmount);
-
                 // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
                 ctx.usdcOut = _convertAssetsToUsdc(
                     vault.swapStrategy.usdcDexSwapStrategyId,
                     ctx.vaultAsset,
-                    ctx.swapAmountX18,
+                    ctx.swapAmount,
                     vault.swapStrategy.usdcDexSwapPath,
-                    address(this)
+                    address(this),
+                    ctx.usdc
                 );
 
                 // sanity check to ensure we didn't somehow give away the input tokens
@@ -711,27 +718,24 @@ contract CreditDelegationBranch is EngineAccessControl {
                                    INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @param assetAmount in native token decimals
     function _convertAssetsToUsdc(
         uint128 dexSwapStrategyId,
         address asset,
-        UD60x18 assetAmountX18,
+        uint256 assetAmount,
         bytes memory path,
-        address recipient
+        address recipient,
+        address usdc
     )
         internal
         returns (uint256 usdcOut)
     {
         // revert if the amount is zero
-        if (assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
+        if (assetAmount == 0) revert Errors.AssetAmountIsZero(asset);
 
         // cache the usdc address
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
-        address usdc = marketMakingEngineConfiguration.usdc;
-
-        // convert the stored assets decimals from 18 to the underlying token decimals
-        Collateral.Data storage assetCollateralConfig = Collateral.load(asset);
-        uint256 assetAmount = assetCollateralConfig.convertUd60x18ToTokenAmount(assetAmountX18);
 
         // if the asset being handled is usdc, simply add it to `usdcOut`
         if (asset == usdc) {
