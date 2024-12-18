@@ -113,7 +113,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         Market.Data storage market = Market.loadExisting(marketId);
 
         return Market.getCreditCapacityUsd(
-            market.getTotalDelegatedCreditUsd(), market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd())
+            market.getTotalDelegatedCreditUsd(), market.getTotalDebt()
         );
     }
 
@@ -135,10 +135,10 @@ contract CreditDelegationBranch is EngineAccessControl {
         view
         returns (UD60x18 adjustedProfitUsdX18)
     {
-        // load the market's data storage pointer
+        // load the market's data storage pointer & cache total debt
         Market.Data storage market = Market.loadLive(marketId);
-        // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd());
+        SD59x18 marketTotalDebtUsdX18 = market.getTotalDebt();
+
         // uint256 -> UD60x18
         UD60x18 profitUsdX18 = ud60x18(profitUsd);
 
@@ -253,24 +253,14 @@ contract CreditDelegationBranch is EngineAccessControl {
         // market
         Vault.recalculateVaultsCreditCapacity(connectedVaults);
 
-        // caches the market's unrealized debt
-        SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
-        // caches the market's realized debt
-        // note: we'll never need to rehydrate the market's credit deposits value cache here as its connected vauls'
-        // credit capacities have just been updated above, performing all required debt state transitions of this
-        // market as a side effect
-        SD59x18 realizedUsdTokenDebtX18 = market.getRealizedDebtUsd();
-
-        // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedUsdTokenDebtX18);
-
-        // cache the market's delegated credit
+        // cache the market's total debt and delegated credit
+        SD59x18 marketTotalDebtUsdX18 = market.getTotalDebt();
         UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
 
-        // cache the market's credit capacity
+        // calculate the market's credit capacity
         SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(delegatedCreditUsdX18, marketTotalDebtUsdX18);
 
-        // enforces that the market has enough credit capacity, if it' a listed market it must always have some
+        // enforces that the market has enough credit capacity, if it's a listed market it must always have some
         // delegated credit, see Vault.Data.lockedCreditRatio.
         // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
         // capacity to cover USD Token mint requests. Deleverage happens when the perps engine calls
@@ -278,8 +268,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         // NOTE: however, it still is possible to fall into a scenario where the credit capacity is <= 0, as the
         // delegated credit may be provided in form of volatile collateral assets, which could go down in value as
         // debt reaches its ceiling. In that case, the market will run out of mintable USD Token and the mm engine
-        // must
-        // settle all outstanding debt for USDC, in order to keep previously paid USD Token fully backed.
+        // must settle all outstanding debt for USDC, in order to keep previously paid USD Token fully backed.
         if (creditCapacityUsdX18.lt(SD59x18_ZERO)) {
             revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
