@@ -139,31 +139,26 @@ contract CreditDelegationBranch is EngineAccessControl {
         Market.Data storage market = Market.loadLive(marketId);
         SD59x18 marketTotalDebtUsdX18 = market.getTotalDebt();
 
-        // uint256 -> UD60x18
-        UD60x18 profitUsdX18 = ud60x18(profitUsd);
+        // uint256 -> UD60x18; output default case when market not in Auto Deleverage state 
+        adjustedProfitUsdX18 = ud60x18(profitUsd);
 
-        // caches the market's delegated credit
+        // caches the market's delegated credit & credit capacity
         UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
-        // caches the market's credit capacity
         SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(delegatedCreditUsdX18, marketTotalDebtUsdX18);
 
-        // if the credit capacity is less than or equal to zero, it means the total debt has already taken all the
-        // delegated credit
+        // if the credit capacity is less than or equal to zero then
+        // the total debt has already taken all the delegated credit
         if (creditCapacityUsdX18.lte(SD59x18_ZERO)) {
             revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
 
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
         // NOTE: If we don't return the adjusted profit in this if branch, we assume marketTotalDebtUsdX18 is positive
-        if (!market.isAutoDeleverageTriggered(delegatedCreditUsdX18, marketTotalDebtUsdX18)) {
-            // if the market is not in the ADL state, it returns the profit as is
-            adjustedProfitUsdX18 = profitUsdX18;
-            return adjustedProfitUsdX18;
+        if (market.isAutoDeleverageTriggered(delegatedCreditUsdX18, marketTotalDebtUsdX18)) {
+            // if the market's auto deleverage system is triggered, it assumes marketTotalDebtUsdX18 > 0
+            adjustedProfitUsdX18 =
+                market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(adjustedProfitUsdX18);
         }
-
-        // if the market's auto deleverage system is triggered, it assumes marketTotalDebtUsdX18 > 0
-        adjustedProfitUsdX18 =
-            market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(profitUsdX18);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
