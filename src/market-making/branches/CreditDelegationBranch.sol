@@ -112,9 +112,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     function getCreditCapacityForMarketId(uint128 marketId) public view returns (SD59x18) {
         Market.Data storage market = Market.loadExisting(marketId);
 
-        return Market.getCreditCapacityUsd(
-            market.getTotalDelegatedCreditUsd(), market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd())
-        );
+        return Market.getCreditCapacityUsd(market.getTotalDelegatedCreditUsd(), market.getTotalDebt());
     }
 
     /// @notice Returns the adjusted profit of an active position at the given market id, considering the market's ADL
@@ -135,35 +133,30 @@ contract CreditDelegationBranch is EngineAccessControl {
         view
         returns (UD60x18 adjustedProfitUsdX18)
     {
-        // load the market's data storage pointer
+        // load the market's data storage pointer & cache total debt
         Market.Data storage market = Market.loadLive(marketId);
-        // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = market.getUnrealizedDebtUsd().add(market.getRealizedDebtUsd());
-        // uint256 -> UD60x18
-        UD60x18 profitUsdX18 = ud60x18(profitUsd);
+        SD59x18 marketTotalDebtUsdX18 = market.getTotalDebt();
 
-        // caches the market's delegated credit
+        // uint256 -> UD60x18; output default case when market not in Auto Deleverage state
+        adjustedProfitUsdX18 = ud60x18(profitUsd);
+
+        // caches the market's delegated credit & credit capacity
         UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
-        // caches the market's credit capacity
         SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(delegatedCreditUsdX18, marketTotalDebtUsdX18);
 
-        // if the credit capacity is less than or equal to zero, it means the total debt has already taken all the
-        // delegated credit
+        // if the credit capacity is less than or equal to zero then
+        // the total debt has already taken all the delegated credit
         if (creditCapacityUsdX18.lte(SD59x18_ZERO)) {
             revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
 
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
         // NOTE: If we don't return the adjusted profit in this if branch, we assume marketTotalDebtUsdX18 is positive
-        if (!market.isAutoDeleverageTriggered(delegatedCreditUsdX18, marketTotalDebtUsdX18)) {
-            // if the market is not in the ADL state, it returns the profit as is
-            adjustedProfitUsdX18 = profitUsdX18;
-            return adjustedProfitUsdX18;
+        if (market.isAutoDeleverageTriggered(delegatedCreditUsdX18, marketTotalDebtUsdX18)) {
+            // if the market's auto deleverage system is triggered, it assumes marketTotalDebtUsdX18 > 0
+            adjustedProfitUsdX18 =
+                market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(adjustedProfitUsdX18);
         }
-
-        // if the market's auto deleverage system is triggered, it assumes marketTotalDebtUsdX18 > 0
-        adjustedProfitUsdX18 =
-            market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(profitUsdX18);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -193,17 +186,15 @@ contract CreditDelegationBranch is EngineAccessControl {
         onlyRegisteredEngine
     {
         if (amount == 0) revert Errors.ZeroInput("amount");
-        // loads the collateral's data storage pointer
-        Collateral.Data storage collateral = Collateral.load(collateralType);
 
-        // reverts if collateral isn't supported
+        // loads the collateral's data storage pointer, must be enabled
+        Collateral.Data storage collateral = Collateral.load(collateralType);
         collateral.verifyIsEnabled();
 
-        // loads the market's data storage pointer
+        // loads the market's data storage pointer, must have delegated credit so
+        // engine is not depositing credit to an empty distribution (with 0 total shares)
+        // although this should never happen if the system functions properly.
         Market.Data storage market = Market.loadLive(marketId);
-
-        // ensures that the market has delegated credit, so the engine is not depositing credit to an empty
-        // distribution (with 0 total shares), although this should never happen if the system functions properly.
         if (market.getTotalDelegatedCreditUsd().isZero()) {
             revert Errors.NoDelegatedCredit(marketId);
         }
@@ -249,28 +240,18 @@ contract CreditDelegationBranch is EngineAccessControl {
         // load the market's connected vaults ids and `mstore` them
         uint256[] memory connectedVaults = market.getConnectedVaultsIds();
 
-        // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
-        // market
+        // once the unrealized debt is distributed update credit delegated
+        // by these vaults to the market
         Vault.recalculateVaultsCreditCapacity(connectedVaults);
 
-        // caches the market's unrealized debt
-        SD59x18 unrealizedDebtUsdX18 = market.getUnrealizedDebtUsd();
-        // caches the market's realized debt
-        // note: we'll never need to rehydrate the market's credit deposits value cache here as its connected vauls'
-        // credit capacities have just been updated above, performing all required debt state transitions of this
-        // market as a side effect
-        SD59x18 realizedUsdTokenDebtX18 = market.getRealizedDebtUsd();
-
-        // cache the market's total debt
-        SD59x18 marketTotalDebtUsdX18 = unrealizedDebtUsdX18.add(realizedUsdTokenDebtX18);
-
-        // cache the market's delegated credit
+        // cache the market's total debt and delegated credit
+        SD59x18 marketTotalDebtUsdX18 = market.getTotalDebt();
         UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
 
-        // cache the market's credit capacity
+        // calculate the market's credit capacity
         SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(delegatedCreditUsdX18, marketTotalDebtUsdX18);
 
-        // enforces that the market has enough credit capacity, if it' a listed market it must always have some
+        // enforces that the market has enough credit capacity, if it's a listed market it must always have some
         // delegated credit, see Vault.Data.lockedCreditRatio.
         // NOTE: additionally, the ADL system if functioning properly must ensure that the market always has credit
         // capacity to cover USD Token mint requests. Deleverage happens when the perps engine calls
@@ -278,8 +259,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         // NOTE: however, it still is possible to fall into a scenario where the credit capacity is <= 0, as the
         // delegated credit may be provided in form of volatile collateral assets, which could go down in value as
         // debt reaches its ceiling. In that case, the market will run out of mintable USD Token and the mm engine
-        // must
-        // settle all outstanding debt for USDC, in order to keep previously paid USD Token fully backed.
+        // must settle all outstanding debt for USDC, in order to keep previously paid USD Token fully backed.
         if (creditCapacityUsdX18.lt(SD59x18_ZERO)) {
             revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
@@ -287,8 +267,10 @@ contract CreditDelegationBranch is EngineAccessControl {
         // uint256 -> UD60x18
         // NOTE: we don't need to scale decimals here as it's known that USD Token has 18 decimals
         UD60x18 amountX18 = ud60x18(amount);
-        // prepare the amount of usdToken that will be minted to the perps engine
-        uint256 amountToMint;
+
+        // prepare the amount of usdToken that will be minted to the perps engine;
+        // initialize to default non-ADL state
+        uint256 amountToMint = amount;
 
         // now we realize the added usd debt of the market
         // note: USD Token is assumed to be 1:1 with the system's usd accounting
@@ -297,21 +279,20 @@ contract CreditDelegationBranch is EngineAccessControl {
             // ADL factor, which must be < 1
             UD60x18 adjustedUsdTokenToMintX18 =
                 market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(amountX18);
+
             amountToMint = adjustedUsdTokenToMintX18.intoUint256();
             market.updateNetUsdTokenIssuance(adjustedUsdTokenToMintX18.intoSD59x18());
         } else {
             // if the market is not in the ADL state, it realizes the full requested USD Token amount
-            amountToMint = amountX18.intoUint256();
             market.updateNetUsdTokenIssuance(amountX18.intoSD59x18());
         }
 
         // loads the market making engine configuration storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
-        // cache the USD Token address
-        UsdToken usdToken = UsdToken(marketMakingEngineConfiguration.usdTokenOfEngine[msg.sender]);
 
-        // mints USD Token to the perps engine
+        // mint USD Token to the perps engine
+        UsdToken usdToken = UsdToken(marketMakingEngineConfiguration.usdTokenOfEngine[msg.sender]);
         usdToken.mint(msg.sender, amountToMint);
 
         // emit an event
@@ -321,6 +302,11 @@ contract CreditDelegationBranch is EngineAccessControl {
     /*//////////////////////////////////////////////////////////////////////////
                 REGISTERED SYSTEM KEEPERS ONLY PROTECTED FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
+
+    // get around stack too deep
+    struct ConvertMarketsCreditDepositsToUsdcContext {
+        uint256 creditDepositsNativeDecimals;
+    }
 
     /// @notice Converts assets deposited as credit to a given market for USDC.
     /// @dev USDC accumulated by swaps is stored at markets, and later pushed to its connected vaults in order to
@@ -350,24 +336,32 @@ contract CreditDelegationBranch is EngineAccessControl {
         // load the market's data storage pointer
         Market.Data storage market = Market.loadExisting(marketId);
 
+        // working area
+        ConvertMarketsCreditDepositsToUsdcContext memory ctx;
+
         for (uint256 i; i < assets.length; i++) {
             // revert if the market hasn't received any fees for the given asset
             (bool exists, uint256 creditDeposits) = market.creditDeposits.tryGet(assets[i]);
             if (!exists) revert Errors.MarketDoesNotContainTheAsset(assets[i]);
             if (creditDeposits == 0) revert Errors.AssetAmountIsZero(assets[i]);
 
-            // assets deposited as credit uint256 -> UD60x18
-            UD60x18 assetAmountX18 = ud60x18(creditDeposits);
+            // cache usdc address
+            address usdc = MarketMakingEngineConfiguration.load().usdc;
+
+            // creditDeposits in 18 decimals so convert to native token decimals
+            ctx.creditDepositsNativeDecimals =
+                Collateral.load(assets[i]).convertUd60x18ToTokenAmount(ud60x18(creditDeposits));
 
             // convert the assets to USDC
-            uint256 usdcOut =
-                _convertAssetsToUsdc(dexSwapStrategyIds[i], assets[i], assetAmountX18, paths[i], address(this));
+            uint256 usdcOut = _convertAssetsToUsdc(
+                dexSwapStrategyIds[i], assets[i], ctx.creditDepositsNativeDecimals, paths[i], address(this), usdc
+            );
 
-            // load the usdc collateral data storage pointer
-            Collateral.Data storage usdcCollateral = Collateral.load(MarketMakingEngineConfiguration.load().usdc);
+            // sanity check to ensure we didn't somehow give away the input tokens
+            if (usdcOut == 0) revert Errors.ZeroOutputTokens();
 
             // settles the credit deposit for the amount of USDC received (uint256 -> UD60x18)
-            market.settleCreditDeposit(assets[i], usdcCollateral.convertTokenAmountToUd60x18(usdcOut));
+            market.settleCreditDeposit(assets[i], Collateral.load(usdc).convertTokenAmountToUd60x18(usdcOut));
 
             // emit an event
             emit LogConvertMarketCreditDepositsToUsdc(marketId, assets[i], creditDeposits, usdcOut);
@@ -384,7 +378,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 assetOutAmount;
         int256 settledDebt;
         uint256 swapAmount;
-        UD60x18 swapAmountX18;
         uint256 usdcOut;
         UD60x18 usdcOutX18;
         uint256 usdcIn;
@@ -409,9 +402,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         // first, we need to update the credit capacity of the vaults
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
+        // working data, cache usdc address
         SettleVaultDebtContext memory ctx;
-
-        // cache the usdc address
         ctx.usdc = MarketMakingEngineConfiguration.load().usdc;
 
         // load the usdc collateral data storage pointer
@@ -421,23 +413,19 @@ contract CreditDelegationBranch is EngineAccessControl {
             // load the vault storage pointer
             Vault.Data storage vault = Vault.loadExisting(vaultsIds[i].toUint128());
 
-            // cache the vault's unsettled debt
+            // cache the vault's unsettled debt, if zero skip to next vault
             ctx.vaultUnsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
+            if (ctx.vaultUnsettledRealizedDebtUsdX18.isZero()) continue;
 
-            // cache the vault asset
+            // otherwise vault has debt to be settled, cache the vault's collateral asset
             ctx.vaultAsset = vault.collateral.asset;
 
-            if (ctx.vaultUnsettledRealizedDebtUsdX18.isZero()) {
-                // proceed to the next vault if the vault has no debt that needs to be settled
-                continue;
-            } else if (ctx.vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)) {
-                // vault asset -> USDC
-                // if the vault is in debt, it will swap its assets to USDC
+            // loads the dex swap strategy data storage pointer
+            DexSwapStrategy.Data storage dexSwapStrategy =
+                DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
 
-                // loads the dex swap strategy data storage pointer
-                DexSwapStrategy.Data storage dexSwapStrategy =
-                    DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
-
+            // if the vault is in debt, swap its assets to USDC
+            if (ctx.vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)) {
                 // get swap amount
                 ctx.swapAmount = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
@@ -447,18 +435,20 @@ contract CreditDelegationBranch is EngineAccessControl {
                     ctx.usdc
                 );
 
-                // uint256 -> UD60x18
-                ctx.swapAmountX18 = Collateral.load(ctx.vaultAsset).convertTokenAmountToUd60x18(ctx.swapAmount);
-
                 // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
                 ctx.usdcOut = _convertAssetsToUsdc(
                     vault.swapStrategy.usdcDexSwapStrategyId,
                     ctx.vaultAsset,
-                    ctx.swapAmountX18,
+                    ctx.swapAmount,
                     vault.swapStrategy.usdcDexSwapPath,
-                    address(this)
+                    address(this),
+                    ctx.usdc
                 );
 
+                // sanity check to ensure we didn't somehow give away the input tokens
+                if (ctx.usdcOut == 0) revert Errors.ZeroOutputTokens();
+
+                // uint256 -> udc60x18
                 ctx.usdcOutX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcOut);
 
                 // use the amount of usdc bought with assets to update the vault's state
@@ -480,13 +470,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // since we're handling debt, we provide a positive value
                 ctx.settledDebt = ctx.usdcOut.toInt256();
             } else {
-                // USDC -> vault asset
-                // if the vault is in credit, it will swap its USDC previously accumulated from markets' and vaults'
-                // deposits to its underlying assets
-
-                // loads the dex swap strategy data storage pointer
-                DexSwapStrategy.Data storage dexSwapStrategy =
-                    DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
+                // else vault is in credit, swap its USDC previously accumulated
+                // from market and vault deposits into its underlying asset
 
                 // get swap amount
                 ctx.usdcIn = calculateSwapAmount(
@@ -513,8 +498,12 @@ contract CreditDelegationBranch is EngineAccessControl {
                     ctx.vaultAsset,
                     ctx.usdcInX18,
                     vault.swapStrategy.assetDexSwapPath,
-                    vault.indexToken
+                    vault.indexToken,
+                    ctx.usdc
                 );
+
+                // sanity check to ensure we didn't somehow give away the input tokens
+                if (ctx.assetOutAmount == 0) revert Errors.ZeroOutputTokens();
 
                 // use the amount of usdc swapped for assets to update the vault's state
 
@@ -699,16 +688,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @notice Updates the credit delegations from ZLP Vaults to the given market id.
     /// @dev Must be called whenever an engine needs to know the current credit capacity of a given market id.
     function updateMarketCreditDelegations(uint128 marketId) public {
-        // todo test
-        // load the market's data storage pointer
-        Market.Data storage market = Market.loadLive(marketId);
-
-        // load the market's connected vaults ids and `mstore` them
-        uint256[] memory connectedVaults = market.getConnectedVaultsIds();
-
-        // once the unrealized debt is distributed, we need to update the credit delegated by these vaults to the
-        // market
-        Vault.recalculateVaultsCreditCapacity(connectedVaults);
+        Vault.recalculateVaultsCreditCapacity(Market.loadLive(marketId).getConnectedVaultsIds());
     }
 
     /// @notice Called by a registered to update a market's credit delegations and return its credit capacity.
@@ -739,40 +719,31 @@ contract CreditDelegationBranch is EngineAccessControl {
                                    INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @param assetAmount in native token decimals
     function _convertAssetsToUsdc(
         uint128 dexSwapStrategyId,
         address asset,
-        UD60x18 assetAmountX18,
+        uint256 assetAmount,
         bytes memory path,
-        address recipient
+        address recipient,
+        address usdc
     )
         internal
         returns (uint256 usdcOut)
     {
         // revert if the amount is zero
-        if (assetAmountX18.isZero()) revert Errors.AssetAmountIsZero(asset);
-
-        // load the market making engine configuration storage pointer
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-
-        // load the asset collateral data storage pointer
-        Collateral.Data storage assetCollateralConfig = Collateral.load(asset);
-
-        // convert the stored assets decimals from 18 to the underlying token decimals
-        uint256 assetAmount = assetCollateralConfig.convertUd60x18ToTokenAmount(assetAmountX18);
+        if (assetAmount == 0) revert Errors.AssetAmountIsZero(asset);
 
         // cache the usdc address
-        address usdc = marketMakingEngineConfiguration.usdc;
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
 
         // if the asset being handled is usdc, simply add it to `usdcOut`
         if (asset == usdc) {
             usdcOut = assetAmount;
         } else {
-            // loads the dex swap strategy data storage pointer
-            DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
-
             // approve the asset to be spent by the dex adapter contract
+            DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
             IERC20(asset).approve(dexSwapStrategy.dexAdapter, assetAmount);
 
             // verify if the swap should be input single or multihop
@@ -828,7 +799,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         address asset,
         UD60x18 usdcAmountX18,
         bytes memory path,
-        address recipient
+        address recipient,
+        address usdc
     )
         internal
         returns (uint256 assetOut)
@@ -836,9 +808,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         // load the market making engine configuration storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
             MarketMakingEngineConfiguration.load();
-
-        // cache the usdc address
-        address usdc = marketMakingEngineConfiguration.usdc;
 
         // revert if the amount is zero
         if (usdcAmountX18.isZero()) revert Errors.AssetAmountIsZero(usdc);

@@ -260,6 +260,14 @@ library Market {
             // to market
     }
 
+    /// @notice Returns the market's total debt which is a combination of
+    /// realized and unrealized debt
+    /// @param self The market storage pointer.
+    /// @return totalDebtUsdX18 The market's total debt position
+    function getTotalDebt(Data storage self) internal view returns (SD59x18 totalDebtUsdX18) {
+        totalDebtUsdX18 = getUnrealizedDebtUsd(self).add(getRealizedDebtUsd(self));
+    }
+
     /// @notice Calculates the latest debt, usdc credit and weth reward values a vault is entitled to receive from the
     /// market since its last accumulation event.
     /// @param self The market storage pointer.
