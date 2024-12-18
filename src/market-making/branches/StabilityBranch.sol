@@ -236,7 +236,6 @@ contract StabilityBranch is EngineAccessControl {
         // cache additional common fields
         ctx.collateralPriceX18 = currentVault.collateral.getPrice();
         ctx.maxExecTime = uint120(tokenSwapData.maxExecutionTime);
-        ctx.usdTokenOfEngine = IERC20(configuration.usdTokenOfEngine[currentVault.engine]);
         ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(ctx.initialVaultIndexToken);
 
         for (uint256 i; i < amountsIn.length; i++) {
@@ -269,6 +268,7 @@ contract StabilityBranch is EngineAccessControl {
             }
 
             // transfer USD: user => address(this) - burned in fulfillSwap
+            ctx.usdTokenOfEngine = IERC20(configuration.usdTokenOfEngine[currentVault.engine]);
             ctx.usdTokenOfEngine.safeTransferFrom(msg.sender, address(this), amountsIn[i]);
 
             // get next request id for user
