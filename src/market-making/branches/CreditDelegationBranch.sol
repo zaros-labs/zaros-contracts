@@ -346,6 +346,9 @@ contract CreditDelegationBranch is EngineAccessControl {
             uint256 usdcOut =
                 _convertAssetsToUsdc(dexSwapStrategyIds[i], assets[i], assetAmountX18, paths[i], address(this));
 
+            // sanity check to ensure we didn't somehow give away the input tokens
+            if(usdcOut == 0) revert Errors.ZeroOutputTokens();
+
             // load the usdc collateral data storage pointer
             Collateral.Data storage usdcCollateral = Collateral.load(MarketMakingEngineConfiguration.load().usdc);
 
