@@ -214,13 +214,13 @@ library Market {
     /// @param self The market storage pointer.
     /// @return creditDepositsValueUsdX18 The 18 decimals, USD value of all credit deposits summed.
     function getCreditDepositsValueUsd(Data storage self) internal view returns (UD60x18 creditDepositsValueUsdX18) {
-        // load the map of credit deposits' pointer
+        // load the map of credit deposits and cache length
         EnumerableMap.AddressToUintMap storage creditDeposits = self.creditDeposits;
+        uint256 creditDepositsLength = creditDeposits.length();
 
-        for (uint256 i; i < creditDeposits.length(); i++) {
-            // load the credit deposit data
+        for (uint256 i; i < creditDepositsLength; i++) {
+            // load each credit deposit data & associated collateral
             (address asset, uint256 value) = creditDeposits.at(i);
-            // load the configured collateral type storage pointer
             Collateral.Data storage collateral = Collateral.load(asset);
 
             // update the total credit deposits value
