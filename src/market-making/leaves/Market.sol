@@ -155,9 +155,9 @@ library Market {
     {
         SD59x18 sdDelegatedCreditUsdX18 = delegatedCreditUsdX18.intoSD59x18();
         if (sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()) {
-            autoDeleverageFactorX18 = UD60x18_UNIT;
-            return autoDeleverageFactorX18;
+            return UD60x18_UNIT;
         }
+
         // calculates the market ratio
         UD60x18 marketDebtRatio = totalDebtUsdX18.div(sdDelegatedCreditUsdX18).intoUD60x18();
 
