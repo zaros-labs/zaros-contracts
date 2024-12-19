@@ -246,8 +246,7 @@ library Market {
 
         // finally after determining the market's latest credit deposits usd value, sum it with the stored net usd
         // token issuance to return the net realized debt usd value
-        realizedDebtUsdX18 =
-            realizedDebtUsdX18.add(creditDepositsValueUsdX18.intoSD59x18()).add(sd59x18(self.netUsdTokenIssuance));
+        realizedDebtUsdX18 = creditDepositsValueUsdX18.intoSD59x18().add(sd59x18(self.netUsdTokenIssuance));
     }
 
     /// @notice Returns the market's total unrealized debt in USD.
