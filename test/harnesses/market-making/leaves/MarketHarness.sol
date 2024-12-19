@@ -86,7 +86,11 @@ contract MarketHarness {
         return market.creditDeposits.get(asset);
     }
 
-    function workaround_getCreditDepositsValueUsd(uint128 marketId) external view returns (uint256 creditDepositsValueUsd) {
+    function workaround_getCreditDepositsValueUsd(uint128 marketId)
+        external
+        view
+        returns (uint256 creditDepositsValueUsd)
+    {
         Market.Data storage market = Market.load(marketId);
         creditDepositsValueUsd = market.getCreditDepositsValueUsd().intoUint256();
     }

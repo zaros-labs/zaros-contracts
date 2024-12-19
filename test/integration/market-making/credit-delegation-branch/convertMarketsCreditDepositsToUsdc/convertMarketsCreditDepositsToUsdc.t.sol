@@ -151,9 +151,7 @@ contract CreditDelegationBranch_ConvertMarketsCreditDepositsToUsdc_Integration_T
         // verify that the deposited amount is stored internally using 18 decimals
         uint256 internalDepositAmount =
             marketMakingEngine.workaround_getMarketCreditDeposit(fuzzMarketConfig.marketId, address(wBtc));
-        assertEq(
-            internalDepositAmount,
-            depositAmount * 10 ** (Constants.SYSTEM_DECIMALS - wbtcCollateral.decimals));
+        assertEq(internalDepositAmount, depositAmount * 10 ** (Constants.SYSTEM_DECIMALS - wbtcCollateral.decimals));
 
         uint256 expectedAmountOut = dexAdapter.getExpectedOutput(address(wBtc), address(usdc), depositAmount);
         uint256 usdcOut = dexAdapter.calculateAmountOutMin(expectedAmountOut);
