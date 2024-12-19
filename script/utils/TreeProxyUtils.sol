@@ -631,7 +631,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     distributionHarnessSelectors[2] = DistributionHarness.exposed_accumulateActor.selector;
     distributionHarnessSelectors[3] = DistributionHarness.exposed_getActorValueChange.selector;
 
-    bytes4[] memory marketHarnessSelectors = new bytes4[](13);
+    bytes4[] memory marketHarnessSelectors = new bytes4[](14);
     marketHarnessSelectors[0] = MarketHarness.workaround_getMarketId.selector;
     marketHarnessSelectors[1] = MarketHarness.workaround_setMarketId.selector;
     marketHarnessSelectors[2] = MarketHarness.workaround_getReceivedMarketFees.selector;
@@ -644,7 +644,8 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketHarnessSelectors[9] = MarketHarness.workaround_getAutoDeleveragePowerScale.selector;
     marketHarnessSelectors[10] = MarketHarness.workaround_updateMarketTotalDelegatedCreditUsd.selector;
     marketHarnessSelectors[11] = MarketHarness.workaround_getMarketCreditDeposit.selector;
-    marketHarnessSelectors[12] = MarketHarness.workaround_getCreditDepositsValueUsd.selector;
+    marketHarnessSelectors[12] = MarketHarness.workaround_getTotalDelegatedCreditUsd.selector;
+    marketHarnessSelectors[13] = MarketHarness.workaround_getTotalMarketDebt.selector;
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](7);
     marketMakingEngineConfigurationSelectors[0] =

@@ -8,6 +8,10 @@ import { Market, UD60x18 } from "@zaros/market-making/leaves/Market.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
+// PRBMath dependencies
+import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+
 contract MarketHarness {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -93,5 +97,13 @@ contract MarketHarness {
     {
         Market.Data storage market = Market.load(marketId);
         creditDepositsValueUsd = market.getCreditDepositsValueUsd().intoUint256();
+    }
+
+    function workaround_getTotalDelegatedCreditUsd(uint128 marketId) external view returns (UD60x18 delegatedCreditUsdX18) {
+        delegatedCreditUsdX18 = Market.load(marketId).getTotalDelegatedCreditUsd();
+    }
+
+    function workaround_getTotalMarketDebt(uint128 marketId) external view returns (SD59x18 totalDebtUsdX18) {
+        totalDebtUsdX18 = Market.load(marketId).getTotalDebt();
     }
 }
