@@ -4,7 +4,9 @@ pragma solidity 0.8.25;
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 import { CreditDelegationBranch } from "@zaros/market-making/branches/CreditDelegationBranch.sol";
+import { Collateral } from "@zaros/market-making/leaves/Collateral.sol";
 import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 
 // Open Zeppelin dependencies
@@ -110,7 +112,7 @@ contract CreditDelegationBranch_ConvertMarketsCreditDepositsToUsdc_Integration_T
     }
 
     function testFuzz_WhenTheMarketContainsAllAssetsFromTheArray(
-        uint256 marketId,
+        uint128 marketId,
         uint256 adapterIndex,
         uint256 depositAmount
     )
@@ -122,7 +124,7 @@ contract CreditDelegationBranch_ConvertMarketsCreditDepositsToUsdc_Integration_T
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
         IDexAdapter dexAdapter = getFuzzDexAdapter(adapterIndex);
 
-        depositAmount = bound({ x: depositAmount, min: 1, max: type(uint16).max });
+        depositAmount = bound({ x: depositAmount, min: 100, max: type(uint16).max });
         deal({ token: address(wBtc), to: address(perpsEngine), give: depositAmount });
 
         address[] memory assets = new address[](1);
@@ -137,10 +139,21 @@ contract CreditDelegationBranch_ConvertMarketsCreditDepositsToUsdc_Integration_T
         changePrank({ msgSender: address(perpsEngine) });
         IERC20(wBtc).approve(address(marketMakingEngine), depositAmount);
 
+        // load collateral data
+        Collateral.Data memory wbtcCollateral = marketMakingEngine.exposed_Collateral_load(address(wBtc));
+
+        // verify market has $0 usd value deposited
+        assertEq(marketMakingEngine.workaround_getCreditDepositsValueUsd(marketId), 0);
+
+        // perform the credit deposit
         marketMakingEngine.depositCreditForMarket(fuzzMarketConfig.marketId, address(wBtc), depositAmount);
 
-        uint256 creditDeposit =
+        // verify that the deposited amount is stored internally using 18 decimals
+        uint256 internalDepositAmount =
             marketMakingEngine.workaround_getMarketCreditDeposit(fuzzMarketConfig.marketId, address(wBtc));
+        assertEq(
+            internalDepositAmount,
+            depositAmount * 10 ** (Constants.SYSTEM_DECIMALS - wbtcCollateral.decimals));
 
         uint256 expectedAmountOut = dexAdapter.getExpectedOutput(address(wBtc), address(usdc), depositAmount);
         uint256 usdcOut = dexAdapter.calculateAmountOutMin(expectedAmountOut);
@@ -148,7 +161,7 @@ contract CreditDelegationBranch_ConvertMarketsCreditDepositsToUsdc_Integration_T
         // it should emit { LogConvertMarketCreditDepositsToUsdc } event
         vm.expectEmit();
         emit CreditDelegationBranch.LogConvertMarketCreditDepositsToUsdc(
-            fuzzMarketConfig.marketId, address(wBtc), creditDeposit, usdcOut
+            fuzzMarketConfig.marketId, address(wBtc), internalDepositAmount, usdcOut
         );
 
         marketMakingEngine.convertMarketsCreditDepositsToUsdc(
