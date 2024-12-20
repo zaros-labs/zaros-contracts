@@ -90,8 +90,8 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
     /// @notice Get the expected output amount
     /// @param tokenIn The token in address
     /// @param tokenOut The token out address
-    /// @param amountIn The amount int address
-    /// @return expectedAmountOut The expected amount out
+    /// @param amountIn The input amount in native precision of tokenIn
+    /// @return expectedAmountOut The expected amount out in native precision of tokenOut
     function getExpectedOutput(
         address tokenIn,
         address tokenOut,
@@ -104,16 +104,14 @@ abstract contract BaseAdapter is UUPSUpgradeable, OwnableUpgradeable, ISwapAsset
         // fail fast for zero input
         if (amountIn == 0) revert Errors.ZeroExpectedSwapOutput();
 
-        // get the price of the tokenIn
+        // get token prices
         UD60x18 priceTokenInX18 = IPriceAdapter(swapAssetConfigData[tokenIn].priceAdapter).getPrice();
-
-        // get the price of the tokenOut
         UD60x18 priceTokenOutX18 = IPriceAdapter(swapAssetConfigData[tokenOut].priceAdapter).getPrice();
 
-        // convert the amount in to UD60x18
+        // convert input amount from native to internal zaros precision
         UD60x18 amountInX18 = Math.convertTokenAmountToUd60x18(swapAssetConfigData[tokenIn].decimals, amountIn);
 
-        // calculate the expected amount out
+        // calculate the expected amount out in native precision of output token
         expectedAmountOut = Math.convertUd60x18ToTokenAmount(
             swapAssetConfigData[tokenOut].decimals, amountInX18.mul(priceTokenInX18).div(priceTokenOutX18)
         );
