@@ -381,7 +381,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 usdcOut;
         UD60x18 usdcOutX18;
         uint256 usdcIn;
-        UD60x18 usdcInX18;
         uint256 vaultUsdcBalance;
     }
 
