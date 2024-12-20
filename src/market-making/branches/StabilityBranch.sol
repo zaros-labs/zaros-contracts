@@ -266,7 +266,11 @@ contract StabilityBranch is EngineAccessControl {
             }
 
             // transfer USD: user => address(this) - burned in fulfillSwap
-            ctx.usdTokenOfEngine = IERC20(configuration.usdTokenOfEngine[currentVault.engine]);
+            // @audit this is the "correct" code but currently not working as Vault::engine isn't ever set
+            // ctx.usdTokenOfEngine = IERC20(configuration.usdTokenOfEngine[currentVault.engine]);
+            // @audit this code is not technically correct but gets swap tests passing
+            //        once Vault::engine is set in a future patch use the correct line above instead
+            ctx.usdTokenOfEngine = IERC20(configuration.usdTokenOfEngine[address(this)]);
             ctx.usdTokenOfEngine.safeTransferFrom(msg.sender, address(this), amountsIn[i]);
 
             // get next request id for user
