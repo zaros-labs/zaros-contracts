@@ -441,6 +441,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 );
 
                 // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
+                // both input and output in native precision
                 //
                 // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
                 // if this occurs, should `vault.marketsRealizedDebtUsd` and
@@ -458,19 +459,22 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // sanity check to ensure we didn't somehow give away the input tokens
                 if (ctx.usdcOut == 0) revert Errors.ZeroOutputTokens();
 
-                // uint256 -> udc60x18
+                // uint256 -> udc60x18 scaling native precision to zaros internal precision
                 ctx.usdcOutX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcOut);
 
                 // use the amount of usdc bought with assets to update the vault's state
-
+                // note: storage updates must be done using zaros internal precision
+                //
                 // deduct the amount of usdc swapped for assets from the vault's unsettled debt
                 vault.marketsRealizedDebtUsd -= ctx.usdcOutX18.intoUint256().toInt256().toInt128();
 
-                // load the usd token swap config
-                UsdTokenSwapConfig.Data storage usdTokenSwapConfig = UsdTokenSwapConfig.load();
-
                 // allocate the usdc acquired to back the engine's usd token
-                usdTokenSwapConfig.usdcAvailableForEngine[vault.engine] += ctx.usdcOutX18.intoUint256();
+                //
+                // @audit rg "usdcAvailableForEngine" inside /src/ folder shows this is the only
+                // place that references UsdTokenSwapConfig::usdcAvailableForEngine - this field
+                // is only ever increased and never decreased anywhere or used anywhere else?
+                // What is the point of this / is this correct?
+                UsdTokenSwapConfig.load().usdcAvailableForEngine[vault.engine] += ctx.usdcOutX18.intoUint256();
 
                 // update the variables to be logged
                 ctx.assetIn = ctx.vaultAsset;
@@ -498,15 +502,16 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // make sure we compare native precision values together and output native precision
                 ctx.usdcIn = (ctx.usdcIn <= ctx.vaultUsdcBalance) ? ctx.usdcIn : ctx.vaultUsdcBalance;
 
-                // swaps the vault's usdc balance to more vault assets and send them to the ZLP Vault contract (index
-                // token address)
+                // swaps the vault's usdc balance to more vault assets and
+                // send them to the ZLP Vault contract (index token address)
+                // both input and output in native precision
                 //
                 // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
                 // if this occurs, should `vault.depositedUsdc` still be updated and the event emitted?
                 ctx.assetOutAmount = _convertUsdcToAssets(
                     vault.swapStrategy.assetDexSwapStrategyId,
                     ctx.vaultAsset,
-                    ctx.usdcIn, // passing native precision
+                    ctx.usdcIn,
                     vault.swapStrategy.assetDexSwapPath,
                     vault.indexToken,
                     ctx.usdc
@@ -516,7 +521,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                 if (ctx.assetOutAmount == 0) revert Errors.ZeroOutputTokens();
 
                 // subtract the usdc amount used to buy vault assets from the vault's deposited usdc, thus, settling
-                // the due credit amount (partially or fully). Updating with 18 decimal precision.
+                // the due credit amount (partially or fully).
+                // note: storage updates must be done using zaros internal precision
                 vault.depositedUsdc -= usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcIn).intoUint128();
 
                 // update the variables to be logged
@@ -733,7 +739,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                                    INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @param assetAmount in native token decimals
+    /// @param assetAmount in native precision of asset token
+    /// @return usdcOut in native usdc precision
     function _convertAssetsToUsdc(
         uint128 dexSwapStrategyId,
         address asset,
