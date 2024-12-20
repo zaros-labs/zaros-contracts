@@ -83,17 +83,15 @@ contract StabilityBranch is EngineAccessControl {
         view
         returns (UsdTokenSwapConfig.SwapRequest memory request)
     {
-        UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
-
-        request = tokenSwapData.swapRequests[caller][requestId];
+        request = UsdTokenSwapConfig.load().swapRequests[caller][requestId];
     }
 
     /// @notice Calculates the amount of assets to be received in a swap based on the input USD amount, its current
     /// price and the premium or discount to be applied.
     /// @dev This function assumes that checks for the vault's liveness or existence state are performed in the parent
     /// context if needed.
-    /// @param usdAmountInX18 The amount of USD tokens to be swapped in 18-decimal fixed-point format (UD60x18).
-    /// @param indexPriceX18 The price of the collateral asset in 18-decimal fixed-point format (UD60x18).
+    /// @param usdAmountInX18 The amount of USD tokens to be swapped in zaros internal precision
+    /// @param indexPriceX18 The price of the collateral asset in zaros internal precision
     /// @return amountOutX18 The amount of assets to be received using in the ERC20's decimals, calculated from the
     /// input USD amount and its price.
     function getAmountOfAssetOut(
@@ -116,14 +114,11 @@ contract StabilityBranch is EngineAccessControl {
         // we use the vault's net sum of all debt types coming from its connected markets to determine the swap rate
         SD59x18 vaultDebtUsdX18 = vault.getTotalDebt();
 
-        // fetch the usd token swap config's storage pointer
-        UsdTokenSwapConfig.Data storage usdTokenSwapConfig = UsdTokenSwapConfig.load();
-
         // calculate the premium or discount that may be applied to the vault asset's index price
-        // note: if no premium or discount needs to be applied, the premiumDiscountFactorX18 will be 1e18 (UD60x18
-        // one value)
+        // note: if no premium or discount needs to be applied, the premiumDiscountFactorX18 will be
+        // 1e18 (UD60x18 one value)
         UD60x18 premiumDiscountFactorX18 =
-            usdTokenSwapConfig.getPremiumDiscountFactor(vaultAssetsUsdX18, vaultDebtUsdX18);
+            UsdTokenSwapConfig.load().getPremiumDiscountFactor(vaultAssetsUsdX18, vaultDebtUsdX18);
 
         // get amounts out taking into consideration the CL price and the premium/discount
         amountOutX18 = usdAmountInX18.div(indexPriceX18).mul(premiumDiscountFactorX18);
@@ -192,7 +187,7 @@ contract StabilityBranch is EngineAccessControl {
 
     /// @notice Initiates multiple (or one) USD token swap requests for the specified vaults and amounts.
     /// @param vaultIds An array of vault IDs from which to take assets.
-    /// @param amountsIn An array of USD token amounts to be swapped from the user.
+    /// @param amountsIn An array of USD token amounts to be swapped from the user in zaros internal precision
     /// @param minAmountsOut An array of minimum acceptable amounts of collateral the user expects to receive for each
     /// swap.
     /// @dev Swap is fulfilled by a registered keeper.
@@ -234,8 +229,10 @@ contract StabilityBranch is EngineAccessControl {
         UsdTokenSwapConfig.Data storage tokenSwapData = UsdTokenSwapConfig.load();
 
         // cache additional common fields
+        // ctx.collateralPriceX18 in zaros internal precision
         ctx.collateralPriceX18 = currentVault.collateral.getPrice();
         ctx.maxExecTime = uint120(tokenSwapData.maxExecutionTime);
+        // ctx.vaultAssetBalance in native precision of ctx.initialVaultCollateralAsset
         ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(ctx.initialVaultIndexToken);
 
         for (uint256 i; i < amountsIn.length; i++) {
@@ -248,11 +245,12 @@ contract StabilityBranch is EngineAccessControl {
                     revert Errors.VaultsCollateralAssetsMismatch();
                 }
 
-                // refresh current vault balance
+                // refresh current vault balance in native precision of ctx.initialVaultCollateralAsset
                 ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(currentVault.indexToken);
             }
 
             // cache the expected amount of assets acquired with the provided parameters
+            // amountsIn[i] and ctx.collateralPriceX18 using zaros internal precision
             ctx.expectedAssetOut =
                 getAmountOfAssetOut(vaultIds[i], ud60x18(amountsIn[i]), ctx.collateralPriceX18).intoUint256();
 
