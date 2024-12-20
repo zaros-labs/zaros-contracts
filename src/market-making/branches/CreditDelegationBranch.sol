@@ -663,11 +663,9 @@ contract CreditDelegationBranch is EngineAccessControl {
             Collateral.load(usdc).convertSd59x18ToTokenAmount(depositAmountUsdX18)
         );
 
-        // transfer assets from vault to market making engine
-        IERC20(ctx.inDebtVaultCollateralAsset).transferFrom(inDebtVault.indexToken, address(this), assetInputNative);
-
         // prepare the data for executing the swap asset -> usdc
-        SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
+        SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
+            path: inDebtVault.swapStrategy.usdcDexSwapPath,
             tokenIn: ctx.inDebtVaultCollateralAsset,
             tokenOut: usdc,
             amountIn: assetInputNative,
@@ -676,7 +674,7 @@ contract CreditDelegationBranch is EngineAccessControl {
 
         // approve the collateral token to the dex adapter and swap assets for USDC
         IERC20(ctx.inDebtVaultCollateralAsset).approve(ctx.dexAdapter, assetInputNative);
-        dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
+        dexSwapStrategy.executeSwapExactInput(swapCallData);
 
         // SD59x18 -> uint128 using zaros internal precision
         uint128 usdDelta = depositAmountUsdX18.intoUint256().toUint128();
