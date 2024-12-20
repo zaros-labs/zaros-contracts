@@ -436,6 +436,10 @@ contract CreditDelegationBranch is EngineAccessControl {
                 );
 
                 // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
+                //
+                // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
+                // if this occurs, should `vault.marketsRealizedDebtUsd` and `usdTokenSwapConfig.usdcAvailableForEngine[vault.engine]`
+                // still be updated and the event emitted?
                 ctx.usdcOut = _convertAssetsToUsdc(
                     vault.swapStrategy.usdcDexSwapStrategyId,
                     ctx.vaultAsset,
@@ -473,7 +477,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // else vault is in credit, swap its USDC previously accumulated
                 // from market and vault deposits into its underlying asset
 
-                // get swap amount
+                // get swap amount in native precision
                 ctx.usdcIn = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
                     ctx.usdc,
@@ -482,21 +486,22 @@ contract CreditDelegationBranch is EngineAccessControl {
                     ctx.usdc
                 );
 
-                // get deposited USDC balance of the vault
-                ctx.vaultUsdcBalance = vault.depositedUsdc;
+                // get deposited USDC balance of the vault, convert to native precision
+                ctx.vaultUsdcBalance = usdcCollateralConfig.convertUd60x18ToTokenAmount(ud60x18(vault.depositedUsdc));
 
                 // if the vault doesn't have enough usdc use whatever amount it has
+                // make sure we compare native precision values together and output native precision
                 ctx.usdcIn = (ctx.usdcIn <= ctx.vaultUsdcBalance) ? ctx.usdcIn : ctx.vaultUsdcBalance;
-
-                // convert the usdc amount to UD60x18 using 18 decimals
-                ctx.usdcInX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcIn);
 
                 // swaps the vault's usdc balance to more vault assets and send them to the ZLP Vault contract (index
                 // token address)
+                //
+                // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
+                // if this occurs, should `vault.depositedUsdc` still be updated and the event emitted?
                 ctx.assetOutAmount = _convertUsdcToAssets(
                     vault.swapStrategy.assetDexSwapStrategyId,
                     ctx.vaultAsset,
-                    ctx.usdcInX18,
+                    ctx.usdcIn, // passing native precision
                     vault.swapStrategy.assetDexSwapPath,
                     vault.indexToken,
                     ctx.usdc
@@ -505,11 +510,9 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // sanity check to ensure we didn't somehow give away the input tokens
                 if (ctx.assetOutAmount == 0) revert Errors.ZeroOutputTokens();
 
-                // use the amount of usdc swapped for assets to update the vault's state
-
                 // subtract the usdc amount used to buy vault assets from the vault's deposited usdc, thus, settling
-                // the due credit amount (partially or fully)
-                vault.depositedUsdc -= ctx.usdcInX18.intoUint128();
+                // the due credit amount (partially or fully). Updating with 18 decimal precision.
+                vault.depositedUsdc -= usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcIn).intoUint128();
 
                 // update the variables to be logged
                 ctx.assetIn = ctx.usdc;
@@ -734,11 +737,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         // revert if the amount is zero
         if (assetAmount == 0) revert Errors.AssetAmountIsZero(asset);
 
-        // cache the usdc address
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-
-        // if the asset being handled is usdc, simply add it to `usdcOut`
+        // if the asset being handled is usdc, simply output it to `usdcOut`
         if (asset == usdc) {
             usdcOut = assetAmount;
         } else {
@@ -772,32 +771,36 @@ contract CreditDelegationBranch is EngineAccessControl {
                 usdcOut = dexSwapStrategy.executeSwapExactInput(swapCallData);
             }
 
-            // load the usdc collateral data storage pointer
-            Collateral.Data storage usdcCollateral = Collateral.load(usdc);
+            // load market making config
+            MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+                MarketMakingEngineConfiguration.load();
 
             // cache the settlement base fee value using usdc's native decimals
-            uint256 settlementBaseFeeUsd = usdcCollateral.convertUd60x18ToTokenAmount(
+            uint256 settlementBaseFeeUsd = Collateral.load(usdc).convertUd60x18ToTokenAmount(
                 ud60x18(marketMakingEngineConfiguration.settlementBaseFeeUsdX18)
             );
 
-            // if there isn't enough usdc to conver the base fee, revert
-            // NOTE: keepers must be configured to buy good chunks of usdc at minimum (e.g $500), as the settlement
-            // base fee shouldn't be much greater than $1.
-            if (usdcOut < settlementBaseFeeUsd) {
-                revert Errors.FailedToPaySettlementBaseFee();
+            if (settlementBaseFeeUsd > 0) {
+                // revert if there isn't enough usdc to conver the base fee
+                // NOTE: keepers must be configured to buy good chunks of usdc at minimum (e.g $500)
+                // as the settlement base fee shouldn't be much greater than $1.
+                if (usdcOut < settlementBaseFeeUsd) {
+                    revert Errors.FailedToPaySettlementBaseFee();
+                }
+
+                usdcOut -= settlementBaseFeeUsd;
+
+                // distribute the base fee to protocol fee recipients
+                marketMakingEngineConfiguration.distributeProtocolAssetReward(usdc, settlementBaseFeeUsd);
             }
-
-            usdcOut -= settlementBaseFeeUsd;
-
-            // distribute the base fee to protocol fee recipients
-            marketMakingEngineConfiguration.distributeProtocolAssetReward(usdc, settlementBaseFeeUsd);
         }
     }
 
+    /// @param usdcAmount native precision
     function _convertUsdcToAssets(
         uint128 dexSwapStrategyId,
         address asset,
-        UD60x18 usdcAmountX18,
+        uint256 usdcAmount,
         bytes memory path,
         address recipient,
         address usdc
@@ -805,41 +808,37 @@ contract CreditDelegationBranch is EngineAccessControl {
         internal
         returns (uint256 assetOut)
     {
-        // load the market making engine configuration storage pointer
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-
         // revert if the amount is zero
-        if (usdcAmountX18.isZero()) revert Errors.AssetAmountIsZero(usdc);
+        if (usdcAmount == 0) revert Errors.AssetAmountIsZero(usdc);
 
-        // load the asset collateral data storage pointer
-        Collateral.Data storage assetCollateralConfig = Collateral.load(usdc);
-
-        // convert the stored assets decimals from 18 to the underlying token decimals
-        uint256 usdcAmount = assetCollateralConfig.convertUd60x18ToTokenAmount(usdcAmountX18);
-
-        // load the usdc collateral data storage pointer
-        Collateral.Data storage usdcCollateral = Collateral.load(usdc);
-
-        // cache the settlement base fee value using usdc's native decimals
-        uint256 settlementBaseFeeUsd = usdcCollateral.convertUd60x18ToTokenAmount(
-            ud60x18(marketMakingEngineConfiguration.settlementBaseFeeUsdX18)
-        );
-
-        // if there isn't enough usdc to convert the base fee, revert
-        // NOTE: keepers must be configured to buy good chunks of usdc at minimum (e.g $500), as the settlement
-        // base fee shouldn't be much greater than $1.
-        if (usdcAmount < settlementBaseFeeUsd) {
-            revert Errors.FailedToPaySettlementBaseFee();
-        }
-
-        // subtract fee
-        usdcAmount -= settlementBaseFeeUsd;
-
-        // if the asset being handled is usdc, simply add it to `usdcOut`
+        // if the asset being handled is usdc, output it to `usdcOut`
         if (asset == usdc) {
             assetOut = usdcAmount;
         } else {
+            // load the market making engine configuration storage pointer
+            MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+                MarketMakingEngineConfiguration.load();
+
+            // cache the settlement base fee value using usdc's native decimals
+            uint256 settlementBaseFeeUsd = Collateral.load(usdc).convertUd60x18ToTokenAmount(
+                ud60x18(marketMakingEngineConfiguration.settlementBaseFeeUsdX18)
+            );
+
+            if (settlementBaseFeeUsd > 0) {
+                // revert if there isn't enough usdc to convert the base fee
+                // NOTE: keepers must be configured to buy good chunks of usdc at minimum (e.g $500)
+                // as the settlement base fee shouldn't be much greater than $1.
+                if (usdcAmount < settlementBaseFeeUsd) {
+                    revert Errors.FailedToPaySettlementBaseFee();
+                }
+
+                // subtract fee from usdc input
+                usdcAmount -= settlementBaseFeeUsd;
+
+                // distribute the base fee to protocol fee recipients
+                marketMakingEngineConfiguration.distributeProtocolAssetReward(usdc, settlementBaseFeeUsd);
+            }
+
             // loads the dex swap strategy data storage pointer
             DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
 
@@ -871,9 +870,6 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // swap the credit deposit assets for USDC and store the output amount
                 assetOut = dexSwapStrategy.executeSwapExactInput(swapCallData);
             }
-
-            // distribute the base fee to protocol fee recipients
-            marketMakingEngineConfiguration.distributeProtocolAssetReward(usdc, settlementBaseFeeUsd);
         }
     }
 }
