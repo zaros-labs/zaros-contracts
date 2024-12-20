@@ -31,6 +31,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeCast for uint256;
+    using SafeCast for uint128;
     using SafeCast for int256;
     using SafeERC20 for IERC20;
     using Vault for Vault.Data;
@@ -643,19 +644,21 @@ contract CreditDelegationBranch is EngineAccessControl {
         DexSwapStrategy.Data storage dexSwapStrategy =
             DexSwapStrategy.loadExisting(inDebtVault.swapStrategy.usdcDexSwapStrategyId);
 
-        // load usdc
+        // load usdc address
         address usdc = MarketMakingEngineConfiguration.load().usdc;
 
-        // SD59x18 -> uint256
-        uint256 depositAmountUsdc = Collateral.load(usdc).convertSd59x18ToTokenAmount(depositAmountUsdX18);
-
-        // get collateral asset amount for usd value
+        // cache input asset and dex adapter
         CalculateSwapContext memory ctx;
         ctx.inDebtVaultCollateralAsset = inDebtVault.collateral.asset;
         ctx.dexAdapter = dexSwapStrategy.dexAdapter;
 
-        uint256 depositAmount =
-            IDexAdapter(ctx.dexAdapter).getExpectedOutput(usdc, ctx.inDebtVaultCollateralAsset, depositAmountUsdc);
+        // get collateral asset amount in native precision of ctx.inDebtVaultCollateralAsset
+        uint256 assetInputNative = IDexAdapter(ctx.dexAdapter).getExpectedOutput(
+            usdc,
+            ctx.inDebtVaultCollateralAsset,
+            // convert usdc input to native precision
+            Collateral.load(usdc).convertSd59x18ToTokenAmount(depositAmountUsdX18)
+        );
 
         // transfer assets from vault to market making engine
         IERC20(ctx.inDebtVaultCollateralAsset).transferFrom(inDebtVault.indexToken, address(this), depositAmount);
@@ -664,29 +667,35 @@ contract CreditDelegationBranch is EngineAccessControl {
         SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
             tokenIn: ctx.inDebtVaultCollateralAsset,
             tokenOut: usdc,
-            amountIn: depositAmount,
+            amountIn: assetInputNative,
             recipient: address(this) // deposit the usdc to the market making engine proxy
          });
 
-        // approve the collateral token to the dex adapter
-        IERC20(ctx.inDebtVaultCollateralAsset).approve(ctx.dexAdapter, depositAmount);
+        // approve the collateral token to the dex adapter and swap assets for USDC
+        IERC20(ctx.inDebtVaultCollateralAsset).approve(ctx.dexAdapter, assetInputNative);
+        dexSwapStrategy.executeSwapExactInput(swapCallData);
 
-        // swap the credit deposit assets for USDC
-        dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
+        // SD59x18 -> uint128 using zaros internal precision
+        uint128 usdDelta = depositAmountUsdX18.intoUint256().toUint128();
 
-        // deposits the USDC to the vault in net credit
-        inCreditVault.depositedUsdc += depositAmountUsdc.toUint128();
-        // increase the vault's share of the markets realized debt as it has received the USDC and needs to settle it
-        // in the future
-        inCreditVault.marketsRealizedDebtUsd += depositAmountUsdX18.intoUint256().toInt256().toInt128();
+        // important considerations:
+        // 1) all subsequent storge updates must use zaros internal precision
+        // 2) code implicitly assumes that 1 USD = 1 USDC
+        //
+        // deposits the USDC to the in-credit vault
+        inCreditVault.depositedUsdc += usdDelta;
+        // increase the in-credit vault's share of the markets realized debt
+        // as it has received the USDC and needs to settle it in the future
+        inCreditVault.marketsRealizedDebtUsd += usdDelta.toInt256().toInt128();
 
-        // withdraws the USDC from the vault in net debt
-        inDebtVault.depositedUsdc -= depositAmountUsdc.toUint128();
-        // decrease the vault's share of the markets realized debt as it has transferred USDC to the in credit vault
-        inDebtVault.marketsRealizedDebtUsd -= depositAmountUsdX18.intoUint256().toInt256().toInt128();
+        // withdraws the USDC from the in-debt vault
+        inDebtVault.depositedUsdc -= usdDelta;
+        // decrease the in-debt vault's share of the markets realized debt
+        // as it has transferred USDC to the in-credit vault
+        inDebtVault.marketsRealizedDebtUsd -= usdDelta.toInt256().toInt128();
 
         // emit an event
-        emit LogRebalanceVaultsAssets(vaultsIds[0], vaultsIds[1], depositAmountUsdX18.intoUint256());
+        emit LogRebalanceVaultsAssets(vaultsIds[0], vaultsIds[1], usdDelta);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
