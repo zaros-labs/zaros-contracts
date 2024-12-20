@@ -2,7 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { Market } from "@zaros/market-making/leaves/Market.sol";
+import { Market, UD60x18 } from "@zaros/market-making/leaves/Market.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
@@ -11,6 +11,7 @@ import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 contract MarketHarness {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using EnumerableSet for EnumerableSet.UintSet;
+    using Market for Market.Data;
 
     function workaround_getMarketId(uint128 marketId) external view returns (uint128) {
         Market.Data storage market = Market.load(marketId);
@@ -67,7 +68,7 @@ contract MarketHarness {
 
     function workaround_getAutoDeleveragePowerScale(uint128 marketId) external view returns (uint128) {
         Market.Data storage market = Market.load(marketId);
-        return market.autoDeleverageExpoentZ;
+        return market.autoDeleverageExponentZ;
     }
 
     function workaround_updateMarketTotalDelegatedCreditUsd(
@@ -83,5 +84,14 @@ contract MarketHarness {
     function workaround_getMarketCreditDeposit(uint128 marketId, address asset) external view returns (uint256) {
         Market.Data storage market = Market.load(marketId);
         return market.creditDeposits.get(asset);
+    }
+
+    function workaround_getCreditDepositsValueUsd(uint128 marketId)
+        external
+        view
+        returns (uint256 creditDepositsValueUsd)
+    {
+        Market.Data storage market = Market.load(marketId);
+        creditDepositsValueUsd = market.getCreditDepositsValueUsd().intoUint256();
     }
 }

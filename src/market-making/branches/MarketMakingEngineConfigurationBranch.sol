@@ -510,13 +510,13 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param marketId The market id.
     /// @param autoDeleverageStartThreshold The auto deleverage start threshold.
     /// @param autoDeleverageEndThreshold The auto deleverage end threshold.
-    /// @param autoDeleverageExpoentZ The auto deleverage power scale.
+    /// @param autoDeleverageExponentZ The auto deleverage power scale.
     function configureMarket(
         address engine,
         uint128 marketId,
         uint128 autoDeleverageStartThreshold,
         uint128 autoDeleverageEndThreshold,
-        uint128 autoDeleverageExpoentZ
+        uint128 autoDeleverageExponentZ
     )
         external
         onlyOwner
@@ -534,7 +534,7 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         if (autoDeleverageEndThreshold == 0) revert Errors.ZeroInput("autoDeleverageEndThreshold");
 
         // revert if autoDeleverageExpoentZ is set to zero
-        if (autoDeleverageExpoentZ == 0) revert Errors.ZeroInput("autoDeleverageExpoentZ");
+        if (autoDeleverageExponentZ == 0) revert Errors.ZeroInput("autoDeleverageExponentZ");
 
         // load market data from storage
         Market.Data storage market = Market.load(marketId);
@@ -544,11 +544,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         market.id = marketId;
         market.autoDeleverageStartThreshold = autoDeleverageStartThreshold;
         market.autoDeleverageEndThreshold = autoDeleverageEndThreshold;
-        market.autoDeleverageExpoentZ = autoDeleverageExpoentZ;
+        market.autoDeleverageExponentZ = autoDeleverageExponentZ;
 
         // emit event LogConfigureMarket
         emit LogConfigureMarket(
-            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExpoentZ
+            engine, marketId, autoDeleverageStartThreshold, autoDeleverageEndThreshold, autoDeleverageExponentZ
         );
     }
 
