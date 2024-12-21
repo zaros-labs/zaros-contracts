@@ -22,7 +22,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
-import { console2 } from "forge-std/console2.sol";
+
 /// @dev This contract deals with USDC to settle protocol debt, used to back USD Token
 contract CreditDelegationBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
@@ -433,7 +433,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                     ctx.vaultUnsettledRealizedDebtUsdX18,
                     ctx.usdc
                 );
-                console2.log("vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)");
+
                 // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
                 //
                 // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
@@ -762,7 +762,6 @@ contract CreditDelegationBranch is EngineAccessControl {
 
                 // swap the credit deposit assets for USDC and store the output amount
                 usdcOut = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
-                console2.log("usdcOut: ", usdcOut);
             } else {
                 // prepare the data for executing the swap
                 SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
@@ -786,8 +785,6 @@ contract CreditDelegationBranch is EngineAccessControl {
                 ud60x18(marketMakingEngineConfiguration.settlementBaseFeeUsdX18)
             );
 
-            console2.log("settlementBaseFeeUsd: ", settlementBaseFeeUsd);
-
             if (settlementBaseFeeUsd > 0) {
                 // revert if there isn't enough usdc to cover the base fee
                 // NOTE: keepers must be configured to buy good chunks of usdc at minimum (e.g $500)
@@ -797,7 +794,6 @@ contract CreditDelegationBranch is EngineAccessControl {
                 }
 
                 usdcOut -= settlementBaseFeeUsd;
-                console2.log("usdcOut after fee: ", usdcOut);
 
                 // distribute the base fee to protocol fee recipients
                 marketMakingEngineConfiguration.distributeProtocolAssetReward(usdc, settlementBaseFeeUsd);
