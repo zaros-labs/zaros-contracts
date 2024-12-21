@@ -89,7 +89,6 @@ contract CurveAdapter is BaseAdapter {
         // Calculate the minimum acceptable output based on the slippage tolerance
         uint256 amountOutMinimum = calculateAmountOutMin(expectedAmountOut);
 
-        
         return ICurveSwapRouter(curveStrategyRouterCache).exchange_with_best_rate({
             _from: swapPayload.tokenIn,
             _to: swapPayload.tokenOut,

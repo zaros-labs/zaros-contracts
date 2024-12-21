@@ -99,7 +99,11 @@ contract MarketHarness {
         creditDepositsValueUsd = market.getCreditDepositsValueUsd().intoUint256();
     }
 
-    function workaround_getTotalDelegatedCreditUsd(uint128 marketId) external view returns (UD60x18 delegatedCreditUsdX18) {
+    function workaround_getTotalDelegatedCreditUsd(uint128 marketId)
+        external
+        view
+        returns (UD60x18 delegatedCreditUsdX18)
+    {
         delegatedCreditUsdX18 = Market.load(marketId).getTotalDelegatedCreditUsd();
     }
 
