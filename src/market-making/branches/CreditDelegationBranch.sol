@@ -137,9 +137,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         Market.Data storage market = Market.loadLive(marketId);
         SD59x18 marketTotalDebtUsdX18 = market.getTotalDebt();
 
-        // uint256 -> UD60x18; output default case when market not in Auto Deleverage state
-        adjustedProfitUsdX18 = ud60x18(profitUsd);
-
         // caches the market's delegated credit & credit capacity
         UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
         SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(delegatedCreditUsdX18, marketTotalDebtUsdX18);
@@ -149,6 +146,9 @@ contract CreditDelegationBranch is EngineAccessControl {
         if (creditCapacityUsdX18.lte(SD59x18_ZERO)) {
             revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
+
+        // uint256 -> UD60x18; output default case when market not in Auto Deleverage state
+        adjustedProfitUsdX18 = ud60x18(profitUsd);
 
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
         // NOTE: If we don't return the adjusted profit in this if branch, we assume marketTotalDebtUsdX18 is positive
