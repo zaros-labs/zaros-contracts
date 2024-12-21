@@ -22,7 +22,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
-
+import { console2 } from "forge-std/console2.sol";
 /// @dev This contract deals with USDC to settle protocol debt, used to back USD Token
 contract CreditDelegationBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
@@ -398,7 +398,6 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// allocates the USDC acquired in case of a debt settlement to the engine's USD Token accordingly.
     /// @param vaultsIds The vaults' identifiers to settle.
     function settleVaultsDebt(uint256[] calldata vaultsIds) external onlyRegisteredSystemKeepers {
-        // todo test
         // first, we need to update the credit capacity of the vaults
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
@@ -434,7 +433,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                     ctx.vaultUnsettledRealizedDebtUsdX18,
                     ctx.usdc
                 );
-
+                console2.log("vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)");
                 // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
                 //
                 // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
@@ -453,13 +452,13 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // sanity check to ensure we didn't somehow give away the input tokens
                 if (ctx.usdcOut == 0) revert Errors.ZeroOutputTokens();
 
-                // uint256 -> udc60x18
+                // uint256 -> ud60x18
                 ctx.usdcOutX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcOut);
 
                 // use the amount of usdc bought with assets to update the vault's state
 
-                // deduct the amount of usdc swapped for assets from the vault's unsettled debt
-                vault.marketsRealizedDebtUsd -= ctx.usdcOutX18.intoUint256().toInt256().toInt128();
+                // add the amount of usdc swapped swapped from assets to the vault's unsettled debt
+                vault.marketsRealizedDebtUsd += ctx.usdcOutX18.intoUint256().toInt256().toInt128();
 
                 // load the usd token swap config
                 UsdTokenSwapConfig.Data storage usdTokenSwapConfig = UsdTokenSwapConfig.load();
@@ -477,8 +476,8 @@ contract CreditDelegationBranch is EngineAccessControl {
             } else {
                 // else vault is in credit, swap its USDC previously accumulated
                 // from market and vault deposits into its underlying asset
-
-                // get swap amount in native precision
+                console2.log("vaultUnsettledRealizedDebtUsdX18.gt(SD59x18_ZERO)");
+                // get swap amount
                 ctx.usdcIn = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
                     ctx.usdc,
@@ -493,6 +492,12 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // if the vault doesn't have enough usdc use whatever amount it has
                 // make sure we compare native precision values together and output native precision
                 ctx.usdcIn = (ctx.usdcIn <= ctx.vaultUsdcBalance) ? ctx.usdcIn : ctx.vaultUsdcBalance;
+
+                // uint256 -> ud60x18
+                ctx.usdcInX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcIn);
+
+                // deduct the amount of usdc swapped for assets from the vault's unsettled debt
+                vault.marketsRealizedDebtUsd -= ctx.usdcInX18.intoUint256().toInt256().toInt128();
 
                 // swaps the vault's usdc balance to more vault assets and send them to the ZLP Vault contract (index
                 // token address)
@@ -702,7 +707,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         external
         returns (SD59x18 creditCapacity)
     {
-        // todo: tests
         updateMarketCreditDelegations(marketId);
         creditCapacity = getCreditCapacityForMarketId(marketId);
     }
@@ -758,6 +762,7 @@ contract CreditDelegationBranch is EngineAccessControl {
 
                 // swap the credit deposit assets for USDC and store the output amount
                 usdcOut = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
+                console2.log("usdcOut: ", usdcOut);
             } else {
                 // prepare the data for executing the swap
                 SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
@@ -781,8 +786,10 @@ contract CreditDelegationBranch is EngineAccessControl {
                 ud60x18(marketMakingEngineConfiguration.settlementBaseFeeUsdX18)
             );
 
+            console2.log("settlementBaseFeeUsd: ", settlementBaseFeeUsd);
+
             if (settlementBaseFeeUsd > 0) {
-                // revert if there isn't enough usdc to conver the base fee
+                // revert if there isn't enough usdc to cover the base fee
                 // NOTE: keepers must be configured to buy good chunks of usdc at minimum (e.g $500)
                 // as the settlement base fee shouldn't be much greater than $1.
                 if (usdcOut < settlementBaseFeeUsd) {
@@ -790,6 +797,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 }
 
                 usdcOut -= settlementBaseFeeUsd;
+                console2.log("usdcOut after fee: ", usdcOut);
 
                 // distribute the base fee to protocol fee recipients
                 marketMakingEngineConfiguration.distributeProtocolAssetReward(usdc, settlementBaseFeeUsd);
@@ -844,7 +852,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
 
             // approve the asset to be spent by the dex adapter contract
-            IERC20(asset).approve(dexSwapStrategy.dexAdapter, usdcAmount);
+            IERC20(usdc).approve(dexSwapStrategy.dexAdapter, usdcAmount);
 
             // verify if the swap should be input single or multihop
             if (path.length == 0) {

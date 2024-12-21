@@ -710,6 +710,24 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         baseFeeUsd = data.baseFeeUsd;
     }
 
+    /// @notice Retrieves the amount of USD tokens available for a specific engine.
+    /// @param engine The address of the engine for which the available USD tokens are being retrieved.
+    /// @return The amount of USD tokens available for the specified engine.
+    function getUsdTokenAvailableForEngine(address engine) external view returns (uint256) {
+        UsdTokenSwapConfig.Data storage data = UsdTokenSwapConfig.load();
+
+        return data.usdcAvailableForEngine[engine];
+    }
+
+    /// @notice Sets the engine for a specific vault.
+    /// @param vaultId The ID of the vault for which the engine is being set.
+    /// @param engine The address of the engine to be associated with the specified vault.
+    function setVaultEngine(uint128 vaultId, address engine) external onlyOwner {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+
+        vaultData.engine = engine;
+    }
+
     /// @notice Retrieves the collateral data for a given asset.
     /// @param asset The address of the asset for which the collateral data is being retrieved.
     /// @return data The collateral data associated with the specified asset.

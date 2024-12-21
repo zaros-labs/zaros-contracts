@@ -17,7 +17,6 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
-import { console2 } from "forge-std/console2.sol";
 
 /// @dev NOTE: each market's realized debt must always be distributed as unsettledRealizedDebt to vaults following the
 /// Debt Distribution System.
@@ -113,7 +112,7 @@ library Vault {
     }
 
     /// @notice Parameters required to create a new vault.
-    /// @param depositFee The despoit fee for the vault.
+    /// @param depositFee The deposit fee for the vault.
     /// @param redeemFee The redeem fee for the vault.
     /// @param vaultId The unique identifier for the vault to be created.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
@@ -369,7 +368,6 @@ library Vault {
         for (uint256 i; i < vaultsIds.length; i++) {
             // uint256 -> uint128
             uint128 vaultId = vaultsIds[i].toUint128();
-        console2.log("vaultId: ", vaultId);
 
             // load the vault storage pointer
             Data storage self = load(vaultId);

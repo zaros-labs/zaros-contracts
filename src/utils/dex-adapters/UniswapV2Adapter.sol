@@ -13,7 +13,7 @@ import { Path } from "@zaros/utils/libraries/Path.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
-
+import { console2 } from "forge-std/console2.sol";
 /// @notice Uniswap V2 adapter contract
 contract UniswapV2Adapter is BaseAdapter {
     using Path for bytes;
@@ -85,14 +85,16 @@ contract UniswapV2Adapter is BaseAdapter {
 
         // get the expected output amount
         uint256 expectedAmountOut = getExpectedOutput(swapPayload.tokenIn, swapPayload.tokenOut, swapPayload.amountIn);
-
+        console2.log("expectedAmountOut: ", expectedAmountOut);
         // Calculate the minimum acceptable output based on the slippage tolerance
         uint256 amountOutMinimum = calculateAmountOutMin(expectedAmountOut);
+        console2.log("amountOutMinimum: ", amountOutMinimum);
 
         address[] memory path = new address[](2);
         path[0] = swapPayload.tokenIn;
         path[1] = swapPayload.tokenOut;
 
+        console2.log("before mock router swap");
         uint256[] memory amountsOut = IUniswapV2Router02(uniswapV2SwapStrategyRouterCache).swapExactTokensForTokens({
             amountIn: swapPayload.amountIn,
             amountOutMin: amountOutMinimum,
@@ -101,6 +103,7 @@ contract UniswapV2Adapter is BaseAdapter {
             deadline: deadline
         });
 
+        console2.log("hereeee");
         return amountsOut[1];
     }
 

@@ -147,7 +147,7 @@ contract Unstake_Integration_Test is Base_Test {
             "Staker pending rewards have doubled!"
         );
 
-        // thirduser makes a deposit, triggers a call to `Vault.recalculateVaultsCreditCapacity`
+        // third user makes a deposit, triggers a call to `Vault.recalculateVaultsCreditCapacity`
         fundUserAndDepositInVault(users.sakura.account, vaultId, assetsToDeposit);
 
         // original staker's pending rewards increased again, they are 3x + 2 the original amount
