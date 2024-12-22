@@ -88,7 +88,6 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
     }
 
     function testFuzz_RevertWhen_TheMarketIsNotLive(
-        uint256 marketId,
         uint256 amount,
         uint256 vaultId
     )

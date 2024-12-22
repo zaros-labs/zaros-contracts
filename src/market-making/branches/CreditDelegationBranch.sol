@@ -260,7 +260,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         // delegated credit may be provided in form of volatile collateral assets, which could go down in value as
         // debt reaches its ceiling. In that case, the market will run out of mintable USD Token and the mm engine
         // must settle all outstanding debt for USDC, in order to keep previously paid USD Token fully backed.
-        if (creditCapacityUsdX18.lt(SD59x18_ZERO)) {
+        if (creditCapacityUsdX18.lte(SD59x18_ZERO)) {
             revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
 
