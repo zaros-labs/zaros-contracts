@@ -14,5 +14,5 @@ CreditDelegationBranch_DepositCreditForMarket_Integration_Test
                 ├── when the total delegated credit usd is zero
                 │   └── it should revert
                 └── when the total delegated credit usd is greater than zero
-                    ├── it should depoit credit for market
+                    ├── it should deposit credit for market
                     └── it should emit {LogDepositCreditForMarket} event
