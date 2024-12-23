@@ -438,7 +438,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
                 //
                 // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
-                // if this occurs, should `vault.marketsRealizedDebtUsd` and `usdTokenSwapConfig.usdcAvailableForEngine[vault.engine]`
+                // if this occurs, should `vault.marketsRealizedDebtUsd` and
+                // `usdTokenSwapConfig.usdcAvailableForEngine[vault.engine]`
                 // still be updated and the event emitted?
                 ctx.usdcOut = _convertAssetsToUsdc(
                     vault.swapStrategy.usdcDexSwapStrategyId,

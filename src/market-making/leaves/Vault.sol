@@ -118,6 +118,7 @@ library Vault {
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @param indexToken The address of the index token used in the vault.
+    /// @param engine The address of the engine
     /// @param collateral The collateral asset data associated with the vault.
     struct CreateParams {
         uint256 depositFee;
@@ -126,6 +127,7 @@ library Vault {
         uint128 depositCap;
         uint128 withdrawalDelay;
         address indexToken;
+        address engine;
         Collateral.Data collateral;
     }
 
@@ -467,6 +469,7 @@ library Vault {
         self.collateral = params.collateral;
         self.depositFee = params.depositFee;
         self.redeemFee = params.redeemFee;
+        self.engine = params.engine;
         self.isLive = true;
     }
 

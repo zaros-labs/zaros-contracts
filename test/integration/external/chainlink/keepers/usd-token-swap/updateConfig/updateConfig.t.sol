@@ -10,7 +10,7 @@ contract UsdTokenSwapKeeper_UpdateConfig_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
         marketMakingEngine.configureEngine(address(marketMakingEngine), address(usdToken), true);
         changePrank({ msgSender: users.naruto.account });
     }

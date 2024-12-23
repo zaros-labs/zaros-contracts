@@ -11,4 +11,5 @@ abstract contract WBtcDegenVault {
     uint256 internal constant WBTC_DEGEN_VAULT_CREDIT_RATIO = 2e18;
     uint256 internal constant WBTC_DEGEN_VAULT_DEPOSIT_FEE = 0.01e18;
     uint256 internal constant WBTC_DEGEN_VAULT_REDEEM_FEE = 0.05e18;
+    address internal constant WBTC_DEGEN_VAULT_ENGINE = address(0x123);
 }

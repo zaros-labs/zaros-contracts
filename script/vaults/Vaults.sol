@@ -81,6 +81,7 @@ abstract contract Vaults is
         VaultTypes vaultType;
         string streamIdString;
         bytes32 streamId;
+        address engine;
     }
 
     /// @notice Vault configurations mapped by vault id.
@@ -141,7 +142,8 @@ abstract contract Vaults is
             streamIdString: USDC_USD_STREAM_ID_STRING,
             streamId: USDC_USD_STREAM_ID,
             depositFee: USDC_CORE_VAULT_DEPOSIT_FEE,
-            redeemFee: USDC_CORE_VAULT_REDEEM_FEE
+            redeemFee: USDC_CORE_VAULT_REDEEM_FEE,
+            engine: USDC_CORE_VAULT_ENGINE
         });
         vaultsConfig[USDC_CORE_VAULT_ID] = usdcCore;
 
@@ -160,7 +162,8 @@ abstract contract Vaults is
             streamIdString: USDC_USD_STREAM_ID_STRING,
             streamId: USDC_USD_STREAM_ID,
             depositFee: USDC_BLUECHIP_VAULT_DEPOSIT_FEE,
-            redeemFee: USDC_BLUECHIP_VAULT_REDEEM_FEE
+            redeemFee: USDC_BLUECHIP_VAULT_REDEEM_FEE,
+            engine: USDC_BLUECHIP_VAULT_ENGINE
         });
         vaultsConfig[USDC_BLUECHIP_VAULT_ID] = usdcBluechip;
 
@@ -179,7 +182,8 @@ abstract contract Vaults is
             streamIdString: USDC_USD_STREAM_ID_STRING,
             streamId: USDC_USD_STREAM_ID,
             depositFee: USDC_DEGEN_VAULT_DEPOSIT_FEE,
-            redeemFee: USDC_DEGEN_VAULT_REDEEM_FEE
+            redeemFee: USDC_DEGEN_VAULT_REDEEM_FEE,
+            engine: USDC_DEGEN_VAULT_ENGINE
         });
         vaultsConfig[USDC_DEGEN_VAULT_ID] = usdcDegen;
 
@@ -200,7 +204,8 @@ abstract contract Vaults is
             streamIdString: WBTC_USD_STREAM_ID_STRING,
             streamId: WBTC_USD_STREAM_ID,
             depositFee: WBTC_CORE_VAULT_DEPOSIT_FEE,
-            redeemFee: WBTC_CORE_VAULT_REDEEM_FEE
+            redeemFee: WBTC_CORE_VAULT_REDEEM_FEE,
+            engine: WBTC_CORE_VAULT_ENGINE
         });
         vaultsConfig[WBTC_CORE_VAULT_ID] = wBtcCore;
 
@@ -219,7 +224,8 @@ abstract contract Vaults is
             streamIdString: WBTC_USD_STREAM_ID_STRING,
             streamId: WBTC_USD_STREAM_ID,
             depositFee: WBTC_BLUECHIP_VAULT_DEPOSIT_FEE,
-            redeemFee: WBTC_BLUECHIP_VAULT_REDEEM_FEE
+            redeemFee: WBTC_BLUECHIP_VAULT_REDEEM_FEE,
+            engine: WBTC_BLUECHIP_VAULT_ENGINE
         });
         vaultsConfig[WBTC_BLUECHIP_VAULT_ID] = wBtcBluechip;
 
@@ -238,7 +244,8 @@ abstract contract Vaults is
             streamIdString: WBTC_USD_STREAM_ID_STRING,
             streamId: WBTC_USD_STREAM_ID,
             depositFee: WBTC_DEGEN_VAULT_DEPOSIT_FEE,
-            redeemFee: WBTC_DEGEN_VAULT_REDEEM_FEE
+            redeemFee: WBTC_DEGEN_VAULT_REDEEM_FEE,
+            engine: WBTC_DEGEN_VAULT_ENGINE
         });
         vaultsConfig[WBTC_DEGEN_VAULT_ID] = wBtcDegen;
 
@@ -259,7 +266,8 @@ abstract contract Vaults is
             streamIdString: WEETH_USD_STREAM_ID_STRING,
             streamId: WEETH_USD_STREAM_ID,
             depositFee: WEETH_CORE_VAULT_DEPOSIT_FEE,
-            redeemFee: WEETH_CORE_VAULT_REDEEM_FEE
+            redeemFee: WEETH_CORE_VAULT_REDEEM_FEE,
+            engine: WEETH_CORE_VAULT_ENGINE
         });
         vaultsConfig[WEETH_CORE_VAULT_ID] = weEthCore;
 
@@ -278,7 +286,8 @@ abstract contract Vaults is
             streamIdString: WEETH_USD_STREAM_ID_STRING,
             streamId: WEETH_USD_STREAM_ID,
             depositFee: WEETH_BLUECHIP_VAULT_DEPOSIT_FEE,
-            redeemFee: WEETH_BLUECHIP_VAULT_REDEEM_FEE
+            redeemFee: WEETH_BLUECHIP_VAULT_REDEEM_FEE,
+            engine: WEETH_BLUECHIP_VAULT_ENGINE
         });
         vaultsConfig[WEETH_BLUECHIP_VAULT_ID] = weEthBluechip;
 
@@ -297,7 +306,8 @@ abstract contract Vaults is
             streamIdString: WEETH_USD_STREAM_ID_STRING,
             streamId: WEETH_USD_STREAM_ID,
             depositFee: WEETH_DEGEN_VAULT_DEPOSIT_FEE,
-            redeemFee: WEETH_DEGEN_VAULT_REDEEM_FEE
+            redeemFee: WEETH_DEGEN_VAULT_REDEEM_FEE,
+            engine: WEETH_DEGEN_VAULT_ENGINE
         });
         vaultsConfig[WEETH_DEGEN_VAULT_ID] = weEthDegen;
 
@@ -318,7 +328,8 @@ abstract contract Vaults is
             streamIdString: WETH_USD_STREAM_ID_STRING,
             streamId: WETH_USD_STREAM_ID,
             depositFee: WETH_CORE_VAULT_DEPOSIT_FEE,
-            redeemFee: WETH_CORE_VAULT_REDEEM_FEE
+            redeemFee: WETH_CORE_VAULT_REDEEM_FEE,
+            engine: WETH_CORE_VAULT_ENGINE
         });
         vaultsConfig[WETH_CORE_VAULT_ID] = wEthCore;
 
@@ -337,7 +348,8 @@ abstract contract Vaults is
             streamIdString: WETH_USD_STREAM_ID_STRING,
             streamId: WETH_USD_STREAM_ID,
             depositFee: WETH_BLUECHIP_VAULT_DEPOSIT_FEE,
-            redeemFee: WETH_BLUECHIP_VAULT_REDEEM_FEE
+            redeemFee: WETH_BLUECHIP_VAULT_REDEEM_FEE,
+            engine: WETH_BLUECHIP_VAULT_ENGINE
         });
         vaultsConfig[WETH_BLUECHIP_VAULT_ID] = wEthBluechip;
 
@@ -356,7 +368,8 @@ abstract contract Vaults is
             streamIdString: WETH_USD_STREAM_ID_STRING,
             streamId: WETH_USD_STREAM_ID,
             depositFee: WETH_DEGEN_VAULT_DEPOSIT_FEE,
-            redeemFee: WETH_DEGEN_VAULT_REDEEM_FEE
+            redeemFee: WETH_DEGEN_VAULT_REDEEM_FEE,
+            engine: WETH_DEGEN_VAULT_ENGINE
         });
         vaultsConfig[WETH_DEGEN_VAULT_ID] = wEthDegen;
 
@@ -377,7 +390,8 @@ abstract contract Vaults is
             streamIdString: WSTETH_USD_STREAM_ID_STRING,
             streamId: WSTETH_USD_STREAM_ID,
             depositFee: WSTETH_CORE_VAULT_DEPOSIT_FEE,
-            redeemFee: WSTETH_CORE_VAULT_REDEEM_FEE
+            redeemFee: WSTETH_CORE_VAULT_REDEEM_FEE,
+            engine: WSTETH_CORE_VAULT_ENGINE
         });
         vaultsConfig[WSTETH_CORE_VAULT_ID] = wStEthCore;
 
@@ -396,7 +410,8 @@ abstract contract Vaults is
             streamIdString: WSTETH_USD_STREAM_ID_STRING,
             streamId: WSTETH_USD_STREAM_ID,
             depositFee: WSTETH_BLUECHIP_VAULT_DEPOSIT_FEE,
-            redeemFee: WSTETH_BLUECHIP_VAULT_REDEEM_FEE
+            redeemFee: WSTETH_BLUECHIP_VAULT_REDEEM_FEE,
+            engine: WSTETH_BLUECHIP_VAULT_ENGINE
         });
         vaultsConfig[WSTETH_BLUECHIP_VAULT_ID] = wStEthBluechip;
 
@@ -415,7 +430,8 @@ abstract contract Vaults is
             streamIdString: WSTETH_USD_STREAM_ID_STRING,
             streamId: WSTETH_USD_STREAM_ID,
             depositFee: WSTETH_DEGEN_VAULT_DEPOSIT_FEE,
-            redeemFee: WSTETH_DEGEN_VAULT_REDEEM_FEE
+            redeemFee: WSTETH_DEGEN_VAULT_REDEEM_FEE,
+            engine: WSTETH_DEGEN_VAULT_ENGINE
         });
         vaultsConfig[WSTETH_DEGEN_VAULT_ID] = wStEthDegen;
     }
@@ -423,11 +439,17 @@ abstract contract Vaults is
     function createVaults(
         IMarketMakingEngine marketMakingEngine,
         uint256 initialVaultId,
-        uint256 finalVaultId
+        uint256 finalVaultId,
+        bool isTest,
+        address testEngine
     )
         public
     {
         for (uint256 i = initialVaultId; i <= finalVaultId; i++) {
+            if (isTest) {
+                vaultsConfig[i].engine = testEngine;
+            }
+
             marketMakingEngine.configureCollateral(
                 vaultsConfig[i].asset,
                 vaultsConfig[i].priceAdapter,
@@ -446,7 +468,8 @@ abstract contract Vaults is
                     indexToken: vaultsConfig[i].indexToken, // ZLP Vault shares
                     collateral: collateral,
                     depositFee: vaultsConfig[i].depositFee,
-                    redeemFee: vaultsConfig[i].redeemFee
+                    redeemFee: vaultsConfig[i].redeemFee,
+                    engine: vaultsConfig[i].engine
                 })
             );
         }
