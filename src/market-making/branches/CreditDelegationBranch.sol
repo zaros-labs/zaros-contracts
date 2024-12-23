@@ -601,7 +601,6 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @dev The actual increase or decrease in the vaults' unsettled realized debt happen at `settleVaultsDebt`.
     /// @param vaultsIds The vaults' identifiers to rebalance.
     function rebalanceVaultsAssets(uint128[2] calldata vaultsIds) external onlyRegisteredSystemKeepers {
-        // todo: tests
         // load the storage pointers of the vaults in net credit and net debt
         Vault.Data storage inCreditVault = Vault.loadExisting(vaultsIds[0]);
         Vault.Data storage inDebtVault = Vault.loadExisting(vaultsIds[1]);
@@ -633,13 +632,13 @@ contract CreditDelegationBranch is EngineAccessControl {
             revert Errors.InvalidVaultDebtSettlementRequest();
         }
 
-        // get credit absolute value
-        SD59x18 inCreditVaultUnsettledRealizedDebtUsdX18Abs = inCreditVaultUnsettledRealizedDebtUsdX18.abs();
+        // get debt absolute value
+        SD59x18 inDebtVaultUnsettledRealizedDebtUsdX18Abs = inDebtVaultUnsettledRealizedDebtUsdX18.abs();
 
-        // if credit absolute value > debt, use debt value, else use credit value
-        SD59x18 depositAmountUsdX18 = inCreditVaultUnsettledRealizedDebtUsdX18Abs.gt(
-            inDebtVaultUnsettledRealizedDebtUsdX18
-        ) ? inDebtVaultUnsettledRealizedDebtUsdX18 : inCreditVaultUnsettledRealizedDebtUsdX18Abs;
+        // if debt absolute value > credit, use credit value, else use debt value
+        SD59x18 depositAmountUsdX18 = inCreditVaultUnsettledRealizedDebtUsdX18.gt(
+            inDebtVaultUnsettledRealizedDebtUsdX18Abs
+        ) ? inDebtVaultUnsettledRealizedDebtUsdX18Abs : inCreditVaultUnsettledRealizedDebtUsdX18;
 
         // loads the dex swap strategy data storage pointer
         DexSwapStrategy.Data storage dexSwapStrategy =
@@ -659,9 +658,11 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 depositAmount =
             IDexAdapter(ctx.dexAdapter).getExpectedOutput(usdc, ctx.inDebtVaultCollateralAsset, depositAmountUsdc);
 
+        // transfer assets from vault to market making engine
+        IERC20(ctx.inDebtVaultCollateralAsset).transferFrom(inDebtVault.indexToken, address(this), depositAmount);
+
         // prepare the data for executing the swap asset -> usdc
-        SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
-            path: inDebtVault.swapStrategy.usdcDexSwapPath,
+        SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
             tokenIn: ctx.inDebtVaultCollateralAsset,
             tokenOut: usdc,
             amountIn: depositAmount,
@@ -672,7 +673,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         IERC20(ctx.inDebtVaultCollateralAsset).approve(ctx.dexAdapter, depositAmount);
 
         // swap the credit deposit assets for USDC
-        dexSwapStrategy.executeSwapExactInput(swapCallData);
+        dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
 
         // deposits the USDC to the vault in net credit
         inCreditVault.depositedUsdc += depositAmountUsdc.toUint128();

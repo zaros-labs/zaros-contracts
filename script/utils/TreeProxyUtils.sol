@@ -435,7 +435,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](30);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](31);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -482,6 +482,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
         MarketMakingEngineConfigurationBranch.updateVaultSwapStrategy.selector;
     marketMakingEngineConfigBranchSelectors[29] =
         MarketMakingEngineConfigurationBranch.getUsdTokenAvailableForEngine.selector;
+    marketMakingEngineConfigBranchSelectors[30] = MarketMakingEngineConfigurationBranch.setVaultEngine.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](11);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;
@@ -606,7 +607,7 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory vaultHarnessSelectors = new bytes4[](16);
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](17);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
     vaultHarnessSelectors[1] = VaultHarness.workaround_Vault_getActorStakedShares.selector;
     vaultHarnessSelectors[2] = VaultHarness.workaround_Vault_getTotalStakedShares.selector;
@@ -621,8 +622,9 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     vaultHarnessSelectors[11] = VaultHarness.workaround_Vault_getConnectedMarkets.selector;
     vaultHarnessSelectors[12] = VaultHarness.workaround_Vault_setTotalCreditDelegationWeight.selector;
     vaultHarnessSelectors[13] = VaultHarness.workaround_setVaultDebt.selector;
-    vaultHarnessSelectors[14] = VaultHarness.workaround_setVaultDepositedUsdc.selector;
-    vaultHarnessSelectors[15] = VaultHarness.workaround_getVaultDepositedUsdc.selector;
+    vaultHarnessSelectors[14] = VaultHarness.workaround_getVaultDebt.selector;
+    vaultHarnessSelectors[15] = VaultHarness.workaround_setVaultDepositedUsdc.selector;
+    vaultHarnessSelectors[16] = VaultHarness.workaround_getVaultDepositedUsdc.selector;
 
     bytes4[] memory collateralHarnessSelectors = new bytes4[](2);
     collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;

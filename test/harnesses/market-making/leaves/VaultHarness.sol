@@ -120,6 +120,11 @@ contract VaultHarness {
         vaultData.marketsRealizedDebtUsd = amount;
     }
 
+    function workaround_getVaultDebt(uint128 vaultId) external view returns (int128) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        return vaultData.marketsRealizedDebtUsd;
+    }
+
     function workaround_setVaultDepositedUsdc(uint128 vaultId, uint128 amount) external {
         Vault.Data storage vaultData = Vault.load(vaultId);
         vaultData.depositedUsdc = amount;
