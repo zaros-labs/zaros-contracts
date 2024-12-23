@@ -11,5 +11,5 @@ abstract contract UsdcCoreVault {
     uint256 internal constant USDC_CORE_VAULT_CREDIT_RATIO = 2e18;
     uint256 internal constant USDC_CORE_VAULT_DEPOSIT_FEE = 0.01e18;
     uint256 internal constant USDC_CORE_VAULT_REDEEM_FEE = 0.05e18;
-    address internal constant USDC_CORE_VAULT_ENGINE = address(0x123);
+    address internal constant USDC_CORE_VAULT_ENGINE = address(0); // the address will be updated in the mainnet
 }
