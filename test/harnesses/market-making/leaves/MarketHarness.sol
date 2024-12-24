@@ -110,4 +110,24 @@ contract MarketHarness {
     function workaround_getTotalMarketDebt(uint128 marketId) external view returns (SD59x18 totalDebtUsdX18) {
         totalDebtUsdX18 = Market.load(marketId).getTotalDebt();
     }
+
+    function workaround_getMarketUsdTokenIssuance(uint128 marketId) external view returns (int128) {
+        return Market.load(marketId).netUsdTokenIssuance;
+    }
+
+    function workaround_setMarketUsdTokenIssuance(uint128 marketId, int128 amount) external {
+        Market.load(marketId).netUsdTokenIssuance = amount;
+    }
+
+    function workaround_getAutoDeleverageFactor(
+        uint128 marketId,
+        UD60x18 delegatedCreditUsdX18,
+        SD59x18 totalDebtUsdX18
+    )
+        external
+        view
+        returns (UD60x18)
+    {
+        return Market.load(marketId).getAutoDeleverageFactor(delegatedCreditUsdX18, totalDebtUsdX18);
+    }
 }

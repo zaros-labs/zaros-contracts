@@ -9,6 +9,9 @@ import { CreditDelegationBranch } from "@zaros/market-making/branches/CreditDele
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 
+// PRB Math dependencies
+import { ud60x18 } from "@prb-math/UD60x18.sol";
+
 contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
@@ -140,7 +143,11 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
         marketMakingEngine.depositCreditForMarket(fuzzMarketConfig.marketId, fuzzVaultConfig.asset, amount);
     }
 
-    function testFuzz_WhenTheTotalDelegatedCreditUsdIsGreaterThanZero(
+    modifier whenTheTotalDelegatedCreditUsdIsGreaterThanZero() {
+        _;
+    }
+
+    function testFuzz_WhenTheCollateralTypeIsNotUsdc(
         uint256 marketId,
         uint256 amount,
         uint256 vaultId
@@ -150,6 +157,7 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
         whenTheAmountIsNotZero
         whenTheCollateralIsEnabled
         whenTheMarketIsLive
+        whenTheTotalDelegatedCreditUsdIsGreaterThanZero
     {
         amount = bound({ x: amount, min: 1, max: type(uint128).max });
 
@@ -171,5 +179,41 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
 
         // it should deposit credit for market
         assertEq(mmBalance, amount);
+    }
+
+    function testFuzz_WhenTheCollateralTypeIsUsdc(
+        uint256 marketId,
+        uint256 amount
+    )
+        external
+        givenTheSenderIsTheRegisteredEngine
+        whenTheAmountIsNotZero
+        whenTheCollateralIsEnabled
+        whenTheMarketIsLive
+        whenTheTotalDelegatedCreditUsdIsGreaterThanZero
+    {
+        amount = bound({ x: amount, min: 1, max: type(uint64).max });
+
+        PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: users.owner.account });
+        marketMakingEngine.configureEngine(address(perpsEngine), address(usdc), true);
+
+        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+        changePrank({ msgSender: address(perpsEngine) });
+
+        // it should emit {LogDepositCreditForMarket} event
+        vm.expectEmit();
+        emit CreditDelegationBranch.LogDepositCreditForMarket(
+            address(perpsEngine), fuzzMarketConfig.marketId, address(usdc), amount
+        );
+
+        marketMakingEngine.depositCreditForMarket(fuzzMarketConfig.marketId, address(usdc), amount);
+
+        int128 usdTokenIssuance = marketMakingEngine.workaround_getMarketUsdTokenIssuance(fuzzMarketConfig.marketId);
+        int128 amountIssued = -int128(convertTokenAmountToUd60x18(address(usdc), amount).intoUint128());
+
+        // it should update net usd token issuance
+        assertEq(usdTokenIssuance, amountIssued);
     }
 }
