@@ -62,6 +62,9 @@ library MarketMakingEngineConfiguration {
         UD60x18 totalFeeRecipientsSharesX18 = ud60x18(self.totalFeeRecipientsShares);
         UD60x18 amountX18 = ud60x18(amount);
 
+        // variable to verify the total distributed
+        uint256 totalDistributed = 0;
+
         // iterate over the protocol configured fee recipients
         for (uint256 i; i < feeRecipientsLength; i++) {
             // load the fee recipient address and shares
@@ -69,6 +72,15 @@ library MarketMakingEngineConfiguration {
 
             // Calculate the fee recipient reward
             uint256 feeRecipientReward = amountX18.mul(ud60x18(shares).div(totalFeeRecipientsSharesX18)).intoUint256();
+
+            // cache the total distributed
+            totalDistributed += feeRecipientReward;
+
+            // verify if is the last fee recipient
+            if (i == feeRecipientsLength - 1) {
+                // to prevent small amounts of protocol fees remain stuck in the contract due to rounding
+                feeRecipientReward += amountX18.sub(ud60x18(totalDistributed)).intoUint256();
+            }
 
             // Transfer the fee recipient reward
             IERC20(asset).safeTransfer(feeRecipient, feeRecipientReward);

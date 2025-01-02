@@ -456,7 +456,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         uint256 perpEngineWethBalBefore = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine));
         changePrank({ msgSender: address(perpsEngine) });
         marketMakingEngine.sendWethToFeeRecipients(ETH_USD_MARKET_ID);
-        
+
         // verify protocol reward recipient received correct rewards
         uint256 perpEngineReceivedRewards = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine)) - perpEngineWethBalBefore;
         assertEq(perpEngineReceivedRewards, marketWethRewards2.availableProtocolWethReward);
@@ -514,7 +514,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         uint256 sasukeFeesReceived = IERC20(fuzzVaultConfig.asset).balanceOf(users.sasuke.account) - sasukeWethBalPre;
 
         // @audit 1 wei remained stuck in the contract
-        assertEq(prepEngineFeesReceived + sasukeFeesReceived, 99999999999999999);
-        assertEq(marketWethRewards1.availableProtocolWethReward, 100000000000000000);
+        assertEq(prepEngineFeesReceived + sasukeFeesReceived, 100_000_000_000_000_000);
+        assertEq(marketWethRewards1.availableProtocolWethReward, 100_000_000_000_000_000);
     }
 }
