@@ -513,7 +513,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         uint256 prepEngineFeesReceived = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine)) - perpEngineWethBalPre;
         uint256 sasukeFeesReceived = IERC20(fuzzVaultConfig.asset).balanceOf(users.sasuke.account) - sasukeWethBalPre;
 
-        // @audit 1 wei remained stuck in the contract
+        // 0 wei remained stuck in the contract
         assertEq(prepEngineFeesReceived + sasukeFeesReceived, 100_000_000_000_000_000);
         assertEq(marketWethRewards1.availableProtocolWethReward, 100_000_000_000_000_000);
     }
