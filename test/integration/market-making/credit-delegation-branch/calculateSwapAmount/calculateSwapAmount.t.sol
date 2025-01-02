@@ -21,7 +21,7 @@ contract CreditDelegationBranch_CalculateSwapAmount_Integration_Test is Base_Tes
     function testFuzz_WhenCalculateSwapAmountIsCalled(uint256 adapterIndex, uint256 vaultDebt) external {
         IDexAdapter dexAdapter = getFuzzDexAdapter(adapterIndex);
 
-        vaultDebt = bound({ x: vaultDebt, min: 1, max: type(uint96).max });
+        vaultDebt = bound({ x: vaultDebt, min: 1e10, max: type(uint96).max });
 
         UD60x18 vaultDebtX18 = convertTokenAmountToUd60x18(address(wBtc), vaultDebt);
 

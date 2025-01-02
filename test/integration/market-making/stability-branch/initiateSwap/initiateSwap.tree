@@ -11,5 +11,5 @@ InitiateSwap_Integration_Test
             ├── when collateral assets of vaults missmatch
             │   └── it should revert
             └── when collateral assets of vaults match
-                ├── it shoud emit {LogInitiateSwap} event
-                └── it shoud create new usd token swap request
+                ├── it should emit {LogInitiateSwap} event
+                └── it should create new usd token swap request

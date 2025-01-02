@@ -85,8 +85,6 @@ contract ClaimFees_Integration_Test is Base_Test {
         external
         whenTheUserDoesHaveAvailableShares
     {
-        changePrank({ msgSender: address(perpsEngine) });
-
         IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
 
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
@@ -96,16 +94,6 @@ contract ClaimFees_Integration_Test is Base_Test {
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-
-        deal({ token: address(usdc), to: address(perpsEngine), give: amountToDepositMarketFee });
-
-        marketMakingEngine.receiveMarketFee(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), amountToDepositMarketFee
-        );
-
-        marketMakingEngine.convertAccumulatedFeesToWeth(
-            fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), bytes("")
-        );
 
         changePrank({ msgSender: users.naruto.account });
 
@@ -125,6 +113,19 @@ contract ClaimFees_Integration_Test is Base_Test {
         marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake));
 
         assertEq(IERC20(wEth).balanceOf(users.naruto.account), 0);
+
+        changePrank({ msgSender: address(perpsEngine) });
+
+        deal({ token: address(usdc), to: address(perpsEngine), give: amountToDepositMarketFee });
+
+        marketMakingEngine.receiveMarketFee(
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), amountToDepositMarketFee
+        );
+
+        marketMakingEngine.convertAccumulatedFeesToWeth(
+            fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), bytes("")
+        );
+        changePrank({ msgSender: users.naruto.account });
 
         uint256 earnedFees = marketMakingEngine.getEarnedFees(fuzzVaultConfig.vaultId, users.naruto.account);
 
@@ -192,6 +193,10 @@ contract ClaimFees_Integration_Test is Base_Test {
         (state.totalShares, state.valuePerShare, state.stakerShares, state.stakerLastValuePerShare) =
             marketMakingEngine.getTotalAndAccountStakingData(vaultId, staker);
     }
+
+    //
+    //
+    //
 
     // only for WETH vault & associated market at the moment
     function testFuzz_WhenAmountToClaimIsGreaterThenZero_Passing(
@@ -335,7 +340,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(address(marketMakingEngine)), marketFees);
 
         // optionally convert asset to WETH if not on WETH vault
-        if (vaultId != WETH_CORE_VAULT_ID) {
+        if (fuzzVaultConfig.asset != address(wEth)) {
             marketMakingEngine.convertAccumulatedFeesToWeth(
                 fuzzPerpMarketCreditConfig.marketId, fuzzVaultConfig.asset, adapter.STRATEGY_ID(), bytes("")
             );

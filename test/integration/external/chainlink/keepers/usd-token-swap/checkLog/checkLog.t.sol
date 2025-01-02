@@ -44,6 +44,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         UsdTokenSwapKeeper(usdTokenSwapKeeper).setForwarder(users.keepersForwarder.account);
 
         marketMakingEngine.configureSystemKeeper(usdTokenSwapKeeper, true);
+        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
 
         changePrank({ msgSender: users.naruto.account });
 
@@ -109,6 +110,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         UsdTokenSwapKeeper(usdTokenSwapKeeper).setForwarder(users.keepersForwarder.account);
 
         marketMakingEngine.configureSystemKeeper(usdTokenSwapKeeper, true);
+        marketMakingEngine.setVaultEngine(initialVaultConfig.vaultId, address(marketMakingEngine));
 
         changePrank({ msgSender: users.naruto.account });
 
@@ -170,6 +172,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         UsdTokenSwapKeeper(usdTokenSwapKeeper).setForwarder(users.keepersForwarder.account);
 
         marketMakingEngine.configureSystemKeeper(usdTokenSwapKeeper, true);
+        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
 
         changePrank({ msgSender: users.naruto.account });
 

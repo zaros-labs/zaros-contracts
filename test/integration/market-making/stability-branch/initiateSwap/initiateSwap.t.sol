@@ -102,6 +102,10 @@ contract InitiateSwap_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
+        changePrank({ msgSender: users.owner.account });
+        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
+        changePrank({ msgSender: users.naruto.account });
+
         deal({
             token: address(fuzzVaultConfig.asset),
             to: fuzzVaultConfig.indexToken,
@@ -128,7 +132,7 @@ contract InitiateSwap_Integration_Test is Base_Test {
 
         address vaultAsset = marketMakingEngine.workaround_Vault_getVaultAsset(fuzzVaultConfig.vaultId);
 
-        // it shoud emit {LogInitiateSwap} event
+        // it should emit {LogInitiateSwap} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit StabilityBranch.LogInitiateSwap(
             users.naruto.account,
@@ -142,7 +146,7 @@ contract InitiateSwap_Integration_Test is Base_Test {
 
         marketMakingEngine.initiateSwap(vaultIds, amountsIn, minAmountsOut);
 
-        // it shoud create new usd token swap request
+        // it should create new usd token swap request
         UsdTokenSwapConfig.SwapRequest memory request =
             marketMakingEngine.getSwapRequest(users.naruto.account, swapRequestId);
 
@@ -164,6 +168,12 @@ contract InitiateSwap_Integration_Test is Base_Test {
         firstVaultId = uint128(bound(firstVaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         secondVaultId = uint128(bound(secondVaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         vm.assume(firstVaultId != secondVaultId);
+
+        // set vaults engine
+        changePrank({ msgSender: users.owner.account });
+        marketMakingEngine.setVaultEngine(firstVaultId, address(marketMakingEngine));
+        marketMakingEngine.setVaultEngine(secondVaultId, address(marketMakingEngine));
+        changePrank({ msgSender: users.naruto.account });
 
         // ensure same collateral token
         VaultConfig memory firstVaultConfig = getFuzzVaultConfig(firstVaultId);

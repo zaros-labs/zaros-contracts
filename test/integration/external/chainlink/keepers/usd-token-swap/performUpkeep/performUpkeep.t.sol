@@ -69,6 +69,7 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
         UsdTokenSwapKeeper(ctx.usdTokenSwapKeeper).setForwarder(users.keepersForwarder.account);
 
         marketMakingEngine.configureSystemKeeper(ctx.usdTokenSwapKeeper, true);
+        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
 
         changePrank({ msgSender: users.naruto.account });
 
