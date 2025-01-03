@@ -22,7 +22,7 @@ contract RefundSwap_Integration_Test is Base_Test {
 
     function testFuzz_RevertWhen_RequestIsAlreadyProcessed(uint256 vaultId, uint256 swapAmount) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
+
         changePrank({ msgSender: users.naruto.account });
 
         deal({
@@ -92,7 +92,7 @@ contract RefundSwap_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.owner.account });
         marketMakingEngine.configureUsdTokenSwapConfig(0, 0, uint128(300));
-        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
+
 
         changePrank({ msgSender: users.naruto.account });
 
@@ -108,7 +108,7 @@ contract RefundSwap_Integration_Test is Base_Test {
 
     function testFuzz_WhenDeadlineHasPassed(uint256 vaultId, uint256 swapAmount) external whenRequestIsNotProcessed {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
+
 
         deal({
             token: address(fuzzVaultConfig.asset),

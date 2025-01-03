@@ -194,7 +194,6 @@ contract FeeDistributionBranch is EngineAccessControl {
                     amountIn: ctx.assetAmount,
                     recipient: address(this)
                 });
-
                 // Swap collected collateral fee amount for WETH and store the obtained amount
                 ctx.tokensSwapped = dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
             } else {
@@ -220,7 +219,6 @@ contract FeeDistributionBranch is EngineAccessControl {
             // uint256 -> ud60x18
             ctx.receivedWethX18 = wethCollateral.convertTokenAmountToUd60x18(ctx.tokensSwapped);
         }
-
         // handles distribution of the weth reward between the protocol and market
         _handleWethRewardDistribution(market, asset, ctx.receivedWethX18);
 

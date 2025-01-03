@@ -168,7 +168,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         });
 
         Vault.CreateParams memory params = Vault.CreateParams({
-            vaultId: 0,
+            vaultId: fuzzVaultConfig.vaultId,
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,

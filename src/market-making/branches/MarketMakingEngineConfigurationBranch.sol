@@ -167,6 +167,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param allowance The new asset allowance for the vault.
     event LogUpdateVaultAssetAllowance(uint128 vaultId, uint256 allowance);
 
+    /// @notice Emitted when the vault engine address is updated
+    /// @param vaultId The vault id
+    /// @param engine The engine address
+    event LogSetVaultEngine(uint128 vaultId, address engine);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -726,6 +731,8 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
         vaultData.engine = engine;
+
+        emit LogSetVaultEngine(vaultId, engine);
     }
 
     /// @notice Retrieves the collateral data for a given asset.

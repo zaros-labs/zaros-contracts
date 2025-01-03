@@ -45,7 +45,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         whenCallerIsKeeper
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
+
 
         changePrank({ msgSender: users.naruto.account });
 
@@ -98,7 +98,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         uint128 maxExecutionEndTime = 100;
         changePrank({ msgSender: users.owner.account });
         marketMakingEngine.configureUsdTokenSwapConfig(1, 30, maxExecutionEndTime);
-        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
+
         changePrank({ msgSender: users.naruto.account });
 
         deal({
@@ -156,7 +156,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner.account });
         uint128 bpsFee = 30;
         marketMakingEngine.configureUsdTokenSwapConfig(1, bpsFee, type(uint96).max);
-        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
+
         changePrank({ msgSender: users.naruto.account });
 
         deal({
@@ -235,7 +235,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.owner.account });
         marketMakingEngine.configureUsdTokenSwapConfig(1, 30, type(uint96).max);
-        marketMakingEngine.setVaultEngine(ctx.fuzzVaultConfig.vaultId, address(marketMakingEngine));
+
         changePrank({ msgSender: users.naruto.account });
 
         deal({
@@ -344,7 +344,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.owner.account });
         marketMakingEngine.configureUsdTokenSwapConfig(1, 30, type(uint96).max);
-        marketMakingEngine.setVaultEngine(ctx.fuzzVaultConfig.vaultId, address(marketMakingEngine));
+
         changePrank({ msgSender: users.naruto.account });
 
         // bound the vault assets balance to be between 1 asset unit and the deposit cap

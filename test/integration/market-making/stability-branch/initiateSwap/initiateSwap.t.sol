@@ -103,7 +103,7 @@ contract InitiateSwap_Integration_Test is Base_Test {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         changePrank({ msgSender: users.owner.account });
-        marketMakingEngine.setVaultEngine(fuzzVaultConfig.vaultId, address(marketMakingEngine));
+
         changePrank({ msgSender: users.naruto.account });
 
         deal({
@@ -169,10 +169,6 @@ contract InitiateSwap_Integration_Test is Base_Test {
         secondVaultId = uint128(bound(secondVaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         vm.assume(firstVaultId != secondVaultId);
 
-        // set vaults engine
-        changePrank({ msgSender: users.owner.account });
-        marketMakingEngine.setVaultEngine(firstVaultId, address(marketMakingEngine));
-        marketMakingEngine.setVaultEngine(secondVaultId, address(marketMakingEngine));
         changePrank({ msgSender: users.naruto.account });
 
         // ensure same collateral token
