@@ -210,6 +210,10 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("vaultId");
         }
 
+        if (params.engine == address(0)) {
+            revert Errors.ZeroInput("engine");
+        }
+
         Vault.create(params);
 
         emit LogCreateVault(msg.sender, params.vaultId);

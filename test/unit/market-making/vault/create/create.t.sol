@@ -16,7 +16,7 @@ contract Vault_Create_Unit_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_CreateIsPassedExistingVaultId(uint256 vaultId) external {
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
@@ -35,7 +35,8 @@ contract Vault_Create_Unit_Test is Base_Test {
             indexToken: fuzzVaultConfig.indexToken,
             collateral: collateral,
             depositFee: MOCK_DEPOSIT_FEE,
-            redeemFee: MOCK_REDEEM_FEE
+            redeemFee: MOCK_REDEEM_FEE,
+            engine: address(perpsEngine)
         });
 
         // it should revert
@@ -61,7 +62,8 @@ contract Vault_Create_Unit_Test is Base_Test {
             indexToken: fuzzVaultConfig.indexToken,
             collateral: collateral,
             depositFee: MOCK_DEPOSIT_FEE,
-            redeemFee: MOCK_REDEEM_FEE
+            redeemFee: MOCK_REDEEM_FEE,
+            engine: address(perpsEngine)
         });
 
         // it should create new vault

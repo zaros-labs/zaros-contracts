@@ -9,7 +9,7 @@ contract CreditDelegationBranch_UpdateVaultCreditCapacity_Integration_Test is Ba
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
         configureMarkets();
     }
 

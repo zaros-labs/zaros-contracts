@@ -35,7 +35,8 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             indexToken: address(0),
             collateral: collateral,
             depositFee: MOCK_DEPOSIT_FEE,
-            redeemFee: MOCK_REDEEM_FEE
+            redeemFee: MOCK_REDEEM_FEE,
+            engine: address(perpsEngine)
         });
 
         // it should revert
@@ -65,7 +66,8 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             indexToken: fuzzVaultConfig.indexToken,
             collateral: collateral,
             depositFee: MOCK_DEPOSIT_FEE,
-            redeemFee: MOCK_REDEEM_FEE
+            redeemFee: MOCK_REDEEM_FEE,
+            engine: address(perpsEngine)
         });
 
         // it should revert
@@ -99,7 +101,8 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             indexToken: fuzzVaultConfig.indexToken,
             collateral: collateral,
             depositFee: MOCK_DEPOSIT_FEE,
-            redeemFee: MOCK_REDEEM_FEE
+            redeemFee: MOCK_REDEEM_FEE,
+            engine: address(perpsEngine)
         });
 
         // it should revert
@@ -134,7 +137,8 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             indexToken: fuzzVaultConfig.indexToken,
             collateral: collateral,
             depositFee: MOCK_DEPOSIT_FEE,
-            redeemFee: MOCK_REDEEM_FEE
+            redeemFee: MOCK_REDEEM_FEE,
+            engine: address(perpsEngine)
         });
 
         // it should revert
@@ -146,14 +150,52 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         _;
     }
 
-    function test_RevertGiven_VaultWithThatIdAlreadyExists(uint128 vaultId)
+    function testFuzz_RevertWhen_EngineIsZero(uint128 vaultId)
         external
         whenTheIndexTokenAddressIsNotZero
         whenTheDepositCapIsNotZero
         whenWithdrawalDelayIsNotZero
         whenVaultIdIsNotZero
     {
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        Collateral.Data memory collateral = Collateral.Data({
+            creditRatio: fuzzVaultConfig.creditRatio,
+            priceAdapter: fuzzVaultConfig.priceAdapter,
+            asset: fuzzVaultConfig.asset,
+            isEnabled: fuzzVaultConfig.isEnabled,
+            decimals: fuzzVaultConfig.decimals
+        });
+
+        Vault.CreateParams memory params = Vault.CreateParams({
+            vaultId: 0,
+            depositCap: fuzzVaultConfig.depositCap,
+            withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
+            indexToken: fuzzVaultConfig.indexToken,
+            collateral: collateral,
+            depositFee: MOCK_DEPOSIT_FEE,
+            redeemFee: MOCK_REDEEM_FEE,
+            engine: address(0)
+        });
+
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.ZeroInput.selector, "engine"));
+        marketMakingEngine.createVault(params);
+    }
+
+    modifier whenEngineIsNotZero() {
+        _;
+    }
+
+    function test_RevertGiven_VaultWithThatIdAlreadyExists(uint128 vaultId)
+        external
+        whenTheIndexTokenAddressIsNotZero
+        whenTheDepositCapIsNotZero
+        whenWithdrawalDelayIsNotZero
+        whenVaultIdIsNotZero
+        whenEngineIsNotZero
+    {
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
@@ -172,7 +214,8 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             indexToken: fuzzVaultConfig.indexToken,
             collateral: collateral,
             depositFee: MOCK_DEPOSIT_FEE,
-            redeemFee: MOCK_REDEEM_FEE
+            redeemFee: MOCK_REDEEM_FEE,
+            engine: address(perpsEngine)
         });
 
         // it should revert
@@ -186,6 +229,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         whenTheDepositCapIsNotZero
         whenWithdrawalDelayIsNotZero
         whenVaultIdIsNotZero
+        whenEngineIsNotZero
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
@@ -204,7 +248,8 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
             indexToken: fuzzVaultConfig.indexToken,
             collateral: collateral,
             depositFee: MOCK_DEPOSIT_FEE,
-            redeemFee: MOCK_REDEEM_FEE
+            redeemFee: MOCK_REDEEM_FEE,
+            engine: address(perpsEngine)
         });
 
         // it should emit event

@@ -20,7 +20,7 @@ contract ClaimFees_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: address(users.owner.account) });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
         configureMarkets();
     }
 
@@ -194,7 +194,12 @@ contract ClaimFees_Integration_Test is Base_Test {
     }
 
     // only for WETH vault & associated market at the moment
-    function testFuzz_WhenAmountToClaimIsGreaterThenZero_Passing(uint128 assetsToDeposit, uint128 marketFees) external {
+    function testFuzz_WhenAmountToClaimIsGreaterThenZero_Passing(
+        uint128 assetsToDeposit,
+        uint128 marketFees
+    )
+        external
+    {
         // ensure valid vault and load vault config
         uint128 vaultId = WETH_CORE_VAULT_ID;
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -205,7 +210,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         // ensure valid deposit amount and perform the deposit
         address user = users.naruto.account;
         assetsToDeposit =
-            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap/2));
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 2));
         fundUserAndDepositInVault(user, vaultId, assetsToDeposit);
 
         // save and verify pre stake state
@@ -234,7 +239,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         assertEq(postStakeState.stakerLastValuePerShare, 0, "Staker has no value per share as no value distributed");
 
         // sent WETH market fees from PerpsEngine -> MarketEngine
-        marketFees = uint128(bound(marketFees, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap/2));
+        marketFees = uint128(bound(marketFees, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 2));
         deal(fuzzVaultConfig.asset, address(perpsEngine), marketFees);
         changePrank({ msgSender: address(perpsEngine) });
         vm.expectEmit({ emitter: address(marketMakingEngine) });
@@ -255,16 +260,13 @@ contract ClaimFees_Integration_Test is Base_Test {
         ClaimFeesState memory postClaimFeesState =
             _getClaimFeesState(user, vaultId, wethFeeToken, IERC20(fuzzVaultConfig.indexToken));
         assertEq(
-            postClaimFeesState.stakerFeesBal,
-            stakerEarnedFees,
-            "Staker received asset tokens after claiming fees"
+            postClaimFeesState.stakerFeesBal, stakerEarnedFees, "Staker received asset tokens after claiming fees"
         );
 
         // attempting to claim again fails
         vm.expectRevert(Errors.NoFeesToClaim.selector);
         marketMakingEngine.claimFees(vaultId);
     }
-
 
     // generic one for any vault & market, failing when swapping
     // from asset -> weth as getPrice() returns 0. If this can be fixed it should
@@ -360,7 +362,6 @@ contract ClaimFees_Integration_Test is Base_Test {
         marketMakingEngine.claimFees(vaultId);
     }
 
-
     struct MarketWethRewards {
         // Market weth rewards
         uint128 availableProtocolWethReward;
@@ -371,7 +372,6 @@ contract ClaimFees_Integration_Test is Base_Test {
         (state.availableProtocolWethReward, state.wethRewardPerVaultShare) =
             marketMakingEngine.getWethRewardDataRaw(marketId);
     }
-
 
     function test_stakerLosesRewardsDueToRounding() external {
         // ensure valid vault and load vault config
@@ -419,7 +419,7 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // verify the staker has earned rewards which are not yet claimed
         uint256 stakerEarnedFees = marketMakingEngine.getEarnedFees(vaultId, user);
-        assertEq(stakerEarnedFees, 899999999999999999, "Staker has earned fees");
+        assertEq(stakerEarnedFees, 899_999_999_999_999_999, "Staker has earned fees");
         assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(user), 0, "Staker has no asset tokens prior to unstake");
 
         ClaimFeesState memory post2 =
@@ -456,9 +456,10 @@ contract ClaimFees_Integration_Test is Base_Test {
         uint256 perpEngineWethBalBefore = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine));
         changePrank({ msgSender: address(perpsEngine) });
         marketMakingEngine.sendWethToFeeRecipients(ETH_USD_MARKET_ID);
-        
+
         // verify protocol reward recipient received correct rewards
-        uint256 perpEngineReceivedRewards = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine)) - perpEngineWethBalBefore;
+        uint256 perpEngineReceivedRewards =
+            IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine)) - perpEngineWethBalBefore;
         assertEq(perpEngineReceivedRewards, marketWethRewards2.availableProtocolWethReward);
 
         MarketWethRewards memory marketWethRewards3 = _getMarketWethRewards(ETH_USD_MARKET_ID);
@@ -510,11 +511,12 @@ contract ClaimFees_Integration_Test is Base_Test {
         changePrank({ msgSender: address(perpsEngine) });
         marketMakingEngine.sendWethToFeeRecipients(ETH_USD_MARKET_ID);
 
-        uint256 prepEngineFeesReceived = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine)) - perpEngineWethBalPre;
+        uint256 prepEngineFeesReceived =
+            IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine)) - perpEngineWethBalPre;
         uint256 sasukeFeesReceived = IERC20(fuzzVaultConfig.asset).balanceOf(users.sasuke.account) - sasukeWethBalPre;
 
         // @audit 1 wei remained stuck in the contract
-        assertEq(prepEngineFeesReceived + sasukeFeesReceived, 99999999999999999);
-        assertEq(marketWethRewards1.availableProtocolWethReward, 100000000000000000);
+        assertEq(prepEngineFeesReceived + sasukeFeesReceived, 99_999_999_999_999_999);
+        assertEq(marketWethRewards1.availableProtocolWethReward, 100_000_000_000_000_000);
     }
 }

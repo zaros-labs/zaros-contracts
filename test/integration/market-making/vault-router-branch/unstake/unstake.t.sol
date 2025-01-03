@@ -17,7 +17,7 @@ contract Unstake_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
         configureMarkets();
         changePrank({ msgSender: users.naruto.account });
     }
@@ -64,7 +64,6 @@ contract Unstake_Integration_Test is Base_Test {
         assertEq(userBalanceAfter, actorShares);
     }
 
-
     struct UnstakeState {
         // asset balances
         uint256 stakerAssetBal;
@@ -102,7 +101,6 @@ contract Unstake_Integration_Test is Base_Test {
             marketMakingEngine.getTotalAndAccountStakingData(vaultId, staker);
     }
 
-    
     // a staker's unclaimed rewards apear to double every time
     // `Vault.recalculateVaultsCreditCapacity` is called
     function test_stakerUnclaimedRewardsDoubleAfterDeposit() external {
@@ -136,9 +134,7 @@ contract Unstake_Integration_Test is Base_Test {
         // verify the staker has earned rewards which are not yet claimed
         uint256 user1PendingRewards = 899_999_999_999_999_999;
         changePrank({ msgSender: user });
-        assertEq(
-            marketMakingEngine.getEarnedFees(vaultId, user), user1PendingRewards, "Staker has pending rewards"
-        );
+        assertEq(marketMakingEngine.getEarnedFees(vaultId, user), user1PendingRewards, "Staker has pending rewards");
         assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(user), 0, "Staker has no asset tokens prior to unstake");
 
         // second user makes a deposit, triggers a call to `Vault.recalculateVaultsCreditCapacity`
@@ -146,7 +142,9 @@ contract Unstake_Integration_Test is Base_Test {
 
         // original staker's pending rewards just doubled + 1!
         assertEq(
-            marketMakingEngine.getEarnedFees(vaultId, user), user1PendingRewards*2 + 1, "Staker pending rewards have doubled!"
+            marketMakingEngine.getEarnedFees(vaultId, user),
+            user1PendingRewards * 2 + 1,
+            "Staker pending rewards have doubled!"
         );
 
         // thirduser makes a deposit, triggers a call to `Vault.recalculateVaultsCreditCapacity`
@@ -154,9 +152,10 @@ contract Unstake_Integration_Test is Base_Test {
 
         // original staker's pending rewards increased again, they are 3x + 2 the original amount
         assertEq(
-            marketMakingEngine.getEarnedFees(vaultId, user), user1PendingRewards*3 + 2, "Staker pending rewards increased again!"
+            marketMakingEngine.getEarnedFees(vaultId, user),
+            user1PendingRewards * 3 + 2,
+            "Staker pending rewards increased again!"
         );
-        
     }
 
     // if a staker unstakes before claiming, they lose all their unclaimed rewards!
