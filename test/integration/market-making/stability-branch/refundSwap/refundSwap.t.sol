@@ -18,11 +18,12 @@ contract RefundSwap_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner.account });
         createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
         marketMakingEngine.configureEngine(address(marketMakingEngine), address(usdToken), true);
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_RequestIsAlreadyProcessed(uint256 vaultId, uint256 swapAmount) external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        changePrank({ msgSender: users.naruto.account });
 
         deal({
             token: address(fuzzVaultConfig.asset),
@@ -91,6 +92,8 @@ contract RefundSwap_Integration_Test is Base_Test {
 
         changePrank({ msgSender: users.owner.account });
         marketMakingEngine.configureUsdTokenSwapConfig(0, 0, uint128(300));
+
+
         changePrank({ msgSender: users.naruto.account });
 
         initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), uint128(swapAmount), minAmountOut);
@@ -105,6 +108,7 @@ contract RefundSwap_Integration_Test is Base_Test {
 
     function testFuzz_WhenDeadlineHasPassed(uint256 vaultId, uint256 swapAmount) external whenRequestIsNotProcessed {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
 
         deal({
             token: address(fuzzVaultConfig.asset),
@@ -121,6 +125,7 @@ contract RefundSwap_Integration_Test is Base_Test {
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
         uint128 minAmountOut = 0;
+        changePrank({ msgSender: users.naruto.account });
 
         initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), uint128(swapAmount), minAmountOut);
 

@@ -105,12 +105,12 @@ contract CreditDelegationBranch_SettleVaultsDebt_Integration_Test is Base_Test {
             fuzzVaultConfig.vaultId, "", "", adapter.STRATEGY_ID(), adapter.STRATEGY_ID()
         );
 
-        uint256 usdcAvailableForEngineBefore = marketMakingEngine.getUsdTokenAvailableForEngine(address(0));
+        uint256 usdcAvailableForEngineBefore = marketMakingEngine.getUsdTokenAvailableForEngine(address(perpsEngine));
 
         changePrank({ msgSender: address(perpsEngine) });
         marketMakingEngine.settleVaultsDebt(vaultIds);
 
-        uint256 usdcAvailableForEngineAfter = marketMakingEngine.getUsdTokenAvailableForEngine(address(0));
+        uint256 usdcAvailableForEngineAfter = marketMakingEngine.getUsdTokenAvailableForEngine(address(perpsEngine));
 
         // it should increase the usdc available for engine amount
         assertGt(usdcAvailableForEngineAfter, usdcAvailableForEngineBefore);

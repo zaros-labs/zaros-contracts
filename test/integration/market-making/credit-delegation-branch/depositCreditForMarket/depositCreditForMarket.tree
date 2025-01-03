@@ -14,5 +14,9 @@ CreditDelegationBranch_DepositCreditForMarket_Integration_Test
                 ├── when the total delegated credit usd is zero
                 │   └── it should revert
                 └── when the total delegated credit usd is greater than zero
-                    ├── it should deposit credit for market
-                    └── it should emit {LogDepositCreditForMarket} event
+                    ├── when the collateral type is not usdc
+                    │   ├── it should deposit credit for market
+                    │   └── it should emit {LogDepositCreditForMarket} event
+                    └── when the collateral type is usdc
+                        ├── it should update net usd token issuance
+                        └── it should emit {LogDepositCreditForMarket} event

@@ -45,6 +45,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
 
         marketMakingEngine.configureSystemKeeper(usdTokenSwapKeeper, true);
 
+
         changePrank({ msgSender: users.naruto.account });
 
         UD60x18 assetPriceX18 = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice();
@@ -87,7 +88,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_WhenAssetsMissmatch(uint256 assetsToDeposit)
+    function test_WhenAssetsMissmatch()
         external
         givenCheckLogIsCalled
         whenDeadlineHasNotExpired
@@ -170,6 +171,7 @@ contract UsdTokenSwapKeeper_CheckLog_Integration_Test is Base_Test {
         UsdTokenSwapKeeper(usdTokenSwapKeeper).setForwarder(users.keepersForwarder.account);
 
         marketMakingEngine.configureSystemKeeper(usdTokenSwapKeeper, true);
+
 
         changePrank({ msgSender: users.naruto.account });
 

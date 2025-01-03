@@ -202,11 +202,8 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
 
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
-        amount = bound({
-            x: amount,
-            min: USDC_MIN_DEPOSIT_MARGIN,
-            max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
-        });
+        amount =
+            bound({ x: amount, min: 1e12, max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) });
 
         deal({ token: address(usdc), to: address(perpsEngine), give: amount });
 

@@ -70,6 +70,7 @@ contract UsdTokenSwapKeeper_PerformUpkeep_Integration_Test is Base_Test {
 
         marketMakingEngine.configureSystemKeeper(ctx.usdTokenSwapKeeper, true);
 
+
         changePrank({ msgSender: users.naruto.account });
 
         ctx.mockPrice = IPriceAdapter(fuzzVaultConfig.priceAdapter).getPrice().intoUint256();

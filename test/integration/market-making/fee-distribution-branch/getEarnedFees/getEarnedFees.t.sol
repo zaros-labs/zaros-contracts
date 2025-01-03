@@ -31,10 +31,28 @@ contract GetEarnedFees_Integration_Test is Base_Test {
     )
         external
     {
-        changePrank({ msgSender: address(perpsEngine) });
         IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
 
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: users.naruto.account });
+
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        assetsToDepositVault = bound({
+            x: assetsToDepositVault,
+            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
+            max: fuzzVaultConfig.depositCap
+        });
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
+
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0, "", false);
+
+        uint256 sharesToStake = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
+
+        marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake));
+
+        changePrank({ msgSender: address(perpsEngine) });
 
         amountToDepositMarketFee = bound({
             x: amountToDepositMarketFee,
@@ -53,21 +71,6 @@ contract GetEarnedFees_Integration_Test is Base_Test {
         );
 
         changePrank({ msgSender: users.naruto.account });
-
-        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-
-        assetsToDepositVault = bound({
-            x: assetsToDepositVault,
-            min: calculateMinOfSharesToStake(fuzzVaultConfig.vaultId),
-            max: fuzzVaultConfig.depositCap
-        });
-        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDepositVault);
-
-        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, uint128(assetsToDepositVault), 0, "", false);
-
-        uint256 sharesToStake = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
-
-        marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake));
 
         assertEq(IERC20(wEth).balanceOf(users.naruto.account), 0);
 

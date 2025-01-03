@@ -7,7 +7,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 
 // PRB Math dependencies
 import { SD59x18 } from "@prb-math/SD59x18.sol";
-import { UD60x18 } from "@prb-math/UD60x18.sol";
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract CreditDelegationBranch_GetAdjustedProfitForMarketId_Integration_Test is Base_Test {
     function setUp() public virtual override {
@@ -57,12 +57,17 @@ contract CreditDelegationBranch_GetAdjustedProfitForMarketId_Integration_Test is
         marketMakingEngine.getAdjustedProfitForMarketId(fuzzMarketConfig.marketId, profitUsd);
     }
 
-    function test_WhenTheCreditCapacityIsGreaterThanZero(
+    modifier whenTheCreditCapacityIsGreaterThanZero() {
+        _;
+    }
+
+    function test_WhenTheAutoDeleverageFactorIsNotTriggered(
         uint256 marketId,
         uint256 profitUsd
     )
         external
         whenTheMarketIsLive
+        whenTheCreditCapacityIsGreaterThanZero
     {
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
 
@@ -71,5 +76,32 @@ contract CreditDelegationBranch_GetAdjustedProfitForMarketId_Integration_Test is
 
         // it should return the adjusted profit
         assertEq(profitUsd, adjustedProfitUsdX18.intoUint256());
+    }
+
+    function test_WhenTheAutoDeleverageFactorIsTriggered(
+        uint256 marketId,
+        uint256 profitUsd
+    )
+        external
+        whenTheMarketIsLive
+        whenTheCreditCapacityIsGreaterThanZero
+    {
+        PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        marketMakingEngine.workaround_setMarketUsdTokenIssuance(fuzzMarketConfig.marketId, 5e9 + 10);
+
+        UD60x18 delegatedCreditUsdX18 =
+            marketMakingEngine.workaround_getTotalDelegatedCreditUsd(fuzzMarketConfig.marketId);
+        SD59x18 totalDebtUsdX18 = marketMakingEngine.workaround_getTotalMarketDebt(fuzzMarketConfig.marketId);
+
+        UD60x18 autoDeleverageFactorX18 = marketMakingEngine.workaround_getAutoDeleverageFactor(
+            fuzzMarketConfig.marketId, delegatedCreditUsdX18, totalDebtUsdX18
+        );
+
+        UD60x18 adjustedProfitUsdX18 =
+            marketMakingEngine.getAdjustedProfitForMarketId(fuzzMarketConfig.marketId, profitUsd);
+
+        // it should return the adjusted profit
+        assertEq(ud60x18(profitUsd).mul(autoDeleverageFactorX18).intoUint256(), adjustedProfitUsdX18.intoUint256());
     }
 }
