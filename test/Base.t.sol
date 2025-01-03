@@ -527,12 +527,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     }
 
     function setUpDexAdapters() internal {
-        address[] memory collaterals = new address[](3);
+        address[] memory collaterals = new address[](5);
         collaterals[0] = address(usdc);
         collaterals[1] = address(wEth);
         collaterals[2] = address(wBtc);
+        collaterals[3] = address(weEth);
+        collaterals[4] = address(wstEth);
 
-        SwapAssetConfigData[] memory collateralData = new SwapAssetConfigData[](3);
+        SwapAssetConfigData[] memory collateralData = new SwapAssetConfigData[](5);
 
         collateralData[0] = SwapAssetConfigData({
             decimals: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals,
@@ -547,6 +549,16 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         collateralData[2] = SwapAssetConfigData({
             decimals: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].tokenDecimals,
             priceAdapter: address(marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        collateralData[3] = SwapAssetConfigData({
+            decimals: marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceAdapter)
+        });
+
+        collateralData[4] = SwapAssetConfigData({
+            decimals: marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].tokenDecimals,
+            priceAdapter: address(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter)
         });
 
         MockUniswapV3SwapStrategyRouter mockUniswapV3SwapStrategyRouter = new MockUniswapV3SwapStrategyRouter();
@@ -586,14 +598,20 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         deal({ token: address(wEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wBtc), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(usdc), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(weEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(wstEth), to: address(mockUniswapV3SwapStrategyRouter), give: type(uint256).max });
 
         deal({ token: address(wEth), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wBtc), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(usdc), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(weEth), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(wstEth), to: address(mockUniswapV2SwapStrategyRouter), give: type(uint256).max });
 
         deal({ token: address(wEth), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(wBtc), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
         deal({ token: address(usdc), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(weEth), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
+        deal({ token: address(wstEth), to: address(mockCurveSwapStrategyRouter), give: type(uint256).max });
     }
 
     function fundUserAndDepositInVault(address user, uint128 vaultId, uint128 assetsToDeposit) internal {

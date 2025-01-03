@@ -137,9 +137,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         Market.Data storage market = Market.loadLive(marketId);
         SD59x18 marketTotalDebtUsdX18 = market.getTotalDebt();
 
-        // uint256 -> UD60x18; output default case when market not in Auto Deleverage state
-        adjustedProfitUsdX18 = ud60x18(profitUsd);
-
         // caches the market's delegated credit & credit capacity
         UD60x18 delegatedCreditUsdX18 = market.getTotalDelegatedCreditUsd();
         SD59x18 creditCapacityUsdX18 = Market.getCreditCapacityUsd(delegatedCreditUsdX18, marketTotalDebtUsdX18);
@@ -149,6 +146,9 @@ contract CreditDelegationBranch is EngineAccessControl {
         if (creditCapacityUsdX18.lte(SD59x18_ZERO)) {
             revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
+
+        // uint256 -> UD60x18; output default case when market not in Auto Deleverage state
+        adjustedProfitUsdX18 = ud60x18(profitUsd);
 
         // we don't need to add `profitUsd` as it's assumed to be part of the total debt
         // NOTE: If we don't return the adjusted profit in this if branch, we assume marketTotalDebtUsdX18 is positive
@@ -260,7 +260,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         // delegated credit may be provided in form of volatile collateral assets, which could go down in value as
         // debt reaches its ceiling. In that case, the market will run out of mintable USD Token and the mm engine
         // must settle all outstanding debt for USDC, in order to keep previously paid USD Token fully backed.
-        if (creditCapacityUsdX18.lt(SD59x18_ZERO)) {
+        if (creditCapacityUsdX18.lte(SD59x18_ZERO)) {
             revert Errors.InsufficientCreditCapacity(marketId, creditCapacityUsdX18.intoInt256());
         }
 
@@ -398,7 +398,6 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// allocates the USDC acquired in case of a debt settlement to the engine's USD Token accordingly.
     /// @param vaultsIds The vaults' identifiers to settle.
     function settleVaultsDebt(uint256[] calldata vaultsIds) external onlyRegisteredSystemKeepers {
-        // todo test
         // first, we need to update the credit capacity of the vaults
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
 
@@ -453,13 +452,13 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // sanity check to ensure we didn't somehow give away the input tokens
                 if (ctx.usdcOut == 0) revert Errors.ZeroOutputTokens();
 
-                // uint256 -> udc60x18
+                // uint256 -> ud60x18
                 ctx.usdcOutX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcOut);
 
                 // use the amount of usdc bought with assets to update the vault's state
 
-                // deduct the amount of usdc swapped for assets from the vault's unsettled debt
-                vault.marketsRealizedDebtUsd -= ctx.usdcOutX18.intoUint256().toInt256().toInt128();
+                // add the amount of usdc swapped swapped from assets to the vault's unsettled debt
+                vault.marketsRealizedDebtUsd += ctx.usdcOutX18.intoUint256().toInt256().toInt128();
 
                 // load the usd token swap config
                 UsdTokenSwapConfig.Data storage usdTokenSwapConfig = UsdTokenSwapConfig.load();
@@ -477,8 +476,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             } else {
                 // else vault is in credit, swap its USDC previously accumulated
                 // from market and vault deposits into its underlying asset
-
-                // get swap amount in native precision
+                // get swap amount
                 ctx.usdcIn = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
                     ctx.usdc,
@@ -493,6 +491,12 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // if the vault doesn't have enough usdc use whatever amount it has
                 // make sure we compare native precision values together and output native precision
                 ctx.usdcIn = (ctx.usdcIn <= ctx.vaultUsdcBalance) ? ctx.usdcIn : ctx.vaultUsdcBalance;
+
+                // uint256 -> ud60x18
+                ctx.usdcInX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcIn);
+
+                // deduct the amount of usdc swapped for assets from the vault's unsettled debt
+                vault.marketsRealizedDebtUsd -= ctx.usdcInX18.intoUint256().toInt256().toInt128();
 
                 // swaps the vault's usdc balance to more vault assets and send them to the ZLP Vault contract (index
                 // token address)
@@ -597,7 +601,6 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @dev The actual increase or decrease in the vaults' unsettled realized debt happen at `settleVaultsDebt`.
     /// @param vaultsIds The vaults' identifiers to rebalance.
     function rebalanceVaultsAssets(uint128[2] calldata vaultsIds) external onlyRegisteredSystemKeepers {
-        // todo: tests
         // load the storage pointers of the vaults in net credit and net debt
         Vault.Data storage inCreditVault = Vault.loadExisting(vaultsIds[0]);
         Vault.Data storage inDebtVault = Vault.loadExisting(vaultsIds[1]);
@@ -629,13 +632,13 @@ contract CreditDelegationBranch is EngineAccessControl {
             revert Errors.InvalidVaultDebtSettlementRequest();
         }
 
-        // get credit absolute value
-        SD59x18 inCreditVaultUnsettledRealizedDebtUsdX18Abs = inCreditVaultUnsettledRealizedDebtUsdX18.abs();
+        // get debt absolute value
+        SD59x18 inDebtVaultUnsettledRealizedDebtUsdX18Abs = inDebtVaultUnsettledRealizedDebtUsdX18.abs();
 
-        // if credit absolute value > debt, use debt value, else use credit value
-        SD59x18 depositAmountUsdX18 = inCreditVaultUnsettledRealizedDebtUsdX18Abs.gt(
-            inDebtVaultUnsettledRealizedDebtUsdX18
-        ) ? inDebtVaultUnsettledRealizedDebtUsdX18 : inCreditVaultUnsettledRealizedDebtUsdX18Abs;
+        // if debt absolute value > credit, use credit value, else use debt value
+        SD59x18 depositAmountUsdX18 = inCreditVaultUnsettledRealizedDebtUsdX18.gt(
+            inDebtVaultUnsettledRealizedDebtUsdX18Abs
+        ) ? inDebtVaultUnsettledRealizedDebtUsdX18Abs : inCreditVaultUnsettledRealizedDebtUsdX18;
 
         // loads the dex swap strategy data storage pointer
         DexSwapStrategy.Data storage dexSwapStrategy =
@@ -655,9 +658,11 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 depositAmount =
             IDexAdapter(ctx.dexAdapter).getExpectedOutput(usdc, ctx.inDebtVaultCollateralAsset, depositAmountUsdc);
 
+        // transfer assets from vault to market making engine
+        IERC20(ctx.inDebtVaultCollateralAsset).transferFrom(inDebtVault.indexToken, address(this), depositAmount);
+
         // prepare the data for executing the swap asset -> usdc
-        SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
-            path: inDebtVault.swapStrategy.usdcDexSwapPath,
+        SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
             tokenIn: ctx.inDebtVaultCollateralAsset,
             tokenOut: usdc,
             amountIn: depositAmount,
@@ -668,7 +673,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         IERC20(ctx.inDebtVaultCollateralAsset).approve(ctx.dexAdapter, depositAmount);
 
         // swap the credit deposit assets for USDC
-        dexSwapStrategy.executeSwapExactInput(swapCallData);
+        dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
 
         // deposits the USDC to the vault in net credit
         inCreditVault.depositedUsdc += depositAmountUsdc.toUint128();
@@ -702,7 +707,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         external
         returns (SD59x18 creditCapacity)
     {
-        // todo: tests
         updateMarketCreditDelegations(marketId);
         creditCapacity = getCreditCapacityForMarketId(marketId);
     }
@@ -782,7 +786,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             );
 
             if (settlementBaseFeeUsd > 0) {
-                // revert if there isn't enough usdc to conver the base fee
+                // revert if there isn't enough usdc to cover the base fee
                 // NOTE: keepers must be configured to buy good chunks of usdc at minimum (e.g $500)
                 // as the settlement base fee shouldn't be much greater than $1.
                 if (usdcOut < settlementBaseFeeUsd) {
@@ -844,7 +848,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             DexSwapStrategy.Data storage dexSwapStrategy = DexSwapStrategy.loadExisting(dexSwapStrategyId);
 
             // approve the asset to be spent by the dex adapter contract
-            IERC20(asset).approve(dexSwapStrategy.dexAdapter, usdcAmount);
+            IERC20(usdc).approve(dexSwapStrategy.dexAdapter, usdcAmount);
 
             // verify if the swap should be input single or multihop
             if (path.length == 0) {

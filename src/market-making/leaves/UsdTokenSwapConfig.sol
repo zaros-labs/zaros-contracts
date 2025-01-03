@@ -53,8 +53,8 @@ library UsdTokenSwapConfig {
     /// @param pdCurveZ The exponent that determines the curvature of the premium / discount curve.
     /// @param usdcAvailableForEngine The amount of USDC backing an engine's usd token, coming from vaults that had
     /// their debt settled, allocating the usdc acquired to users of that engine. Note: usdc stored here isn't owned
-    // by any vault, it's where usdc from settled vaults is stored, to be used for swaps, although swaps can
-    // also be done using a vault's deposited usdc.
+    /// by any vault, it's where usdc from settled vaults is stored, to be used for swaps, although swaps can
+    /// also be done using a vault's deposited usdc.
     /// @param swapRequestIdCounter A counter for tracking the number of swap requests per user address.
     /// @param swapRequests A mapping that tracks all swap requests for each user, by user address and swap request
     /// id.

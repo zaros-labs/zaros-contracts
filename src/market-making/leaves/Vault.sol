@@ -112,7 +112,7 @@ library Vault {
     }
 
     /// @notice Parameters required to create a new vault.
-    /// @param depositFee The despoit fee for the vault.
+    /// @param depositFee The deposit fee for the vault.
     /// @param redeemFee The redeem fee for the vault.
     /// @param vaultId The unique identifier for the vault to be created.
     /// @param depositCap The maximum amount of collateral assets that can be deposited in the vault.

@@ -114,4 +114,24 @@ contract VaultHarness {
         Vault.Data storage vaultData = Vault.load(vaultId);
         vaultData.totalCreditDelegationWeight = totalCreditDelegationWeight;
     }
+
+    function workaround_setVaultDebt(uint128 vaultId, int128 amount) external {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        vaultData.marketsRealizedDebtUsd = amount;
+    }
+
+    function workaround_getVaultDebt(uint128 vaultId) external view returns (int128) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        return vaultData.marketsRealizedDebtUsd;
+    }
+
+    function workaround_setVaultDepositedUsdc(uint128 vaultId, uint128 amount) external {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        vaultData.depositedUsdc = amount;
+    }
+
+    function workaround_getVaultDepositedUsdc(uint128 vaultId) external view returns (uint128) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+        return vaultData.depositedUsdc;
+    }
 }

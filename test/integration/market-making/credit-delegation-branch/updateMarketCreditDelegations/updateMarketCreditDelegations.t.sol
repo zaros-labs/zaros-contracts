@@ -9,6 +9,7 @@ contract CreditDelegationBranch_UpdateMarketCreditDelegations_Integration_Test i
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
         configureSystemParameters();
         configureMarkets();
         changePrank({ msgSender: users.naruto.account });
@@ -18,9 +19,9 @@ contract CreditDelegationBranch_UpdateMarketCreditDelegations_Integration_Test i
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         // it should emit { LogUpdateVaultCreditCapacity } event
-        // vm.expectEmit();
-        // emit Vault.LogUpdateVaultCreditCapacity(INITIAL_VAULT_ID, 0, 0, 0, 0, 0);
+        vm.expectEmit();
+        emit Vault.LogUpdateVaultCreditCapacity(INITIAL_VAULT_ID, 0, 0, 0, 0, 0);
 
-        // marketMakingEngine.updateMarketCreditDelegations(fuzzPerpMarketCreditConfig.marketId);
+        marketMakingEngine.updateMarketCreditDelegations(fuzzPerpMarketCreditConfig.marketId);
     }
 }

@@ -13,8 +13,8 @@ import { Path } from "@zaros/utils/libraries/Path.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
-
 /// @notice Uniswap V2 adapter contract
+
 contract UniswapV2Adapter is BaseAdapter {
     using Path for bytes;
 
