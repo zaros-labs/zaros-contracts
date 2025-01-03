@@ -11,7 +11,7 @@ contract CreditDelegationBranch_RebalanceVaultsAssets_Integration_Test is Base_T
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID);
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
         configureMarkets();
     }
 
