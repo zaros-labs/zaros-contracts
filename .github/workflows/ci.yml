@@ -81,6 +81,7 @@ jobs:
   #         echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
 
   build:
+    needs: ["fmt"]
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out the repo"

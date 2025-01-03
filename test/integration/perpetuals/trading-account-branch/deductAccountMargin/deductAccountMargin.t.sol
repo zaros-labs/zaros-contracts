@@ -153,7 +153,8 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
     }
 
     function testFuzz_WhenSettlementFeeUsdX18IsGreaterThanZeroAndIfTheAlreadyDeductedSettlementFeeSettlementFeeDeductedUsdX18IsLessThanTheTotalSettlementFeeUsdX18(
-        uint256 marginValueUsd, uint256 feeAmount,
+        uint256 marginValueUsd,
+        uint256 feeAmount,
         uint256 randomFeeAmount1,
         uint256 randomFeeAmount2
     )
