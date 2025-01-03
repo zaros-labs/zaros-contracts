@@ -59,7 +59,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         UD60x18 assetAmountX18 = ud60x18(IERC4626(fuzzVaultConfig.indexToken).totalAssets());
         uint256 maxSwapAmount = assetAmountX18.mul(assetPriceX18).intoUint256();
 
-        swapAmount = bound({ x: swapAmount, min: 1e14, max: maxSwapAmount });
+        swapAmount = bound({ x: swapAmount, min: 1e6, max: maxSwapAmount });
 
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
@@ -179,6 +179,9 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         uint256 minAmountOut = amountOut.intoUint256();
 
+        // @audit slippage is now also checked when swaps are initiated, so this test doesn't
+        // work as is. To get this test to work the slippage would need to pass when the
+        // swap is initiated but fail when the swap is filled, possibly due to a price change?
         initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), swapAmount, minAmountOut);
 
         // increase price so slippage  check fails in fulfill swap

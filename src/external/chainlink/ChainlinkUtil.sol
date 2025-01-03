@@ -30,6 +30,7 @@ library ChainlinkUtil {
 
     /// @notice Queries the provided Chainlink Price Feed for the margin collateral oracle price.
     /// @param params The GetPriceParams struct.
+    /// @return price in zaros internal precision
     function getPrice(GetPriceParams memory params) internal view returns (UD60x18 price) {
         uint8 priceDecimals = params.priceFeed.decimals();
 

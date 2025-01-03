@@ -91,7 +91,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the USD price of the configured asset.
-    /// @return priceUsdX18 The USD quote of the token.
+    /// @return priceUsdX18 The USD quote of the token in zaros internal precision
     function getPrice() external view returns (UD60x18 priceUsdX18) {
         if (useEthPriceFeed) {
             address sequencerUptimeFeedCache = sequencerUptimeFeed;

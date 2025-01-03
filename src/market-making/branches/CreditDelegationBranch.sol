@@ -31,6 +31,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     using Market for Market.Data;
     using MarketMakingEngineConfiguration for MarketMakingEngineConfiguration.Data;
     using SafeCast for uint256;
+    using SafeCast for uint128;
     using SafeCast for int256;
     using SafeERC20 for IERC20;
     using Vault for Vault.Data;
@@ -172,14 +173,14 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// order to delist a market and allow Vaults to fully undelegate the provided credit, it first must be disabled
     /// at the engine level in order to prevent users from being able to fulfill their expected profits.
     /// @param marketId The engine's market id.
-    /// @param collateralType The margin collateral address.
-    /// @param amount The token amount of collateral to receive.
+    /// @param collateralAddr The margin collateral address.
+    /// @param amount The token amount of collateral to receive in collateralAddr's native precision
     /// @dev Invariants:
     /// The Market of `marketId` MUST exist.
     /// The Market of `marketId` MUST be live.
     function depositCreditForMarket(
         uint128 marketId,
-        address collateralType,
+        address collateralAddr,
         uint256 amount
     )
         external
@@ -188,7 +189,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         if (amount == 0) revert Errors.ZeroInput("amount");
 
         // loads the collateral's data storage pointer, must be enabled
-        Collateral.Data storage collateral = Collateral.load(collateralType);
+        Collateral.Data storage collateral = Collateral.load(collateralAddr);
         collateral.verifyIsEnabled();
 
         // loads the market's data storage pointer, must have delegated credit so
@@ -199,28 +200,30 @@ contract CreditDelegationBranch is EngineAccessControl {
             revert Errors.NoDelegatedCredit(marketId);
         }
 
-        // uint256 -> UD60x18 and scale decimals to 18
+        // uint256 -> UD60x18 scaling decimals to zaros internal precision
         UD60x18 amountX18 = collateral.convertTokenAmountToUd60x18(amount);
 
         // caches the usdToken address
         address usdToken = MarketMakingEngineConfiguration.load().usdTokenOfEngine[msg.sender];
 
-        if (collateralType == usdToken) {
+        // note: storage updates must occur using zaros internal precision
+        if (collateralAddr == usdToken) {
             // if the deposited collateral is USD Token, it reduces the market's realized debt
             market.updateNetUsdTokenIssuance(unary(amountX18.intoSD59x18()));
         } else {
-            // deposits the received collateral to the market to be distributed to vaults, and then settled in the
-            // future
-            market.depositCredit(collateralType, amountX18);
+            // deposits the received collateral to the market to be distributed to vaults
+            // to be settled in the future
+            market.depositCredit(collateralAddr, amountX18);
         }
 
         // transfers the margin collateral asset from the registered engine to the market making engine
         // NOTE: The engine must approve the market making engine to transfer the margin collateral asset, see
         // PerpsEngineConfigurationBranch::setMarketMakingEngineAllowance
-        IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
+        // note: transfers must occur using token native precision
+        IERC20(collateralAddr).safeTransferFrom(msg.sender, address(this), amount);
 
         // emit an event
-        emit LogDepositCreditForMarket(msg.sender, marketId, collateralType, amount);
+        emit LogDepositCreditForMarket(msg.sender, marketId, collateralAddr, amount);
     }
 
     /// @notice Mints the requested amount of USD Token to the caller and updates the market's
@@ -234,10 +237,8 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @param marketId The engine's market id requesting USD Token.
     /// @param amount The amount of USD Token to mint.
     function withdrawUsdTokenFromMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine {
-        // loads the market's data storage pointer
+        // loads the market's data and connected vaults
         Market.Data storage market = Market.loadLive(marketId);
-
-        // load the market's connected vaults ids and `mstore` them
         uint256[] memory connectedVaults = market.getConnectedVaultsIds();
 
         // once the unrealized debt is distributed update credit delegated
@@ -275,8 +276,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         // now we realize the added usd debt of the market
         // note: USD Token is assumed to be 1:1 with the system's usd accounting
         if (market.isAutoDeleverageTriggered(delegatedCreditUsdX18, marketTotalDebtUsdX18)) {
-            // if the market is in the ADL state, it reduces the requested USD Token amount by multiplying it by the
-            // ADL factor, which must be < 1
+            // if the market is in the ADL state, it reduces the requested USD
+            // Token amount by multiplying it by the ADL factor, which must be < 1
             UD60x18 adjustedUsdTokenToMintX18 =
                 market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(amountX18);
 
@@ -348,11 +349,15 @@ contract CreditDelegationBranch is EngineAccessControl {
             // cache usdc address
             address usdc = MarketMakingEngineConfiguration.load().usdc;
 
-            // creditDeposits in 18 decimals so convert to native token decimals
+            // creditDeposits in zaros internal precision so convert to native token decimals
             ctx.creditDepositsNativeDecimals =
                 Collateral.load(assets[i]).convertUd60x18ToTokenAmount(ud60x18(creditDeposits));
 
-            // convert the assets to USDC
+            // @audit if assets[i] == usdc no swap actually executes, therefore the remaining
+            // code especially the call to `market.settleCreditDeposit` shouldn't execute?
+            // do we need to handle this case here?
+            //
+            // convert the assets to USDC; both input and outputs in native token decimals
             uint256 usdcOut = _convertAssetsToUsdc(
                 dexSwapStrategyIds[i], assets[i], ctx.creditDepositsNativeDecimals, paths[i], address(this), usdc
             );
@@ -360,7 +365,8 @@ contract CreditDelegationBranch is EngineAccessControl {
             // sanity check to ensure we didn't somehow give away the input tokens
             if (usdcOut == 0) revert Errors.ZeroOutputTokens();
 
-            // settles the credit deposit for the amount of USDC received (uint256 -> UD60x18)
+            // settles the credit deposit for the amount of USDC received
+            // updating storage so convert from native token decimals to zaros internal precision
             market.settleCreditDeposit(assets[i], Collateral.load(usdc).convertTokenAmountToUd60x18(usdcOut));
 
             // emit an event
@@ -381,7 +387,6 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 usdcOut;
         UD60x18 usdcOutX18;
         uint256 usdcIn;
-        UD60x18 usdcInX18;
         uint256 vaultUsdcBalance;
     }
 
@@ -413,6 +418,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             Vault.Data storage vault = Vault.loadExisting(vaultsIds[i].toUint128());
 
             // cache the vault's unsettled debt, if zero skip to next vault
+            // amount in zaros internal precision
             ctx.vaultUnsettledRealizedDebtUsdX18 = vault.getUnsettledRealizedDebt();
             if (ctx.vaultUnsettledRealizedDebtUsdX18.isZero()) continue;
 
@@ -425,16 +431,16 @@ contract CreditDelegationBranch is EngineAccessControl {
 
             // if the vault is in debt, swap its assets to USDC
             if (ctx.vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)) {
-                // get swap amount
+                // get swap amount; both input and output in native precision
                 ctx.swapAmount = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
                     ctx.vaultAsset,
                     ctx.usdc,
-                    ctx.vaultUnsettledRealizedDebtUsdX18,
-                    ctx.usdc
+                    usdcCollateralConfig.convertSd59x18ToTokenAmount(ctx.vaultUnsettledRealizedDebtUsdX18.abs())
                 );
 
                 // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
+                // both input and output in native precision
                 //
                 // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
                 // if this occurs, should `vault.marketsRealizedDebtUsd` and
@@ -452,19 +458,22 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // sanity check to ensure we didn't somehow give away the input tokens
                 if (ctx.usdcOut == 0) revert Errors.ZeroOutputTokens();
 
-                // uint256 -> ud60x18
+                // uint256 -> udc60x18 scaling native precision to zaros internal precision
                 ctx.usdcOutX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcOut);
 
                 // use the amount of usdc bought with assets to update the vault's state
-
-                // add the amount of usdc swapped swapped from assets to the vault's unsettled debt
-                vault.marketsRealizedDebtUsd += ctx.usdcOutX18.intoUint256().toInt256().toInt128();
-
-                // load the usd token swap config
-                UsdTokenSwapConfig.Data storage usdTokenSwapConfig = UsdTokenSwapConfig.load();
+                // note: storage updates must be done using zaros internal precision
+                //
+                // deduct the amount of usdc swapped for assets from the vault's unsettled debt
+                vault.marketsRealizedDebtUsd -= ctx.usdcOutX18.intoUint256().toInt256().toInt128();
 
                 // allocate the usdc acquired to back the engine's usd token
-                usdTokenSwapConfig.usdcAvailableForEngine[vault.engine] += ctx.usdcOutX18.intoUint256();
+                //
+                // @audit rg "usdcAvailableForEngine" inside /src/ folder shows this is the only
+                // place that references UsdTokenSwapConfig::usdcAvailableForEngine - this field
+                // is only ever increased and never decreased anywhere or used anywhere else?
+                // What is the point of this / is this correct?
+                UsdTokenSwapConfig.load().usdcAvailableForEngine[vault.engine] += ctx.usdcOutX18.intoUint256();
 
                 // update the variables to be logged
                 ctx.assetIn = ctx.vaultAsset;
@@ -476,13 +485,13 @@ contract CreditDelegationBranch is EngineAccessControl {
             } else {
                 // else vault is in credit, swap its USDC previously accumulated
                 // from market and vault deposits into its underlying asset
-                // get swap amount
+
+                // get swap amount; both input and output in native precision
                 ctx.usdcIn = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
                     ctx.usdc,
                     ctx.vaultAsset,
-                    ctx.vaultUnsettledRealizedDebtUsdX18,
-                    ctx.usdc
+                    usdcCollateralConfig.convertSd59x18ToTokenAmount(ctx.vaultUnsettledRealizedDebtUsdX18.abs())
                 );
 
                 // get deposited USDC balance of the vault, convert to native precision
@@ -492,21 +501,16 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // make sure we compare native precision values together and output native precision
                 ctx.usdcIn = (ctx.usdcIn <= ctx.vaultUsdcBalance) ? ctx.usdcIn : ctx.vaultUsdcBalance;
 
-                // uint256 -> ud60x18
-                ctx.usdcInX18 = usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcIn);
-
-                // deduct the amount of usdc swapped for assets from the vault's unsettled debt
-                vault.marketsRealizedDebtUsd -= ctx.usdcInX18.intoUint256().toInt256().toInt128();
-
-                // swaps the vault's usdc balance to more vault assets and send them to the ZLP Vault contract (index
-                // token address)
+                // swaps the vault's usdc balance to more vault assets and
+                // send them to the ZLP Vault contract (index token address)
+                // both input and output in native precision
                 //
                 // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
                 // if this occurs, should `vault.depositedUsdc` still be updated and the event emitted?
                 ctx.assetOutAmount = _convertUsdcToAssets(
                     vault.swapStrategy.assetDexSwapStrategyId,
                     ctx.vaultAsset,
-                    ctx.usdcIn, // passing native precision
+                    ctx.usdcIn,
                     vault.swapStrategy.assetDexSwapPath,
                     vault.indexToken,
                     ctx.usdc
@@ -516,7 +520,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                 if (ctx.assetOutAmount == 0) revert Errors.ZeroOutputTokens();
 
                 // subtract the usdc amount used to buy vault assets from the vault's deposited usdc, thus, settling
-                // the due credit amount (partially or fully). Updating with 18 decimal precision.
+                // the due credit amount (partially or fully).
+                // note: storage updates must be done using zaros internal precision
                 vault.depositedUsdc -= usdcCollateralConfig.convertTokenAmountToUd60x18(ctx.usdcIn).intoUint128();
 
                 // update the variables to be logged
@@ -546,24 +551,22 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// @param dexAdapter The address of the DEX adapter used for price calculation.
     /// @param assetIn The address of the vault asset to calculate the amount for.
     /// @param assetOut The address of the USDC token.
-    /// @param vaultUnsettledRealizedDebtUsdX18 The unsettled debt in USD, represented in SD59x18 format.
-    /// @param usdc The USDC token address
-    /// @return amount The amount of the vault asset required to cover the unsettled debt in USD.
+    /// @param vaultUnsettledDebtUsdAbs The unsettled debt in USD in native token precision
+    /// @return amount The amount of the vault asset required to cover the unsettled debt in USD
+    ///         using native precision of output token
     function calculateSwapAmount(
         address dexAdapter,
         address assetIn,
         address assetOut,
-        SD59x18 vaultUnsettledRealizedDebtUsdX18,
-        address usdc
+        uint256 vaultUnsettledDebtUsdAbs
     )
         public
         view
         returns (uint256 amount)
     {
-        // get vault unsettled debt absolute value USDC in uint256
-        uint256 vaultUnsettledDebtUsdAbs =
-            Collateral.load(usdc).convertSd59x18ToTokenAmount(vaultUnsettledRealizedDebtUsdX18.abs());
-
+        // @audit BaseAdapter::getExpectedOutput(tokenIn, tokenOut, amountIn)
+        // the order of assetOut and assetIn appears to be reversed, double-check if this intentional?
+        //
         // calculate expected asset amount needed to cover the debt
         amount = IDexAdapter(dexAdapter).getExpectedOutput(assetOut, assetIn, vaultUnsettledDebtUsdAbs);
     }
@@ -644,50 +647,58 @@ contract CreditDelegationBranch is EngineAccessControl {
         DexSwapStrategy.Data storage dexSwapStrategy =
             DexSwapStrategy.loadExisting(inDebtVault.swapStrategy.usdcDexSwapStrategyId);
 
-        // load usdc
+        // load usdc address
         address usdc = MarketMakingEngineConfiguration.load().usdc;
 
-        // SD59x18 -> uint256
-        uint256 depositAmountUsdc = Collateral.load(usdc).convertSd59x18ToTokenAmount(depositAmountUsdX18);
-
-        // get collateral asset amount for usd value
+        // cache input asset and dex adapter
         CalculateSwapContext memory ctx;
         ctx.inDebtVaultCollateralAsset = inDebtVault.collateral.asset;
         ctx.dexAdapter = dexSwapStrategy.dexAdapter;
 
-        uint256 depositAmount =
-            IDexAdapter(ctx.dexAdapter).getExpectedOutput(usdc, ctx.inDebtVaultCollateralAsset, depositAmountUsdc);
+        // get collateral asset amount in native precision of ctx.inDebtVaultCollateralAsset
+        uint256 assetInputNative = IDexAdapter(ctx.dexAdapter).getExpectedOutput(
+            usdc,
+            ctx.inDebtVaultCollateralAsset,
+            // convert usdc input to native precision
+            Collateral.load(usdc).convertSd59x18ToTokenAmount(depositAmountUsdX18)
+        );
 
         // transfer assets from vault to market making engine
-        IERC20(ctx.inDebtVaultCollateralAsset).transferFrom(inDebtVault.indexToken, address(this), depositAmount);
+        IERC20(ctx.inDebtVaultCollateralAsset).transferFrom(inDebtVault.indexToken, address(this), assetInputNative);
 
         // prepare the data for executing the swap asset -> usdc
         SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
             tokenIn: ctx.inDebtVaultCollateralAsset,
             tokenOut: usdc,
-            amountIn: depositAmount,
+            amountIn: assetInputNative,
             recipient: address(this) // deposit the usdc to the market making engine proxy
          });
 
-        // approve the collateral token to the dex adapter
-        IERC20(ctx.inDebtVaultCollateralAsset).approve(ctx.dexAdapter, depositAmount);
-
-        // swap the credit deposit assets for USDC
+        // approve the collateral token to the dex adapter and swap assets for USDC
+        IERC20(ctx.inDebtVaultCollateralAsset).approve(ctx.dexAdapter, assetInputNative);
         dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
 
-        // deposits the USDC to the vault in net credit
-        inCreditVault.depositedUsdc += depositAmountUsdc.toUint128();
-        // increase the vault's share of the markets realized debt as it has received the USDC and needs to settle it
-        // in the future
-        inCreditVault.marketsRealizedDebtUsd += depositAmountUsdX18.intoUint256().toInt256().toInt128();
+        // SD59x18 -> uint128 using zaros internal precision
+        uint128 usdDelta = depositAmountUsdX18.intoUint256().toUint128();
 
-        // withdraws the USDC from the vault in net debt
-        inDebtVault.depositedUsdc -= depositAmountUsdc.toUint128();
-        // decrease the vault's share of the markets realized debt as it has transferred USDC to the in credit vault
-        inDebtVault.marketsRealizedDebtUsd -= depositAmountUsdX18.intoUint256().toInt256().toInt128();
+        // important considerations:
+        // 1) all subsequent storge updates must use zaros internal precision
+        // 2) code implicitly assumes that 1 USD = 1 USDC
+        //
+        // deposits the USDC to the in-credit vault
+        inCreditVault.depositedUsdc += usdDelta;
+        // increase the in-credit vault's share of the markets realized debt
+        // as it has received the USDC and needs to settle it in the future
+        inCreditVault.marketsRealizedDebtUsd += usdDelta.toInt256().toInt128();
+
+        // withdraws the USDC from the in-debt vault
+        inDebtVault.depositedUsdc -= usdDelta;
+        // decrease the in-debt vault's share of the markets realized debt
+        // as it has transferred USDC to the in-credit vault
+        inDebtVault.marketsRealizedDebtUsd -= usdDelta.toInt256().toInt128();
 
         // emit an event
-        emit LogRebalanceVaultsAssets(vaultsIds[0], vaultsIds[1], depositAmountUsdX18.intoUint256());
+        emit LogRebalanceVaultsAssets(vaultsIds[0], vaultsIds[1], usdDelta);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -727,7 +738,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                                    INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
-    /// @param assetAmount in native token decimals
+    /// @param assetAmount in native precision of asset token
+    /// @return usdcOut in native usdc precision
     function _convertAssetsToUsdc(
         uint128 dexSwapStrategyId,
         address asset,
