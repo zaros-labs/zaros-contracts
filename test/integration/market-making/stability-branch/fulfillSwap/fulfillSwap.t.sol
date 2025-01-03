@@ -46,7 +46,6 @@ contract FulfillSwap_Integration_Test is Base_Test {
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-
         changePrank({ msgSender: users.naruto.account });
 
         deal({
