@@ -214,7 +214,7 @@ contract CreditDelegationBranch is EngineAccessControl {
             market.depositCredit(collateralType, amountX18);
         }
 
-        // transfers the margin collateral asset from the perps engine to the market making engine
+        // transfers the margin collateral asset from the registered engine to the market making engine
         // NOTE: The engine must approve the market making engine to transfer the margin collateral asset, see
         // PerpsEngineConfigurationBranch::setMarketMakingEngineAllowance
         IERC20(collateralType).safeTransferFrom(msg.sender, address(this), amount);
