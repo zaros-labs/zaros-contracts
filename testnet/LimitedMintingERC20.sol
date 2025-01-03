@@ -40,6 +40,9 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     /// @notice Mapping of the user already minted free remint.
     mapping(address user => bool alreadyMinted) public userAlreadyMintedFreeRemint;
 
+    /// @notice Mapping of the user already minted the secondig round of free remint.
+    mapping(address user => bool alreadyMinted) public userAlreadyMintedTheSecondRoundFreeRemint;
+
     /*//////////////////////////////////////////////////////////////////////////
                                     ERRORS FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
@@ -98,7 +101,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
             }
         }
 
-        if (!userAlreadyMintedFreeRemint[msg.sender]) {
+        if (!userAlreadyMintedTheSecondRoundFreeRemint[msg.sender]) {
             isEnabled = true;
             return isEnabled;
         }
@@ -155,8 +158,8 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
         userLastMintedTime[msg.sender] = block.timestamp;
         amountMintedPerAddress[msg.sender] = AMOUNT_TO_MINT_USDC;
 
-        if(!userAlreadyMintedFreeRemint[msg.sender]) {
-            userAlreadyMintedFreeRemint[msg.sender] = true;
+        if(!userAlreadyMintedTheSecondRoundFreeRemint[msg.sender]) {
+            userAlreadyMintedTheSecondRoundFreeRemint[msg.sender] = true;
         }
 
         _mint(msg.sender, AMOUNT_TO_MINT_USDC);
