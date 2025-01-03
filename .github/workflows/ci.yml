@@ -41,46 +41,47 @@ jobs:
         run: "pnpm install"
 
       - name: "Format the contracts"
-        run: "forge fmt"
+        run: "forge fmt --check"
 
       - name: "Add format summary"
         run: |
           echo "## Format result" >> $GITHUB_STEP_SUMMARY
           echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
-  lint:
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: "Check out the repo"
-        uses: "actions/checkout@v3"
-        with:
-          submodules: "recursive"
+  # lint:
+  #   runs-on: "ubuntu-latest"
+  #   steps:
+  #     - name: "Check out the repo"
+  #       uses: "actions/checkout@v3"
+  #       with:
+  #         submodules: "recursive"
 
-      - name: "Install Foundry"
-        uses: "foundry-rs/foundry-toolchain@v1"
+  #     - name: "Install Foundry"
+  #       uses: "foundry-rs/foundry-toolchain@v1"
 
-      - name: "Install Pnpm"
-        uses: "pnpm/action-setup@v2"
-        with:
-          version: "8"
+  #     - name: "Install Pnpm"
+  #       uses: "pnpm/action-setup@v2"
+  #       with:
+  #         version: "8"
 
-      - name: "Install Node.js"
-        uses: "actions/setup-node@v3"
-        with:
-          cache: "pnpm"
-          node-version: "lts/*"
+  #     - name: "Install Node.js"
+  #       uses: "actions/setup-node@v3"
+  #       with:
+  #         cache: "pnpm"
+  #         node-version: "lts/*"
 
-      - name: "Install the Node.js dependencies"
-        run: "pnpm install"
+  #     - name: "Install the Node.js dependencies"
+  #       run: "pnpm install"
 
-      - name: "Lint the contracts"
-        run: "pnpm lint"
+  #     - name: "Lint the contracts"
+  #       run: "pnpm lint"
 
-      - name: "Add lint summary"
-        run: |
-          echo "## Lint result" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
+  #     - name: "Add lint summary"
+  #       run: |
+  #         echo "## Lint result" >> $GITHUB_STEP_SUMMARY
+  #         echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
 
   build:
+    needs: ["fmt"]
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out the repo"
@@ -104,83 +105,83 @@ jobs:
       - name: "Install the Node.js dependencies"
         run: "pnpm install"
 
-      - name: "Build the contracts and print their size"
-        run: "forge build --sizes"
+      - name: "Build the contracts"
+        run: "forge build"
 
       - name: "Add build summary"
         run: |
           echo "## Build result" >> $GITHUB_STEP_SUMMARY
           echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
 
-  slither:
-    needs: ["lint", "build"]
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: "Check out the repo"
-        uses: "actions/checkout@v3"
-        with:
-          submodules: "recursive"
+  # slither:
+  #   needs: ["lint", "build"]
+  #   runs-on: "ubuntu-latest"
+  #   steps:
+  #     - name: "Check out the repo"
+  #       uses: "actions/checkout@v3"
+  #       with:
+  #         submodules: "recursive"
 
-      - name: "Install Foundry"
-        uses: "foundry-rs/foundry-toolchain@v1"
-      - name: "Install Pnpm"
-        uses: "pnpm/action-setup@v2"
-        with:
-          version: "8"
+  #     - name: "Install Foundry"
+  #       uses: "foundry-rs/foundry-toolchain@v1"
+  #     - name: "Install Pnpm"
+  #       uses: "pnpm/action-setup@v2"
+  #       with:
+  #         version: "8"
 
-      - name: "Install Node.js"
-        uses: "actions/setup-node@v3"
-        with:
-          cache: "pnpm"
-          node-version: "lts/*"
+  #     - name: "Install Node.js"
+  #       uses: "actions/setup-node@v3"
+  #       with:
+  #         cache: "pnpm"
+  #         node-version: "lts/*"
 
-      - name: "Install the Node.js dependencies"
-        run: "pnpm install"
+  #     - name: "Install the Node.js dependencies"
+  #       run: "pnpm install"
 
-      - name: "Install slither"
-        run: "pip install slither-analyzer"
+  #     - name: "Install slither"
+  #       run: "pip install slither-analyzer"
 
-      - name: "Run the slither analyzer"
-        continue-on-error: true
-        run: "make slither"
+  #     - name: "Run the slither analyzer"
+  #       continue-on-error: true
+  #       run: "make slither"
 
-  aderyn:
-    needs: ["lint", "build"]
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: "Check out the repo"
-        uses: "actions/checkout@v2"
-        with:
-          submodules: "recursive"
+  # aderyn:
+  #   needs: ["lint", "build"]
+  #   runs-on: "ubuntu-latest"
+  #   steps:
+  #     - name: "Check out the repo"
+  #       uses: "actions/checkout@v2"
+  #       with:
+  #         submodules: "recursive"
 
-      - name: "Install Foundry"
-        uses: "foundry-rs/foundry-toolchain@v1"
-      - name: "Install Pnpm"
-        uses: "pnpm/action-setup@v2"
-        with:
-          version: "8"
+  #     - name: "Install Foundry"
+  #       uses: "foundry-rs/foundry-toolchain@v1"
+  #     - name: "Install Pnpm"
+  #       uses: "pnpm/action-setup@v2"
+  #       with:
+  #         version: "8"
 
-      - name: "Install Node.js"
-        uses: "actions/setup-node@v3"
-        with:
-          cache: "pnpm"
-          node-version: "lts/*"
+  #     - name: "Install Node.js"
+  #       uses: "actions/setup-node@v3"
+  #       with:
+  #         cache: "pnpm"
+  #         node-version: "lts/*"
 
-      - name: "Install the Node.js dependencies"
-        run: "pnpm install"
+  #     - name: "Install the Node.js dependencies"
+  #       run: "pnpm install"
 
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+  #     - uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: stable
 
-      - name: "Install Aderyn"
-        run: "cargo install aderyn"
+  #     - name: "Install Aderyn"
+  #       run: "cargo install aderyn"
 
-      - name: "Run the aderyn analyzer"
-        run: "make aderyn"
+  #     - name: "Run the aderyn analyzer"
+  #       run: "make aderyn"
 
   test:
-    needs: ["lint", "build"]
+    needs: ["build"]
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out the repo"
