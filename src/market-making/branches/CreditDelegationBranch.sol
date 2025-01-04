@@ -184,7 +184,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 amount
     )
         external
-        onlyRegisteredEngine
+        onlyRegisteredEngine(marketId)
     {
         if (amount == 0) revert Errors.ZeroInput("amount");
 
@@ -236,7 +236,7 @@ contract CreditDelegationBranch is EngineAccessControl {
     /// The Market of `marketId` MUST be live.
     /// @param marketId The engine's market id requesting USD Token.
     /// @param amount The amount of USD Token to mint.
-    function withdrawUsdTokenFromMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine {
+    function withdrawUsdTokenFromMarket(uint128 marketId, uint256 amount) external onlyRegisteredEngine(marketId) {
         // loads the market's data and connected vaults
         Market.Data storage market = Market.loadLive(marketId);
         uint256[] memory connectedVaults = market.getConnectedVaultsIds();

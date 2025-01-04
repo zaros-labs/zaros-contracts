@@ -6,6 +6,7 @@ pragma solidity 0.8.25;
 import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { MockEngine } from "test/mocks/MockEngine.sol";
 import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -214,7 +215,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             initializePayloads: initializePayloads
         });
 
-        perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
+        perpsEngine = IPerpsEngine(address(new MockEngine(initParams)));
 
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;
@@ -281,7 +282,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         changePrank({ msgSender: users.owner.account });
 
         bool isTest = true;
-        setupPerpMarketsCreditConfig(isTest);
+        setupPerpMarketsCreditConfig(isTest, initParams);
 
         marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(users.vaultFeeRecipient.account);
 
@@ -496,6 +497,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         configureMarkets(
             ConfigureMarketParams({
                 marketMakingEngine: marketMakingEngine,
+                perpsEngine: address(perpsEngine),
                 initialMarketId: INITIAL_PERP_MARKET_CREDIT_CONFIG_ID,
                 finalMarketId: FINAL_PERP_MARKET_CREDIT_CONFIG_ID
             })

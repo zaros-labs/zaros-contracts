@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies test
 import { Base_Test } from "test/Base.t.sol";
-import { MockEngine } from "test/mocks/MockEngine.sol";
+import { IMockEngine } from "test/mocks/IMockEngine.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { StabilityBranch } from "@zaros/market-making/branches/StabilityBranch.sol";
 import { UsdTokenSwapConfig } from "@zaros/market-making/leaves/UsdTokenSwapConfig.sol";
@@ -310,7 +310,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         VaultConfig fuzzVaultConfig;
         uint256 oneAsset;
         PerpMarketCreditConfig fuzzPerpMarketCreditConfig;
-        MockEngine engine;
+        IMockEngine engine;
         uint128 minAmountOut;
         bytes priceData;
         address usdTokenSwapKeeper;
@@ -365,7 +365,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
         ctx.fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
-        ctx.engine = MockEngine(ctx.fuzzPerpMarketCreditConfig.engine);
+        ctx.engine = IMockEngine(marketEngine[ctx.fuzzPerpMarketCreditConfig.marketId]);
         // we update the mock engine's unrealized debt in order to update the vault's total debt state
         ctx.engine.setUnrealizedDebt(useCredit ? -int256(vaultDebtAbsUsd) : int256(vaultDebtAbsUsd));
 

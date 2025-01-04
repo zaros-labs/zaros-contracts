@@ -32,15 +32,25 @@ contract CreditDelegationBranch_WithdrawUsdTokenFromMarket_Integration_Test is B
         _;
     }
 
-    function testFuzz_RevertWhen_TheMarketIsNotLive(uint256 amount) external givenTheSenderIsTheRegisteredEngine {
-        uint128 invalidMarketId = 0;
+    function testFuzz_RevertWhen_TheMarketIsNotLive(
+        uint256 marketId,
+        uint256 amount
+    )
+        external
+        givenTheSenderIsTheRegisteredEngine
+    {
+        PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: users.owner.account });
+
+        marketMakingEngine.pauseMarket(fuzzMarketConfig.marketId);
 
         changePrank({ msgSender: address(perpsEngine) });
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.MarketIsDisabled.selector, fuzzMarketConfig.marketId));
 
-        marketMakingEngine.withdrawUsdTokenFromMarket(invalidMarketId, amount);
+        marketMakingEngine.withdrawUsdTokenFromMarket(fuzzMarketConfig.marketId, amount);
     }
 
     modifier whenTheMarketIsLive() {
@@ -59,7 +69,6 @@ contract CreditDelegationBranch_WithdrawUsdTokenFromMarket_Integration_Test is B
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         changePrank({ msgSender: users.owner.account });
-        marketMakingEngine.configureEngine(marketEngine[fuzzMarketConfig.marketId], address(usdToken), true);
 
         marketMakingEngine.workaround_updateMarketTotalDelegatedCreditUsd(fuzzMarketConfig.marketId, 0);
 

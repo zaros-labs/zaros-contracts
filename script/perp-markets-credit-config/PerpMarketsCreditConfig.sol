@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
+import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 
 // Mock dependencies
 import { MockEngine } from "test/mocks/MockEngine.sol";
@@ -39,10 +40,12 @@ abstract contract PerpMarketsCreditConfig is
     }
 
     /// @notice Configure market params
+    /// @param perpsEngine Perps engine
     /// @param marketMakingEngine Market making engine
     /// @param initialMarketId Initial market id
     /// @param finalMarketId Final market id
     struct ConfigureMarketParams {
+        address perpsEngine;
         IMarketMakingEngine marketMakingEngine;
         uint256 initialMarketId;
         uint256 finalMarketId;
@@ -52,8 +55,8 @@ abstract contract PerpMarketsCreditConfig is
     mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal perpMarketsCreditConfig;
 
     /// @notice Setup perp markets credit config
-    function setupPerpMarketsCreditConfig(bool isTest) internal {
-        marketEngine[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = address(new MockEngine());
+    function setupPerpMarketsCreditConfig(bool isTest, RootProxy.InitParams memory initParams) internal {
+        marketEngine[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = address(new MockEngine(initParams));
 
         perpMarketsCreditConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             engine: isTest ? marketEngine[BTC_PERP_MARKET_CREDIT_CONFIG_ID] : BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE,
@@ -63,7 +66,7 @@ abstract contract PerpMarketsCreditConfig is
             autoDeleverageExpoentZ: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
         });
 
-        marketEngine[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = address(new MockEngine());
+        marketEngine[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = address(new MockEngine(initParams));
         perpMarketsCreditConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             engine: isTest ? marketEngine[ETH_PERP_MARKET_CREDIT_CONFIG_ID] : ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE,
             marketId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
@@ -101,7 +104,7 @@ abstract contract PerpMarketsCreditConfig is
     function configureMarkets(ConfigureMarketParams memory params) public {
         for (uint256 i = params.initialMarketId; i <= params.finalMarketId; i++) {
             params.marketMakingEngine.configureMarket(
-                perpMarketsCreditConfig[i].engine,
+                params.perpsEngine,
                 perpMarketsCreditConfig[i].marketId,
                 perpMarketsCreditConfig[i].autoDeleverageStartThreshold,
                 perpMarketsCreditConfig[i].autoDeleverageEndThreshold,

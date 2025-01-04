@@ -79,7 +79,14 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @param marketId The market receiving the fees.
     /// @param asset The margin collateral address.
     /// @param amount The token amount of collateral to receive as fee.
-    function receiveMarketFee(uint128 marketId, address asset, uint256 amount) external onlyRegisteredEngine {
+    function receiveMarketFee(
+        uint128 marketId,
+        address asset,
+        uint256 amount
+    )
+        external
+        onlyRegisteredEngine(marketId)
+    {
         // verify input amount
         if (amount == 0) revert Errors.ZeroInput("amount");
 
@@ -229,7 +236,7 @@ contract FeeDistributionBranch is EngineAccessControl {
     /// @notice Sends allocated weth amount to fee recipients.
     /// @dev onlyRegisteredEngine address can call this function.
     /// @param marketId The market to which fee recipients contribute.
-    function sendWethToFeeRecipients(uint128 marketId) external onlyRegisteredEngine {
+    function sendWethToFeeRecipients(uint128 marketId) external onlyRegisteredEngine(marketId) {
         // loads the fee data storage pointer
         Market.Data storage market = Market.loadExisting(marketId);
 

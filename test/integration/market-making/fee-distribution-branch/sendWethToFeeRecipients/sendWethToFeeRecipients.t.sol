@@ -44,7 +44,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         uint128 invalidMarketId = FINAL_PERP_MARKET_CREDIT_CONFIG_ID + 1;
 
         // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketId) });
+        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.Unauthorized.selector, perpsEngine) });
 
         marketMakingEngine.sendWethToFeeRecipients(invalidMarketId);
     }
