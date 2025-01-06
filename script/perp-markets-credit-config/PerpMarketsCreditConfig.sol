@@ -23,7 +23,6 @@ abstract contract PerpMarketsCreditConfig is
     BtcPerpMarketCreditConfig,
     EthPerpMarketCreditConfig
 {
-
     /// @notice Perp Market Credit Config
     /// @param engine Engine address
     /// @param marketId Market id
@@ -53,19 +52,22 @@ abstract contract PerpMarketsCreditConfig is
     mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal perpMarketsCreditConfig;
 
     /// @notice Setup perp markets credit config
-    /// @param isTest When isTest is True a new mock engine will created for a each perp market using the initParams variable
+    /// @param isTest When isTest is True a new mock engine will created for a each perp market using the initParams
+    /// variable
     /// @param initParams Only used when isTest is true
     function setupPerpMarketsCreditConfig(bool isTest, RootProxy.InitParams memory initParams) internal {
         perpMarketsCreditConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             engine: isTest ? address(new MockEngine(initParams)) : BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE,
-            usdToken: isTest ? address(
-                        new MockUsdToken({
-                            owner: address(0x1),
-                            deployerBalance: 100_000_000e18,
-                            _name: "Mock USD Token",
-                            _symbol: "USD"
-                        })
-                    ) : BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
             marketId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -74,14 +76,16 @@ abstract contract PerpMarketsCreditConfig is
 
         perpMarketsCreditConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             engine: isTest ? address(new MockEngine(initParams)) : ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE,
-            usdToken: isTest ? address(
-                        new MockUsdToken({
-                            owner: address(0x1),
-                            deployerBalance: 100_000_000e18,
-                            _name: "Mock USD Token",
-                            _symbol: "USD"
-                        })
-                    )  : ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
             marketId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -126,7 +130,9 @@ abstract contract PerpMarketsCreditConfig is
 
             params.marketMakingEngine.unpauseMarket(perpMarketsCreditConfig[i].marketId);
 
-            params.marketMakingEngine.configureEngine(address(perpMarketsCreditConfig[i].engine), perpMarketsCreditConfig[i].usdToken, true);
+            params.marketMakingEngine.configureEngine(
+                address(perpMarketsCreditConfig[i].engine), perpMarketsCreditConfig[i].usdToken, true
+            );
         }
     }
 }

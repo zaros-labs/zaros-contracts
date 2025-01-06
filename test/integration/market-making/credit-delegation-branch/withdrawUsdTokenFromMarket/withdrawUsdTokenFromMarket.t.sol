@@ -96,7 +96,9 @@ contract CreditDelegationBranch_WithdrawUsdTokenFromMarket_Integration_Test is B
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         changePrank({ msgSender: users.owner.account });
-        marketMakingEngine.configureEngine(perpMarketsCreditConfig[fuzzMarketConfig.marketId].engine, address(usdToken), true);
+        marketMakingEngine.configureEngine(
+            perpMarketsCreditConfig[fuzzMarketConfig.marketId].engine, address(usdToken), true
+        );
 
         changePrank({ msgSender: address(perpsEngine) });
         usdToken.transferOwnership(address(marketMakingEngine));
