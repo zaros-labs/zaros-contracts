@@ -72,7 +72,8 @@ contract VaultRouterBranch {
         Vault.Data storage vault = Vault.loadExisting(vaultId);
 
         // fetch the vault's total assets in 18 dec
-        SD59x18 totalAssetsX18 = vault.collateral.convertTokenAmountToSd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
+        SD59x18 totalAssetsX18 =
+            vault.collateral.convertTokenAmountToSd59x18(IERC4626(vault.indexToken).totalAssets().toInt256());
 
         // we use the vault's net sum of all debt types coming from its connected markets to determine the swap rate
         SD59x18 vaultDebtUsdX18 = vault.getTotalDebt();
@@ -90,7 +91,8 @@ contract VaultRouterBranch {
         // NOTE: we add 1 to the total assets to avoid division by zero.
         // Add 10 ** decimalsOffset since when converting back from x18 to uint256, it would equal 1
         // NOTE: credit is accounted as negative debt, so it would be added to the total assets
-        SD59x18 totalAssetsMinusVaultDebtX18 = totalAssetsX18.add(sd59x18(int256(10 ** uint256(decimalOffset)))).sub(vaultDebtInAssetsX18);
+        SD59x18 totalAssetsMinusVaultDebtX18 =
+            totalAssetsX18.add(sd59x18(int256(10 ** uint256(decimalOffset)))).sub(vaultDebtInAssetsX18);
 
         // sd59x18 -> uint256
         uint256 totalAssetsMinusVaultDebt = vault.collateral.convertSd59x18ToTokenAmount(totalAssetsMinusVaultDebtX18);

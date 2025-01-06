@@ -608,7 +608,7 @@ function deployMarketMakingAddressHarnesses() returns (address[] memory) {
 function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     bytes4[][] memory selectors = new bytes4[][](8);
 
-    bytes4[] memory vaultHarnessSelectors = new bytes4[](17);
+    bytes4[] memory vaultHarnessSelectors = new bytes4[](18);
     vaultHarnessSelectors[0] = VaultHarness.workaround_Vault_getIndexToken.selector;
     vaultHarnessSelectors[1] = VaultHarness.workaround_Vault_getActorStakedShares.selector;
     vaultHarnessSelectors[2] = VaultHarness.workaround_Vault_getTotalStakedShares.selector;
@@ -626,6 +626,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     vaultHarnessSelectors[14] = VaultHarness.workaround_getVaultDebt.selector;
     vaultHarnessSelectors[15] = VaultHarness.workaround_setVaultDepositedUsdc.selector;
     vaultHarnessSelectors[16] = VaultHarness.workaround_getVaultDepositedUsdc.selector;
+    vaultHarnessSelectors[17] = VaultHarness.workaround_getVaultTotalDebt.selector;
 
     bytes4[] memory collateralHarnessSelectors = new bytes4[](2);
     collateralHarnessSelectors[0] = CollateralHarness.exposed_Collateral_load.selector;

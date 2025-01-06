@@ -8,6 +8,10 @@ import { Distribution } from "@zaros/market-making/leaves/Distribution.sol";
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
 
+// PRBMath dependencies
+import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
+import { SD59x18, sd59x18, unary } from "@prb-math/SD59x18.sol";
+
 contract VaultHarness {
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -133,5 +137,12 @@ contract VaultHarness {
     function workaround_getVaultDepositedUsdc(uint128 vaultId) external view returns (uint128) {
         Vault.Data storage vaultData = Vault.load(vaultId);
         return vaultData.depositedUsdc;
+    }
+
+    function workaround_getVaultTotalDebt(uint128 vaultId) external view returns (SD59x18) {
+        Vault.Data storage vaultData = Vault.load(vaultId);
+
+        return sd59x18(vaultData.marketsRealizedDebtUsd).add(unary(ud60x18(vaultData.depositedUsdc).intoSD59x18()))
+            .add(sd59x18(vaultData.marketsUnrealizedDebtUsd));
     }
 }
