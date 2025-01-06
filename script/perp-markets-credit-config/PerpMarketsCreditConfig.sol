@@ -53,6 +53,8 @@ abstract contract PerpMarketsCreditConfig is
     mapping(uint256 marketId => PerpMarketCreditConfig marketConfig) internal perpMarketsCreditConfig;
 
     /// @notice Setup perp markets credit config
+    /// @param isTest When isTest is True a new mock engine will created for a each perp market using the initParams variable
+    /// @param initParams Only used when isTest is true
     function setupPerpMarketsCreditConfig(bool isTest, RootProxy.InitParams memory initParams) internal {
         perpMarketsCreditConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
             engine: isTest ? address(new MockEngine(initParams)) : BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE,
