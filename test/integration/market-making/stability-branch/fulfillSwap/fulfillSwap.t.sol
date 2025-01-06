@@ -365,7 +365,7 @@ contract FulfillSwap_Integration_Test is Base_Test {
         deal({ token: address(usdToken), to: users.naruto.account, give: swapAmount });
 
         ctx.fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
-        ctx.engine = IMockEngine(marketEngine[ctx.fuzzPerpMarketCreditConfig.marketId]);
+        ctx.engine = IMockEngine(perpMarketsCreditConfig[ctx.fuzzPerpMarketCreditConfig.marketId].engine);
         // we update the mock engine's unrealized debt in order to update the vault's total debt state
         ctx.engine.setUnrealizedDebt(useCredit ? -int256(vaultDebtAbsUsd) : int256(vaultDebtAbsUsd));
 

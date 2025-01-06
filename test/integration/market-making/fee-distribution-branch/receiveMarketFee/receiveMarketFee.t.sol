@@ -56,9 +56,9 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
     {
-        changePrank({ msgSender: address(perpsEngine) });
-
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         uint256 amount = 0;
 
@@ -78,9 +78,9 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         whenTheMarketExist
         whenTheAmountIsNotZero
     {
-        changePrank({ msgSender: address(perpsEngine) });
-
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         address assetNotEnabled = address(0x123);
 
@@ -99,16 +99,16 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
         whenTheMarketExist
         whenTheAmountIsNotZero
     {
-        changePrank({ msgSender: address(perpsEngine) });
-
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         amount = bound({
             x: amount,
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: amount });
 
         // it should emit {LogReceiveMarketFee} event
         vm.expectEmit({ emitter: address(marketMakingEngine) });
@@ -124,6 +124,6 @@ contract ReceiveMarketFee_Integration_Test is Base_Test {
 
         // it should transfer the fee to the contract
         assertEq(usdc.balanceOf(address(marketMakingEngine)), amount);
-        assertEq(usdc.balanceOf(address(perpsEngine)), 0);
+        assertEq(usdc.balanceOf(address(fuzzPerpMarketCreditConfig.engine)), 0);
     }
 }

@@ -58,9 +58,9 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         givenTheSenderIsRegisteredEngine
         whenTheMarketExist
     {
-        changePrank({ msgSender: address(perpsEngine) });
-
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoWethFeesCollected.selector) });
@@ -132,8 +132,6 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         whenTheMarketExist
         whenThereIsAvailableFeesToWithdraw
     {
-        changePrank({ msgSender: address(perpsEngine) });
-
         // create context variable
         TestFuzz_WhenThereAreFeeRecipientsShares_Context memory ctx;
 
@@ -143,6 +141,8 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         // get fuzz perp market credit config
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
+
         // fuzz the usdc amount
         ctx.amount = bound({
             x: amount,
@@ -151,7 +151,7 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         });
 
         // deposit the usdc to the perps engine
-        deal({ token: address(usdc), to: address(perpsEngine), give: ctx.amount });
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: ctx.amount });
 
         // perps engine deposit the usdc
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), ctx.amount);
@@ -224,6 +224,8 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         emit FeeDistributionBranch.LogSendWethToFeeRecipients(
             uint128(fuzzPerpMarketCreditConfig.marketId), expectedPendingProtocolWethRewardX18.intoUint256()
         );
+
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         marketMakingEngine.sendWethToFeeRecipients(fuzzPerpMarketCreditConfig.marketId);
 

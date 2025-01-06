@@ -419,6 +419,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 spender: address(marketMakingEngine),
                 value: uMAX_UD60x18
             });
+
+            for (uint256 j = INITIAL_PERP_MARKET_CREDIT_CONFIG_ID; j <= FINAL_PERP_MARKET_CREDIT_CONFIG_ID; j++) {
+                changePrank({ msgSender: perpMarketsCreditConfig[j].engine });
+                IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                    spender: address(marketMakingEngine),
+                    value: uMAX_UD60x18
+                });
+            }
         }
 
         changePrank({ msgSender: users.owner.account });
@@ -497,7 +505,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         configureMarkets(
             ConfigureMarketParams({
                 marketMakingEngine: marketMakingEngine,
-                perpsEngine: address(perpsEngine),
                 initialMarketId: INITIAL_PERP_MARKET_CREDIT_CONFIG_ID,
                 finalMarketId: FINAL_PERP_MARKET_CREDIT_CONFIG_ID
             })

@@ -114,13 +114,15 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         assertEq(IERC20(wEth).balanceOf(users.naruto.account), 0);
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
-        deal({ token: address(usdc), to: address(perpsEngine), give: amountToDepositMarketFee });
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: amountToDepositMarketFee });
 
         marketMakingEngine.receiveMarketFee(
             fuzzPerpMarketCreditConfig.marketId, address(usdc), amountToDepositMarketFee
         );
+
+        changePrank({ msgSender: address(perpsEngine) });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
             fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), bytes("")
@@ -245,8 +247,8 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // sent WETH market fees from PerpsEngine -> MarketEngine
         marketFees = uint128(bound(marketFees, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 2));
-        deal(fuzzVaultConfig.asset, address(perpsEngine), marketFees);
-        changePrank({ msgSender: address(perpsEngine) });
+        deal(fuzzVaultConfig.asset, address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine), marketFees);
+        changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
         vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit FeeDistributionBranch.LogReceiveMarketFee(fuzzVaultConfig.asset, ETH_USD_MARKET_ID, marketFees);
         marketMakingEngine.receiveMarketFee(ETH_USD_MARKET_ID, fuzzVaultConfig.asset, marketFees);
@@ -329,9 +331,9 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
-        deal(fuzzVaultConfig.asset, address(perpsEngine), marketFees);
+        deal(fuzzVaultConfig.asset, address(fuzzPerpMarketCreditConfig.engine), marketFees);
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
         vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit FeeDistributionBranch.LogReceiveMarketFee(
             fuzzVaultConfig.asset, fuzzPerpMarketCreditConfig.marketId, marketFees
@@ -341,6 +343,8 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // optionally convert asset to WETH if not on WETH vault
         if (fuzzVaultConfig.asset != address(wEth)) {
+            changePrank({ msgSender: address(perpsEngine) });
+
             marketMakingEngine.convertAccumulatedFeesToWeth(
                 fuzzPerpMarketCreditConfig.marketId, fuzzVaultConfig.asset, adapter.STRATEGY_ID(), bytes("")
             );
@@ -415,8 +419,8 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // sent WETH market fees from PerpsEngine -> MarketEngine
         uint256 marketFees = 1_000_000_000_000_000_001;
-        deal(fuzzVaultConfig.asset, address(perpsEngine), marketFees);
-        changePrank({ msgSender: address(perpsEngine) });
+        deal(fuzzVaultConfig.asset, address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine), marketFees);
+        changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
         vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit FeeDistributionBranch.LogReceiveMarketFee(fuzzVaultConfig.asset, ETH_USD_MARKET_ID, marketFees);
         marketMakingEngine.receiveMarketFee(ETH_USD_MARKET_ID, fuzzVaultConfig.asset, marketFees);
@@ -459,7 +463,7 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // claim protocol rewards
         uint256 perpEngineWethBalBefore = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine));
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
         marketMakingEngine.sendWethToFeeRecipients(ETH_USD_MARKET_ID);
 
         // verify protocol reward recipient received correct rewards
@@ -491,8 +495,8 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // sent WETH market fees from PerpsEngine -> MarketEngine
         uint256 marketFees = 1_000_000_000_000_000_001;
-        deal(fuzzVaultConfig.asset, address(perpsEngine), marketFees);
-        changePrank({ msgSender: address(perpsEngine) });
+        deal(fuzzVaultConfig.asset, address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine), marketFees);
+        changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
         vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit FeeDistributionBranch.LogReceiveMarketFee(fuzzVaultConfig.asset, ETH_USD_MARKET_ID, marketFees);
         marketMakingEngine.receiveMarketFee(ETH_USD_MARKET_ID, fuzzVaultConfig.asset, marketFees);
@@ -513,7 +517,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         uint256 sasukeWethBalPre = IERC20(fuzzVaultConfig.asset).balanceOf(users.sasuke.account);
 
         // send the protocol fees to our two recipients
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
         marketMakingEngine.sendWethToFeeRecipients(ETH_USD_MARKET_ID);
 
         uint256 prepEngineFeesReceived =
