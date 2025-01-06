@@ -53,7 +53,7 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "amount") });
@@ -78,7 +78,11 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
         address assetNotEnabled = address(123);
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: users.owner.account });
+
+        marketMakingEngine.configureEngine(address(fuzzMarketConfig.engine), address(usdToken), true);
+
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.CollateralDisabled.selector, address(0)) });
@@ -91,6 +95,7 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
     }
 
     function testFuzz_RevertWhen_TheMarketIsNotLive(
+        uint256 marketId,
         uint256 amount,
         uint256 vaultId
     )
@@ -101,15 +106,20 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
     {
         amount = bound({ x: amount, min: 1, max: type(uint256).max });
 
-        uint128 invalidMarketId = 0;
+        PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
+
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: users.owner.account });
+
+        marketMakingEngine.pauseMarket(fuzzMarketConfig.marketId);
+
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.MarketDoesNotExist.selector, invalidMarketId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.MarketIsDisabled.selector, fuzzMarketConfig.marketId));
 
-        marketMakingEngine.depositCreditForMarket(invalidMarketId, fuzzVaultConfig.asset, amount);
+        marketMakingEngine.depositCreditForMarket(fuzzMarketConfig.marketId, fuzzVaultConfig.asset, amount);
     }
 
     modifier whenTheMarketIsLive() {
@@ -134,8 +144,8 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
 
         marketMakingEngine.workaround_updateMarketTotalDelegatedCreditUsd(fuzzMarketConfig.marketId, 0);
 
-        deal({ token: address(wEth), to: address(perpsEngine), give: amount });
-        changePrank({ msgSender: address(perpsEngine) });
+        deal({ token: address(wEth), to: address(fuzzMarketConfig.engine), give: amount });
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.NoDelegatedCredit.selector, fuzzMarketConfig.marketId));
@@ -164,13 +174,13 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
-        deal({ token: address(fuzzVaultConfig.asset), to: address(perpsEngine), give: amount });
-        changePrank({ msgSender: address(perpsEngine) });
+        deal({ token: address(fuzzVaultConfig.asset), to: address(fuzzMarketConfig.engine), give: amount });
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
 
         // it should emit {LogDepositCreditForMarket} event
         vm.expectEmit();
         emit CreditDelegationBranch.LogDepositCreditForMarket(
-            address(perpsEngine), fuzzMarketConfig.marketId, fuzzVaultConfig.asset, amount
+            address(fuzzMarketConfig.engine), fuzzMarketConfig.marketId, fuzzVaultConfig.asset, amount
         );
 
         marketMakingEngine.depositCreditForMarket(fuzzMarketConfig.marketId, fuzzVaultConfig.asset, amount);
@@ -197,15 +207,15 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
 
         changePrank({ msgSender: users.owner.account });
-        marketMakingEngine.configureEngine(address(perpsEngine), address(usdc), true);
+        marketMakingEngine.configureEngine(fuzzMarketConfig.engine, address(usdc), true);
 
-        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
-        changePrank({ msgSender: address(perpsEngine) });
+        deal({ token: address(usdc), to: address(fuzzMarketConfig.engine), give: amount });
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
 
         // it should emit {LogDepositCreditForMarket} event
         vm.expectEmit();
         emit CreditDelegationBranch.LogDepositCreditForMarket(
-            address(perpsEngine), fuzzMarketConfig.marketId, address(usdc), amount
+            address(fuzzMarketConfig.engine), fuzzMarketConfig.marketId, address(usdc), amount
         );
 
         marketMakingEngine.depositCreditForMarket(fuzzMarketConfig.marketId, address(usdc), amount);

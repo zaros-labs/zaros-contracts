@@ -6,6 +6,7 @@ pragma solidity 0.8.25;
 import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.sol";
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
+import { MockEngine } from "test/mocks/MockEngine.sol";
 import { IPerpsEngine as IPerpsEngineBranches } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
@@ -214,7 +215,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             initializePayloads: initializePayloads
         });
 
-        perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
+        perpsEngine = IPerpsEngine(address(new MockEngine(initParams)));
 
         uint256[2] memory marginCollateralIdsRange;
         marginCollateralIdsRange[0] = INITIAL_MARGIN_COLLATERAL_ID;
@@ -281,7 +282,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         changePrank({ msgSender: users.owner.account });
 
         bool isTest = true;
-        setupPerpMarketsCreditConfig(isTest);
+        setupPerpMarketsCreditConfig(isTest, initParams);
 
         marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(users.vaultFeeRecipient.account);
 
@@ -418,6 +419,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                 spender: address(marketMakingEngine),
                 value: uMAX_UD60x18
             });
+
+            for (uint256 j = INITIAL_PERP_MARKET_CREDIT_CONFIG_ID; j <= FINAL_PERP_MARKET_CREDIT_CONFIG_ID; j++) {
+                changePrank({ msgSender: perpMarketsCreditConfig[j].engine });
+                IERC20(marginCollaterals[i].marginCollateralAddress).approve({
+                    spender: address(marketMakingEngine),
+                    value: uMAX_UD60x18
+                });
+            }
         }
 
         changePrank({ msgSender: users.owner.account });

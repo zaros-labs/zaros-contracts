@@ -124,8 +124,8 @@ contract Unstake_Integration_Test is Base_Test {
 
         // sent WETH market fees from PerpsEngine -> MarketEngine
         uint256 marketFees = 1e18;
-        deal(fuzzVaultConfig.asset, address(perpsEngine), marketFees);
-        changePrank({ msgSender: address(perpsEngine) });
+        deal(fuzzVaultConfig.asset, address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine), marketFees);
+        changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
         vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit FeeDistributionBranch.LogReceiveMarketFee(fuzzVaultConfig.asset, ETH_USD_MARKET_ID, marketFees);
         marketMakingEngine.receiveMarketFee(ETH_USD_MARKET_ID, fuzzVaultConfig.asset, marketFees);
@@ -183,8 +183,8 @@ contract Unstake_Integration_Test is Base_Test {
 
         // sent WETH market fees from PerpsEngine -> MarketEngine
         uint256 marketFees = 1e18;
-        deal(fuzzVaultConfig.asset, address(perpsEngine), marketFees);
-        changePrank({ msgSender: address(perpsEngine) });
+        deal(fuzzVaultConfig.asset, address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine), marketFees);
+        changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
         vm.expectEmit({ emitter: address(marketMakingEngine) });
         emit FeeDistributionBranch.LogReceiveMarketFee(fuzzVaultConfig.asset, ETH_USD_MARKET_ID, marketFees);
         marketMakingEngine.receiveMarketFee(ETH_USD_MARKET_ID, fuzzVaultConfig.asset, marketFees);

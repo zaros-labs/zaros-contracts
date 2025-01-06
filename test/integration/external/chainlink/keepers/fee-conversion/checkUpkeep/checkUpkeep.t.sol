@@ -47,13 +47,13 @@ contract FeeConversionKeeper_CheckUpkeep_Integration_Test is Base_Test {
             min: minFeeDistributionValueUsd,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: amount });
 
         changePrank({ msgSender: users.owner.account });
 
         configureFeeConversionKeeper(1, 1);
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 

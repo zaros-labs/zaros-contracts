@@ -155,11 +155,11 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         whenTheMarketHasTheAsset
         whenTheAmountIsNotZero
     {
-        changePrank({ msgSender: address(perpsEngine) });
-
         uint128 wrongStrategyId = 0;
 
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         amount = bound({
             x: amount,
@@ -167,9 +167,11 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: amount });
 
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
+
+        changePrank({ msgSender: address(perpsEngine) });
 
         // it should revert
         vm.expectRevert({
@@ -198,14 +200,14 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         whenTheAmountIsNotZero
         whenTheDexSwapStrategyHasAValidDexAdapter
     {
-        changePrank({ msgSender: address(perpsEngine) });
-
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         amount =
             bound({ x: amount, min: 1e12, max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18) });
 
-        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: amount });
 
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
@@ -299,10 +301,11 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         whenTheAmountIsNotZero
         whenTheDexSwapStrategyHasAValidDexAdapter
     {
-        changePrank({ msgSender: address(perpsEngine) });
         IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
 
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         amount = bound({
             x: amount,
@@ -310,7 +313,7 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: amount });
 
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
@@ -342,6 +345,8 @@ contract ConvertAccumulatedFeesToWeth_Integration_Test is Base_Test {
         // it should emit {LogConvertAccumulatedFeesToWeth} event
         // vm.expectEmit({ emitter: address(marketMakingEngine) });
         // emit FeeDistributionBranch.LogConvertAccumulatedFeesToWeth(amountOutMin);
+
+        changePrank({ msgSender: address(perpsEngine) });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
             fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), path
