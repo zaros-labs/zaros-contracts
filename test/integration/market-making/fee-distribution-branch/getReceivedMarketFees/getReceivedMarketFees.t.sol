@@ -22,9 +22,9 @@ contract MarketMakingEngineConfigurationBranch_GetReceivedMarketFees_Integration
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: amount });
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 

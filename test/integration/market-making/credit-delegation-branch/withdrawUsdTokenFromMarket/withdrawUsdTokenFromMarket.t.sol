@@ -45,7 +45,7 @@ contract CreditDelegationBranch_WithdrawUsdTokenFromMarket_Integration_Test is B
 
         marketMakingEngine.pauseMarket(fuzzMarketConfig.marketId);
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
 
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.MarketIsDisabled.selector, fuzzMarketConfig.marketId));
@@ -80,6 +80,7 @@ contract CreditDelegationBranch_WithdrawUsdTokenFromMarket_Integration_Test is B
             abi.encodeWithSelector(Errors.InsufficientCreditCapacity.selector, fuzzMarketConfig.marketId, 0)
         );
 
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
         marketMakingEngine.withdrawUsdTokenFromMarket(fuzzMarketConfig.marketId, amount);
     }
 
@@ -103,12 +104,13 @@ contract CreditDelegationBranch_WithdrawUsdTokenFromMarket_Integration_Test is B
         // it should emit {LogWithdrawUsdTokenFromMarket} event
         vm.expectEmit();
         emit CreditDelegationBranch.LogWithdrawUsdTokenFromMarket(
-            address(perpsEngine), fuzzMarketConfig.marketId, amount, amount
+            address(fuzzMarketConfig.engine), fuzzMarketConfig.marketId, amount, amount
         );
 
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
         marketMakingEngine.withdrawUsdTokenFromMarket(fuzzMarketConfig.marketId, amount);
 
-        uint256 engineUsdTOkenBalance = IERC20(usdToken).balanceOf(address(perpsEngine));
+        uint256 engineUsdTOkenBalance = IERC20(usdToken).balanceOf(address(fuzzMarketConfig.engine));
 
         // it should mint the usd token
         assertEq(amount, engineUsdTOkenBalance);

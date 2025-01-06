@@ -125,7 +125,7 @@ contract CreditDelegationBranch_ConvertMarketsCreditDepositsToUsdc_Integration_T
         IDexAdapter dexAdapter = getFuzzDexAdapter(adapterIndex);
 
         depositAmount = bound({ x: depositAmount, min: 100, max: type(uint16).max });
-        deal({ token: address(wBtc), to: address(perpsEngine), give: depositAmount });
+        deal({ token: address(wBtc), to: address(fuzzMarketConfig.engine), give: depositAmount });
 
         address[] memory assets = new address[](1);
         assets[0] = address(wBtc);
@@ -136,7 +136,7 @@ contract CreditDelegationBranch_ConvertMarketsCreditDepositsToUsdc_Integration_T
         bytes[] memory paths = new bytes[](1);
         paths[0] = bytes("");
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(fuzzMarketConfig.engine) });
         IERC20(wBtc).approve(address(marketMakingEngine), depositAmount);
 
         // load collateral data
@@ -155,6 +155,8 @@ contract CreditDelegationBranch_ConvertMarketsCreditDepositsToUsdc_Integration_T
 
         uint256 expectedAmountOut = dexAdapter.getExpectedOutput(address(wBtc), address(usdc), depositAmount);
         uint256 usdcOut = dexAdapter.calculateAmountOutMin(expectedAmountOut);
+
+        changePrank({ msgSender: address(perpsEngine) });
 
         // it should emit { LogConvertMarketCreditDepositsToUsdc } event
         vm.expectEmit();

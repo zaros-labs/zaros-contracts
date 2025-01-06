@@ -5,6 +5,7 @@ abstract contract EthPerpMarketCreditConfig {
     /// @notice ETH perp market credit configuration parameters.
     // TODO: Update the engine address when the market will be deployed.
     address internal constant ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE = address(0x2);
+    address internal constant ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN = address(0x3);
     uint128 internal constant ETH_PERP_MARKET_CREDIT_CONFIG_ID = 2;
     uint128 internal constant ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD = 0.5e18;
     uint128 internal constant ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD = 0.6e18;

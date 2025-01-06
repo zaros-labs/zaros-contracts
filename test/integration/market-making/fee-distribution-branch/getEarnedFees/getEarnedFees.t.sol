@@ -52,7 +52,7 @@ contract GetEarnedFees_Integration_Test is Base_Test {
 
         marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(sharesToStake));
 
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         amountToDepositMarketFee = bound({
             x: amountToDepositMarketFee,
@@ -60,11 +60,13 @@ contract GetEarnedFees_Integration_Test is Base_Test {
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
 
-        deal({ token: address(usdc), to: address(perpsEngine), give: amountToDepositMarketFee });
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: amountToDepositMarketFee });
 
         marketMakingEngine.receiveMarketFee(
             fuzzPerpMarketCreditConfig.marketId, address(usdc), amountToDepositMarketFee
         );
+
+        changePrank({ msgSender: address(perpsEngine) });
 
         marketMakingEngine.convertAccumulatedFeesToWeth(
             fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), bytes("")
