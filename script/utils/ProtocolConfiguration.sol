@@ -71,4 +71,7 @@ abstract contract ProtocolConfiguration is
     /// @notice Dex adapter related constants
     uint256 internal constant SLIPPAGE_TOLERANCE_BPS = 100;
     uint24 internal constant UNI_V3_FEE = 3000;
+
+    /// @notice General market making engine system configuration parameters.
+    uint256 internal constant MSIG_SHARES_FEE_RECIPIENT = 0.1e18;
 }
