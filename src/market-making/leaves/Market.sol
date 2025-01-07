@@ -306,11 +306,13 @@ library Market {
                 vaultCreditShareX18.intoSD59x18()
             )
             : SD59x18_ZERO;
+
         unrealizedDebtChangeUsdX18 = !lastVaultDistributedUnrealizedDebtUsdPerShareX18.isZero()
             ? sd59x18(self.unrealizedDebtUsdPerVaultShare).sub(lastVaultDistributedUnrealizedDebtUsdPerShareX18).mul(
                 vaultCreditShareX18.intoSD59x18()
             )
             : SD59x18_ZERO;
+
         usdcCreditChangeX18 = !lastVaultDistributedUsdcCreditPerShareX18.isZero()
             ? ud60x18(self.usdcCreditPerVaultShare).sub(lastVaultDistributedUsdcCreditPerShareX18).mul(
                 vaultCreditShareX18

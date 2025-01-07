@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies test
 import { Base_Test } from "test/Base.t.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 
 // Zaros dependencies source
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
@@ -148,7 +147,7 @@ contract Unstake_Integration_Test is Base_Test {
         );
 
         // third user makes a deposit, triggers a call to `Vault.recalculateVaultsCreditCapacity`
-        fundUserAndDepositInVault(users.sakura.account, vaultId, assetsToDeposit);
+        fundUserAndDepositInVault(users.sakura.account, vaultId, assetsToDeposit * 2);
 
         // original staker's pending rewards increased again, they are 3x + 2 the original amount
         assertEq(

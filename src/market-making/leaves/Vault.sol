@@ -17,7 +17,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18.sol";
-
+import { console2 } from "forge-std/console2.sol";
 /// @dev NOTE: each market's realized debt must always be distributed as unsettledRealizedDebt to vaults following the
 /// Debt Distribution System.
 /// @dev Vault's debt for asset settlement purposes = marketsRealizedDebtUsd
@@ -274,7 +274,7 @@ library Vault {
             SD59x18 vaultTotalRealizedDebtChangeUsdX18,
             SD59x18 vaultTotalUnrealizedDebtChangeUsdX18,
             UD60x18 vaultTotalUsdcCreditChangeX18,
-            UD60x18 vaultTotalWethRewardChangeX18
+            UD60x18 vaultTotalWethRewardChangeX18 // reward change delta
         )
     {
         RecalculateConnectedMarketsState_Context memory ctx;
@@ -327,9 +327,12 @@ library Vault {
                     sd59x18(creditDelegation.lastVaultDistributedRealizedDebtUsdPerShare),
                     sd59x18(creditDelegation.lastVaultDistributedUnrealizedDebtUsdPerShare),
                     ud60x18(creditDelegation.lastVaultDistributedUsdcCreditPerShare),
-                    ud60x18(creditDelegation.lastVaultDistributedWethRewardPerShare)
+                    ud60x18(creditDelegation.lastVaultDistributedWethRewardPerShare) // last distributed value per share
                 );
             }
+
+            console2.log("marketId: ", rehydratedConnectedMarketsIdsCache[i], "vaultId: ", ctx.vaultId);
+            console2.log("creditDelegation.lastVaultDistributedWethRewardPerShare: ", creditDelegation.lastVaultDistributedWethRewardPerShare);
 
             // if there's been no change in any of the returned values, we can iterate to the next
             // market id
@@ -345,7 +348,10 @@ library Vault {
             vaultTotalUnrealizedDebtChangeUsdX18 =
                 vaultTotalUnrealizedDebtChangeUsdX18.add(ctx.unrealizedDebtChangeUsdX18);
             vaultTotalUsdcCreditChangeX18 = vaultTotalUsdcCreditChangeX18.add(ctx.usdcCreditChangeX18);
-            vaultTotalWethRewardChangeX18 = vaultTotalWethRewardChangeX18.add(ctx.wethRewardChangeX18);
+            vaultTotalWethRewardChangeX18 = vaultTotalWethRewardChangeX18.add(ctx.wethRewardChangeX18); // weth reward change delta
+
+            console2.log("vaultTotalWethRewardChangeX18: ", vaultTotalWethRewardChangeX18.intoUint256());
+            console2.log("market.wethRewardPerVaultShare: ", market.wethRewardPerVaultShare);
 
             // update the last distributed debt, credit and reward values to the vault's credit delegation to the
             // given market id, in order to keep next calculations consistent
@@ -359,7 +365,7 @@ library Vault {
     }
 
     /// @notice Recalculates the latest credit capacity of the provided vaults ids taking into account their latest
-    /// assets and debt usd denonimated values.
+    /// assets and debt usd denominated values.
     /// @dev We use a `uint256` array because a market's connected vaults ids are stored at a `EnumerableSet.UintSet`.
     /// @dev We assume this function's caller checks that connectedMarketsIdsCache > 0.
     /// @param vaultsIds The array of vaults ids to recalculate the credit capacity.
@@ -390,7 +396,7 @@ library Vault {
                 SD59x18 vaultTotalRealizedDebtChangeUsdX18,
                 SD59x18 vaultTotalUnrealizedDebtChangeUsdX18,
                 UD60x18 vaultTotalUsdcCreditChangeX18,
-                UD60x18 vaultTotalWethRewardChangeX18
+                UD60x18 vaultTotalWethRewardChangeX18 // weth reward change delta
             ) = _recalculateConnectedMarketsState(self, connectedMarketsIdsCache, true);
 
             // gas optimization: only write to storage if values have changed
@@ -417,8 +423,9 @@ library Vault {
 
             // distributes the vault's total WETH reward change, earned from its connected markets
             if (!vaultTotalWethRewardChangeX18.isZero() && self.wethRewardDistribution.totalShares != 0) {
-                SD59x18 vaultTotalWethRewardChangeSD59X18 =
-                    sd59x18(int256(vaultTotalWethRewardChangeX18.intoUint256()));
+                SD59x18 vaultTotalWethRewardChangeSD59X18 = sd59x18(int256(vaultTotalWethRewardChangeX18.intoUint256()));
+                // @note vaultTotalWethRewardChangeX18 should be 0 after first iteration
+                console2.log("in distributeValue");
                 self.wethRewardDistribution.distributeValue(vaultTotalWethRewardChangeSD59X18);
             }
 

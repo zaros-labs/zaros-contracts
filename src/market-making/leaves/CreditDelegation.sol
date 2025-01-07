@@ -7,6 +7,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
+import { console2 } from "forge-std/console2.sol";
 
 library CreditDelegation {
     using SafeCast for int256;
@@ -41,7 +42,7 @@ library CreditDelegation {
     /// @param vaultId the Vault providing a share of its credit to the market.
     /// @param marketId the perp market receiving the credit.
     /// @return creditDelegation The loaded credit delegation storage pointer.
-    function load(uint128 vaultId, uint256 marketId) internal pure returns (Data storage creditDelegation) {
+    function load(uint128 vaultId, uint128 marketId) internal pure returns (Data storage creditDelegation) {
         bytes32 slot = keccak256(abi.encode(CREDIT_DELEGATION_LOCATION, vaultId, marketId));
         assembly {
             creditDelegation.slot := slot
@@ -89,6 +90,8 @@ library CreditDelegation {
         self.lastVaultDistributedUnrealizedDebtUsdPerShare =
             vaultDistributedUnrealizedDebtUsdPerShareX18.intoInt256().toInt128();
         self.lastVaultDistributedUsdcCreditPerShare = vaultDistributedUsdcCreditPerShareX18.intoUint128();
+        console2.log("in updateVaultLastDistributedValues: ", vaultDistributedWethRewardPerShareX18.intoUint128());
         self.lastVaultDistributedWethRewardPerShare = vaultDistributedWethRewardPerShareX18.intoUint128();
+        console2.log("self.lastVaultDistributedWethRewardPerShare: ", self.lastVaultDistributedWethRewardPerShare);
     }
 }
