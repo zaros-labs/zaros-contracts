@@ -16,7 +16,7 @@ abstract contract UsdToken {
     uint256 internal constant USD_TOKEN_MIN_DEPOSIT_MARGIN = 50e18;
     uint256 internal constant MOCK_USD_TOKEN_USD_PRICE = 1e18;
     address internal constant USD_TOKEN_ADDRESS = address(0x8648d10fE74dD9b4B454B4db9B63b03998c087Ba);
-    address internal constant USD_TOKEN_PRICE_FEED = address(0x0153002d20B96532C639313c2d54c3dA09109309);
+    address internal constant USD_TOKEN_PRICE_FEED = address(0x80EDee6f667eCc9f63a0a6f55578F870651f06A4);
     uint256 internal constant USD_TOKEN_LIQUIDATION_PRIORITY = 1;
     uint8 internal constant USD_TOKEN_DECIMALS = 18;
     uint32 internal constant USD_TOKEN_PRICE_FEED_HEARBEAT_SECONDS = 86_400;

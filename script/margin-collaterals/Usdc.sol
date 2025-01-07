@@ -16,7 +16,7 @@ abstract contract Usdc {
     uint256 internal constant USDC_MIN_DEPOSIT_MARGIN = 50e6;
     uint256 internal constant MOCK_USDC_USD_PRICE = 1e6;
     address internal constant USDC_ADDRESS = address(0x95011b96c11A4cc96CD8351165645E00F68632a3);
-    address internal constant USDC_PRICE_FEED = address(0x0153002d20B96532C639313c2d54c3dA09109309);
+    address internal constant USDC_PRICE_FEED = address(0x80EDee6f667eCc9f63a0a6f55578F870651f06A4);
     uint256 internal constant USDC_LIQUIDATION_PRIORITY = 2;
     uint8 internal constant USDC_DECIMALS = 6;
     uint32 internal constant USDC_PRICE_FEED_HEARBEAT_SECONDS = 86_400;
