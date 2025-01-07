@@ -7,7 +7,7 @@ import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { BaseScript } from "./Base.s.sol";
-import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
+import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -62,7 +62,11 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("Configuring collaterals...");
         console.log("**************************");
 
-        // TODO
+        setupMarketMakingEngineCollaterals();
+        uint256[2] memory marketMakingEngineCollateralIdsRange;
+        marketMakingEngineCollateralIdsRange[0] = INITIAL_MARKET_MAKING_ENGINE_COLLATERAL_ID;
+        marketMakingEngineCollateralIdsRange[1] = FINAL_MARKET_MAKING_ENGINE_COLLATERAL_ID;
+        configureMarketMakingEngineCollaterals(marketMakingEngine, marketMakingEngineCollateralIdsRange);
 
         console.log("**************************");
         console.log("Configuring system keepers...");
@@ -72,7 +76,7 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         systemKeepers[0] = address(perpsEngine);
         systemKeepers[1] = MSIG_ADDRESS;
 
-        for(uint256 i; i < systemKeepers.length; i++) {
+        for (uint256 i; i < systemKeepers.length; i++) {
             marketMakingEngine.configureSystemKeeper(systemKeepers[i], true);
 
             console.log("Success! Configured system keeper:");
@@ -90,7 +94,7 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         address[] memory enginesUsdToken = new address[](1);
         enginesUsdToken[0] = address(perpsEngineUsdToken);
 
-        for(uint256 i; i < engines.length; i++) {
+        for (uint256 i; i < engines.length; i++) {
             marketMakingEngine.configureEngine(engines[i], enginesUsdToken[i], true);
 
             console.log("Success! Configured engine:");
@@ -130,6 +134,4 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("\n");
         console.log(usdc);
     }
-
-
 }

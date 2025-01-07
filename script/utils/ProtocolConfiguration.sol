@@ -9,6 +9,8 @@ import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.s
 import { SequencerUptimeFeeds } from "script/sequencer-uptime-feeds/SequencerUptimeFeeds.sol";
 import { PerpMarketsCreditConfig } from "script/perp-markets-credit-config/PerpMarketsCreditConfig.sol";
 import { DexAdapterUtils } from "script/utils/DexAdapterUtils.sol";
+import { MarketMakingEngineCollaterals } from
+    "script/market-making-engine-collaterals/MarketMakingEngineCollaterals.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
@@ -20,7 +22,8 @@ abstract contract ProtocolConfiguration is
     Vaults,
     SequencerUptimeFeeds,
     PerpMarketsCreditConfig,
-    DexAdapterUtils
+    DexAdapterUtils,
+    MarketMakingEngineCollaterals
 {
     /// @notice Admin addresses.
 
@@ -74,4 +77,6 @@ abstract contract ProtocolConfiguration is
 
     /// @notice General market making engine system configuration parameters.
     uint256 internal constant MSIG_SHARES_FEE_RECIPIENT = 0.1e18;
+    uint256 internal constant INITIAL_MARKET_MAKING_ENGINE_COLLATERAL_ID = 1;
+    uint256 internal constant FINAL_MARKET_MAKING_ENGINE_COLLATERAL_ID = 4;
 }
