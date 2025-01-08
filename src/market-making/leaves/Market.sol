@@ -18,7 +18,7 @@ import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18, UNIT as UD60x18_UNIT, ZERO as UD60x18_ZERO } from "@prb-math/UD60x18.sol";
 import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
-import { console2 } from "forge-std/console2.sol";
+
 /// @dev NOTE: unrealized debt (from market) -> realized debt (market) -> unsettled debt (vaults) -> settled
 /// debt (vaults)'
 library Market {
@@ -523,6 +523,5 @@ library Market {
         // increment the all time weth reward storage
         self.wethRewardPerVaultShare =
             ud60x18(self.wethRewardPerVaultShare).add(receivedVaultsWethRewardX18).intoUint128();
-        console2.log("receivedVaultsWethRewardX18: ", receivedVaultsWethRewardX18.intoUint256());
     }
 }

@@ -10,7 +10,7 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 // Open Zeppelin dependencies
 import { SafeCast } from "@openzeppelin/utils/math/SafeCast.sol";
-import { console2 } from "forge-std/console2.sol";
+
 library Distribution {
     using SafeCast for int256;
 
@@ -113,18 +113,5 @@ library Distribution {
     {
         SD59x18 deltaValuePerShare = sd59x18(self.valuePerShare).sub(sd59x18(actor.lastValuePerShare));
         valueChange = deltaValuePerShare.mul(ud60x18(actor.shares).intoSD59x18());
-
-        console2.log("deltaValuePerShare: ");
-        console2.logInt(deltaValuePerShare.intoInt256());
-
-        console2.logString("self.valuePerShare: ");
-        console2.logInt(self.valuePerShare);
-        console2.logString("actor.lastValuePerShare: ");
-        console2.log(actor.lastValuePerShare);
-
-        console2.log("actor.shares: ", actor.shares);
-
-        console2.logString("valueChange ");
-        console2.logInt(valueChange.intoInt256());
     }
 }

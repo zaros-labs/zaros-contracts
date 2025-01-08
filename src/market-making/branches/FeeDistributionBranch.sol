@@ -22,7 +22,7 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 import { EnumerableMap } from "@openzeppelin/utils/structs/EnumerableMap.sol";
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
-import { console2 } from "forge-std/console2.sol";
+
 /// @dev This contract deals with ETH to settle accumulated protocol fees, distributed to LPs and stakeholders.
 contract FeeDistributionBranch is EngineAccessControl {
     using Collateral for Collateral.Data;
@@ -269,8 +269,6 @@ contract FeeDistributionBranch is EngineAccessControl {
             revert Errors.NoSharesAvailable();
         }
 
-        console2.log("market.availableProtocolWethReward: ", market.availableProtocolWethReward);
-
         // set to zero the amount of pending weth to be distributed
         market.availableProtocolWethReward = 0;
 
@@ -295,7 +293,6 @@ contract FeeDistributionBranch is EngineAccessControl {
 
         // get the claimable amount of fees
         UD60x18 amountToClaimX18 = vault.wethRewardDistribution.getActorValueChange(actorId).intoUD60x18();
-        console2.log("amountToClaimX18: ", amountToClaimX18.intoUint256());
 
         // reverts if the claimable amount is 0
         if (amountToClaimX18.isZero()) revert Errors.NoFeesToClaim();
@@ -311,7 +308,6 @@ contract FeeDistributionBranch is EngineAccessControl {
         // convert the amount to claim to weth amount
         uint256 amountToClaim = wethCollateral.convertUd60x18ToTokenAmount(amountToClaimX18);
 
-        console2.log("amountToClaim: ", amountToClaim);
         // transfer the amount to the claimer
         IERC20(weth).safeTransfer(msg.sender, amountToClaim);
 
@@ -391,7 +387,6 @@ contract FeeDistributionBranch is EngineAccessControl {
         // add leftover reward to vault reward
         receivedVaultsWethRewardX18 = receivedVaultsWethRewardX18.add(leftover);
 
-        console2.log("receivedVaultsWethRewardX18: ", receivedVaultsWethRewardX18.intoUint256());
         // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine
         // as fees, and remove its balance from the market's `receivedMarketFees` map
         market.receiveWethReward(assetOut, receivedProtocolWethRewardX18, receivedVaultsWethRewardX18);
