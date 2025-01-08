@@ -27,8 +27,8 @@ contract CreditDelegationBranch_CalculateSwapAmount_Integration_Test is Base_Tes
 
         uint256 actualAmountOut = marketMakingEngine.calculateSwapAmount(
             address(dexAdapter),
-            address(usdc),
             address(wBtc),
+            address(usdc),
             convertUd60x18ToTokenAmount(address(usdc), vaultDebtX18)
         );
 

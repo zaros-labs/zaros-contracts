@@ -431,11 +431,12 @@ contract CreditDelegationBranch is EngineAccessControl {
 
             // if the vault is in debt, swap its assets to USDC
             if (ctx.vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)) {
+
                 // get swap amount; both input and output in native precision
                 ctx.swapAmount = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
-                    ctx.vaultAsset,
                     ctx.usdc,
+                    ctx.vaultAsset,
                     usdcCollateralConfig.convertSd59x18ToTokenAmount(ctx.vaultUnsettledRealizedDebtUsdX18.abs())
                 );
 
@@ -489,8 +490,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // get swap amount; both input and output in native precision
                 ctx.usdcIn = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
-                    ctx.usdc,
                     ctx.vaultAsset,
+                    ctx.usdc,
                     usdcCollateralConfig.convertSd59x18ToTokenAmount(ctx.vaultUnsettledRealizedDebtUsdX18.abs())
                 );
 
@@ -564,11 +565,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         view
         returns (uint256 amount)
     {
-        // @audit BaseAdapter::getExpectedOutput(tokenIn, tokenOut, amountIn)
-        // the order of assetOut and assetIn appears to be reversed, double-check if this intentional?
-        //
         // calculate expected asset amount needed to cover the debt
-        amount = IDexAdapter(dexAdapter).getExpectedOutput(assetOut, assetIn, vaultUnsettledDebtUsdAbs);
+        amount = IDexAdapter(dexAdapter).getExpectedOutput(assetIn, assetOut, vaultUnsettledDebtUsdAbs);
     }
 
     // used as a cache to prevent duplicate storage reads while avoiding "stack too deep" errors
