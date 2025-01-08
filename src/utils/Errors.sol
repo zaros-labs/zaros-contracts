@@ -270,6 +270,11 @@ library Errors {
     /// to fulfill the request.
     error NotEnoughUnlockedCreditCapacity();
 
+    /// @notice Throws when user tries to unstake, but has pending rewards
+    /// @param actorId The id of the user unstaking
+    /// @param pendingReward The pending reward of the user
+    error UserHasPendingRewards(bytes32 actorId, uint256 pendingReward);
+
     /// @notice MarketMakingEngine.Vault errors.
 
     /// @notice Thrown when the vault is not connected to any market.
