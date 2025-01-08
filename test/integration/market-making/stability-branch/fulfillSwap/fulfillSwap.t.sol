@@ -178,9 +178,6 @@ contract FulfillSwap_Integration_Test is Base_Test {
 
         uint256 minAmountOut = amountOut.intoUint256();
 
-        // @audit slippage is now also checked when swaps are initiated, so this test doesn't
-        // work as is. To get this test to work the slippage would need to pass when the
-        // swap is initiated but fail when the swap is filled, possibly due to a price change?
         initiateUsdSwap(uint128(fuzzVaultConfig.vaultId), swapAmount, minAmountOut);
 
         // increase price so slippage  check fails in fulfill swap

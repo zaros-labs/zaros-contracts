@@ -174,6 +174,8 @@ contract CreditDelegationBranch_DepositCreditForMarket_Integration_Test is Base_
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
+        vm.assume(fuzzVaultConfig.asset != address(usdc));
+
         deal({ token: address(fuzzVaultConfig.asset), to: address(fuzzMarketConfig.engine), give: amount });
         changePrank({ msgSender: address(fuzzMarketConfig.engine) });
 

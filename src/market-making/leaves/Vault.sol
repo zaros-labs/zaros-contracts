@@ -102,7 +102,7 @@ library Vault {
         int128 marketsRealizedDebtUsd;
         uint128 depositedUsdc;
         address indexToken;
-        address engine; // @audit this is never set anywhere?
+        address engine;
         bool isLive;
         SwapStrategy swapStrategy;
         Collateral.Data collateral;

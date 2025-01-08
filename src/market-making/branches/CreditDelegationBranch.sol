@@ -206,14 +206,21 @@ contract CreditDelegationBranch is EngineAccessControl {
         // caches the usdToken address
         address usdToken = MarketMakingEngineConfiguration.load().usdTokenOfEngine[msg.sender];
 
+        // caches the usdc
+        address usdc = MarketMakingEngineConfiguration.load().usdc;
+
         // note: storage updates must occur using zaros internal precision
         if (collateralAddr == usdToken) {
             // if the deposited collateral is USD Token, it reduces the market's realized debt
             market.updateNetUsdTokenIssuance(unary(amountX18.intoSD59x18()));
         } else {
-            // deposits the received collateral to the market to be distributed to vaults
-            // to be settled in the future
-            market.depositCredit(collateralAddr, amountX18);
+            if (collateralAddr == usdc) {
+                market.settleCreditDeposit(address(0), amountX18);
+            } else {
+                // deposits the received collateral to the market to be distributed to vaults
+                // to be settled in the future
+                market.depositCredit(collateralAddr, amountX18);
+            }
         }
 
         // transfers the margin collateral asset from the registered engine to the market making engine
@@ -353,10 +360,6 @@ contract CreditDelegationBranch is EngineAccessControl {
             ctx.creditDepositsNativeDecimals =
                 Collateral.load(assets[i]).convertUd60x18ToTokenAmount(ud60x18(creditDeposits));
 
-            // @audit if assets[i] == usdc no swap actually executes, therefore the remaining
-            // code especially the call to `market.settleCreditDeposit` shouldn't execute?
-            // do we need to handle this case here?
-            //
             // convert the assets to USDC; both input and outputs in native token decimals
             uint256 usdcOut = _convertAssetsToUsdc(
                 dexSwapStrategyIds[i], assets[i], ctx.creditDepositsNativeDecimals, paths[i], address(this), usdc
@@ -434,8 +437,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // get swap amount; both input and output in native precision
                 ctx.swapAmount = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
-                    ctx.vaultAsset,
                     ctx.usdc,
+                    ctx.vaultAsset,
                     usdcCollateralConfig.convertSd59x18ToTokenAmount(ctx.vaultUnsettledRealizedDebtUsdX18.abs())
                 );
 
@@ -489,8 +492,8 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // get swap amount; both input and output in native precision
                 ctx.usdcIn = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,
-                    ctx.usdc,
                     ctx.vaultAsset,
+                    ctx.usdc,
                     usdcCollateralConfig.convertSd59x18ToTokenAmount(ctx.vaultUnsettledRealizedDebtUsdX18.abs())
                 );
 
@@ -564,11 +567,8 @@ contract CreditDelegationBranch is EngineAccessControl {
         view
         returns (uint256 amount)
     {
-        // @audit BaseAdapter::getExpectedOutput(tokenIn, tokenOut, amountIn)
-        // the order of assetOut and assetIn appears to be reversed, double-check if this intentional?
-        //
         // calculate expected asset amount needed to cover the debt
-        amount = IDexAdapter(dexAdapter).getExpectedOutput(assetOut, assetIn, vaultUnsettledDebtUsdAbs);
+        amount = IDexAdapter(dexAdapter).getExpectedOutput(assetIn, assetOut, vaultUnsettledDebtUsdAbs);
     }
 
     // used as a cache to prevent duplicate storage reads while avoiding "stack too deep" errors
