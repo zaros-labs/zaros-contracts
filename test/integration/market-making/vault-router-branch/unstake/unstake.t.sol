@@ -49,7 +49,8 @@ contract Unstake_Integration_Test is Base_Test {
         uint256 earnedFees = marketMakingEngine.getEarnedFees(fuzzVaultConfig.vaultId, users.naruto.account);
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.UserHasPendingRewards.selector, actorId, earnedFees * 2 + 1)); // todo: after 713 is fixed update here
+        vm.expectRevert(abi.encodeWithSelector(Errors.UserHasPendingRewards.selector, actorId, earnedFees * 2 + 1)); // todo:
+            // after 713 is fixed update here
 
         marketMakingEngine.unstake(fuzzVaultConfig.vaultId, userShares);
     }
@@ -62,8 +63,8 @@ contract Unstake_Integration_Test is Base_Test {
         uint256 vaultId,
         uint256 depositAmount
     )
-        whenUserDoesntHavePendingRewards
         external
+        whenUserDoesntHavePendingRewards
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         depositAmount = bound({
@@ -79,7 +80,13 @@ contract Unstake_Integration_Test is Base_Test {
         marketMakingEngine.unstake(fuzzVaultConfig.vaultId, type(uint128).max);
     }
 
-    function testFuzz_WhenUserHasEnoughStakedShares(uint256 vaultId, uint256 depositAmount) whenUserDoesntHavePendingRewards external {
+    function testFuzz_WhenUserHasEnoughStakedShares(
+        uint256 vaultId,
+        uint256 depositAmount
+    )
+        external
+        whenUserDoesntHavePendingRewards
+    {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         depositAmount = bound({
             x: depositAmount,
