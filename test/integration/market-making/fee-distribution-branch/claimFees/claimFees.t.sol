@@ -402,6 +402,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         assertEq(pre1.stakerShares, 0, "Staker has no staking shares prior to staking");
         assertEq(pre1.stakerLastValuePerShare, 0, "Staker has no value per share prior to staking");
 
+        assertEq(pre1.stakerVaultBal, IERC20(fuzzVaultConfig.indexToken).balanceOf(user), "balances differ");
         // perform the stake
         vm.startPrank(user);
         marketMakingEngine.stake(vaultId, pre1.stakerVaultBal);
@@ -428,7 +429,7 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // verify the staker has earned rewards which are not yet claimed
         uint256 stakerEarnedFees = marketMakingEngine.getEarnedFees(vaultId, user);
-        assertEq(stakerEarnedFees, 899_999_999_999_999_999, "Staker has earned fees");
+        assertEq(stakerEarnedFees, 9e17, "Staker has earned fees");
         assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(user), 0, "Staker has no asset tokens prior to unstake");
 
         ClaimFeesState memory post2 =
@@ -436,13 +437,13 @@ contract ClaimFees_Integration_Test is Base_Test {
         assertEq(post2.stakerVaultBal, 0, "Staker has no vault shares after staking them");
         assertEq(post2.marketEngineVaultBal, pre1.stakerVaultBal, "MarketEngine received stakers vault shares");
         assertEq(post2.totalShares, pre1.stakerVaultBal, "Staking totalShares == staked vault balance");
-        assertEq(post2.valuePerShare, 8_999_820_003_599_928_001_439_971_200_575);
+        assertEq(post2.valuePerShare, 8_999_820_003_599_928_011_439_771_204_575);
 
         // @audit reward amount was 1_000_000_000_000_000_001
         // but sum of protocol + user rewards = 1_000_000_000_000_000_000
         MarketWethRewards memory marketWethRewards1 = _getMarketWethRewards(ETH_USD_MARKET_ID);
         assertEq(marketWethRewards1.availableProtocolWethReward, 100_000_000_000_000_000);
-        assertEq(marketWethRewards1.wethRewardPerVaultShare, 900_000_000_000_000_000);
+        assertEq(marketWethRewards1.wethRewardPerVaultShare, 900_000_000_000_000_001);
 
         // staker claims rewards
         uint256 stakerWethBalBefore = IERC20(fuzzVaultConfig.asset).balanceOf(user);
@@ -452,14 +453,14 @@ contract ClaimFees_Integration_Test is Base_Test {
         // verify staker received correct rewards
         uint256 stakerReceivedRewards = IERC20(fuzzVaultConfig.asset).balanceOf(user) - stakerWethBalBefore;
         // @audit 1 wei was lost here
-        assertEq(stakerReceivedRewards, marketWethRewards1.wethRewardPerVaultShare - 1);
+        assertEq(stakerReceivedRewards, marketWethRewards1.wethRewardPerVaultShare - 1, "staker reward");
 
         MarketWethRewards memory marketWethRewards2 = _getMarketWethRewards(ETH_USD_MARKET_ID);
         assertEq(marketWethRewards2.availableProtocolWethReward, 100_000_000_000_000_000);
 
         // @audit this seems weird here as well; shouldn't the market's wethRewardPerVaultShare
         // decrease as the user claimed their rewards?
-        assertEq(marketWethRewards2.wethRewardPerVaultShare, 900_000_000_000_000_000);
+        assertEq(marketWethRewards2.wethRewardPerVaultShare, 900_000_000_000_000_001);
 
         // claim protocol rewards
         uint256 perpEngineWethBalBefore = IERC20(fuzzVaultConfig.asset).balanceOf(address(perpsEngine));
@@ -475,8 +476,8 @@ contract ClaimFees_Integration_Test is Base_Test {
         // available protocol rewards are correctly reset after protocol rewards are paid
         assertEq(marketWethRewards3.availableProtocolWethReward, 0);
 
-        // @audit in total 2 wei was lost from the rewards
-        assertEq(stakerReceivedRewards + perpEngineReceivedRewards, marketFees - 2);
+        // @audit in total 2 wei was lost from the rewards; UPDATE: 1 wei lost
+        assertEq(stakerReceivedRewards + perpEngineReceivedRewards, marketFees - 1, "total reward");
     }
 
     function test_protocolFeesLostDueToRounding() external {

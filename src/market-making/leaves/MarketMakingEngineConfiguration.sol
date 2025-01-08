@@ -71,7 +71,7 @@ library MarketMakingEngineConfiguration {
             (address feeRecipient, uint256 shares) = self.protocolFeeRecipients.at(i);
 
             // Calculate the fee recipient reward
-            uint256 feeRecipientReward = amountX18.mul(ud60x18(shares).div(totalFeeRecipientsSharesX18)).intoUint256();
+            uint256 feeRecipientReward = amountX18.mul(ud60x18(shares)).div(totalFeeRecipientsSharesX18).intoUint256();
 
             // cache the total distributed
             totalDistributed += feeRecipientReward;
