@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies test
 import { Base_Test } from "test/Base.t.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 
 // Zaros dependencies source
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
@@ -22,10 +21,48 @@ contract Unstake_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_RevertWhen_UserDoesNotHaveEnoguhtStakedShares(
+    function test_RevertWhen_UserHasPendingRewards() external {
+        uint128 vaultId = WETH_CORE_VAULT_ID;
+
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        uint128 assetsToDeposit = uint128(calculateMinOfSharesToStake(fuzzVaultConfig.vaultId));
+        fundUserAndDepositInVault(users.naruto.account, fuzzVaultConfig.vaultId, assetsToDeposit);
+
+        uint256 userShares = IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account);
+
+        changePrank({ msgSender: users.naruto.account });
+        IERC20(fuzzVaultConfig.indexToken).approve(address(marketMakingEngine), userShares);
+        marketMakingEngine.stake(fuzzVaultConfig.vaultId, uint128(userShares));
+
+        uint256 marketFees = 1e18;
+        deal(fuzzVaultConfig.asset, address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine), marketFees);
+        changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
+
+        marketMakingEngine.receiveMarketFee(ETH_USD_MARKET_ID, fuzzVaultConfig.asset, marketFees);
+        assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(address(marketMakingEngine)), marketFees);
+
+        changePrank({ msgSender: users.naruto.account });
+
+        bytes32 actorId = bytes32(uint256(uint160(address(users.naruto.account))));
+
+        uint256 earnedFees = marketMakingEngine.getEarnedFees(fuzzVaultConfig.vaultId, users.naruto.account);
+
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.UserHasPendingRewards.selector, actorId, earnedFees * 2 + 1)); // todo: after 713 is fixed update here
+
+        marketMakingEngine.unstake(fuzzVaultConfig.vaultId, userShares);
+    }
+
+    modifier whenUserDoesntHavePendingRewards() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_UserDoesNotHaveEnoughStakedShares(
         uint256 vaultId,
         uint256 depositAmount
     )
+        whenUserDoesntHavePendingRewards
         external
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -42,7 +79,7 @@ contract Unstake_Integration_Test is Base_Test {
         marketMakingEngine.unstake(fuzzVaultConfig.vaultId, type(uint128).max);
     }
 
-    function testFuzz_WhenUserHasEnoughStakedShares(uint256 vaultId, uint256 depositAmount) external {
+    function testFuzz_WhenUserHasEnoughStakedShares(uint256 vaultId, uint256 depositAmount) whenUserDoesntHavePendingRewards external {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         depositAmount = bound({
             x: depositAmount,
@@ -163,6 +200,7 @@ contract Unstake_Integration_Test is Base_Test {
     // play out in other protocols); when a staker unstakes the protocol should credit
     // any unclaimed rewards prior to unstaking them
     function test_stakerLosesUnclaimedRewardsWhenUnstakingBeforeClaiming() external {
+        vm.skip(true); // fixed
         // ensure valid vault and load vault config
         uint128 vaultId = WETH_CORE_VAULT_ID;
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);

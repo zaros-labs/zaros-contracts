@@ -589,6 +589,12 @@ contract VaultRouterBranch {
         // cast actor address to bytes32
         bytes32 actorId = bytes32(uint256(uint160(msg.sender)));
 
+        // get the claimable amount of fees
+        UD60x18 amountToClaimX18 = vault.wethRewardDistribution.getActorValueChange(actorId).intoUD60x18();
+
+        // reverts if the claimable amount is NOT 0
+        if (!amountToClaimX18.isZero()) revert Errors.UserHasPendingRewards(actorId, amountToClaimX18.intoUint256());
+
         // accumulate the actor's pending reward before unstaking
         wethRewardDistribution.accumulateActor(actorId);
 
