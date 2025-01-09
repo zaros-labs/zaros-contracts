@@ -383,6 +383,9 @@ library Vault {
             // at `_recalculateConnectedMarketsState` and `_updateCreditDelegations`
             uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
 
+            // update vault and credit delegation weight
+            updateVaultAndCreditDelegationWeight(self, connectedMarketsIdsCache);
+
             // iterate over each connected market id and distribute its debt so we can have the latest credit
             // delegation of the vault id being iterated to the provided `marketId`
             (
@@ -494,6 +497,37 @@ library Vault {
         self.swapStrategy.usdcDexSwapPath = usdcDexSwapPath;
         self.swapStrategy.assetDexSwapStrategyId = assetDexSwapStrategyId;
         self.swapStrategy.usdcDexSwapStrategyId = usdcDexSwapStrategyId;
+    }
+
+    /// @notice Update the vault and credit delegation weight
+    /// @param self The vault storage pointer.
+    /// @param connectedMarketsIdsCache The cached connected markets ids.
+    function updateVaultAndCreditDelegationWeight(
+        Data storage self,
+        uint128[] memory connectedMarketsIdsCache
+    )
+        internal
+    {
+        // cache the connected markets length
+        uint256 connectedMarketsConfigLength = self.connectedMarkets.length;
+
+        // loads the connected markets storage pointer by taking the last configured market ids uint set
+        EnumerableSet.UintSet storage connectedMarkets = self.connectedMarkets[connectedMarketsConfigLength - 1];
+
+        // get the total of shares
+        uint128 newWeight = uint128(IERC4626(self.indexToken).totalAssets());
+
+        for (uint256 i; i < connectedMarketsIdsCache.length; i++) {
+            // load the credit delegation to the given market id
+            CreditDelegation.Data storage creditDelegation =
+                CreditDelegation.load(self.id, connectedMarkets.at(i).toUint128());
+
+            // update the credit delegation weight
+            creditDelegation.weight = newWeight;
+        }
+
+        // update the vault weight
+        self.totalCreditDelegationWeight = newWeight;
     }
 
     /// @notice Updates the vault's credit delegations to its connected markets, using the provided cache of connected
