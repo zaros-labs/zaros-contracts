@@ -49,7 +49,7 @@ contract Unstake_Integration_Test is Base_Test {
         uint256 earnedFees = marketMakingEngine.getEarnedFees(fuzzVaultConfig.vaultId, users.naruto.account);
 
         // it should revert
-        vm.expectRevert(abi.encodeWithSelector(Errors.UserHasPendingRewards.selector, actorId, earnedFees * 2 + 1)); // todo:
+        vm.expectRevert(abi.encodeWithSelector(Errors.UserHasPendingRewards.selector, actorId, earnedFees)); // todo:
             // after 713 is fixed update here
 
         marketMakingEngine.unstake(fuzzVaultConfig.vaultId, userShares);
@@ -147,7 +147,7 @@ contract Unstake_Integration_Test is Base_Test {
 
     // a staker's unclaimed rewards apear to double every time
     // `Vault.recalculateVaultsCreditCapacity` is called
-    function test_stakerUnclaimedRewardsDoubleAfterDeposit() external {
+    function test_stakerUnclaimedRewardsNoDoubleAfterDeposit() external {
         // ensure valid vault and load vault config
         uint128 vaultId = WETH_CORE_VAULT_ID;
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -187,8 +187,8 @@ contract Unstake_Integration_Test is Base_Test {
         // original staker's pending rewards just doubled + 1!
         assertEq(
             marketMakingEngine.getEarnedFees(vaultId, user),
-            user1PendingRewards * 2 + 1,
-            "Staker pending rewards have doubled!"
+            user1PendingRewards,
+            "Staker pending rewards should maintain the same!"
         );
 
         // third user makes a deposit, triggers a call to `Vault.recalculateVaultsCreditCapacity`
@@ -197,8 +197,8 @@ contract Unstake_Integration_Test is Base_Test {
         // original staker's pending rewards increased again, they are 3x + 2 the original amount
         assertEq(
             marketMakingEngine.getEarnedFees(vaultId, user),
-            user1PendingRewards * 3 + 2,
-            "Staker pending rewards increased again!"
+            user1PendingRewards,
+            "Staker pending rewards should maintain the same!"
         );
     }
 
