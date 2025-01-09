@@ -383,6 +383,7 @@ library Vault {
             // at `_recalculateConnectedMarketsState` and `_updateCreditDelegations`
             uint128[] memory connectedMarketsIdsCache = new uint128[](connectedMarkets.length());
 
+            // update vault and credit delegation weight
             updateVaultAndCreditDelegationWeight(self, connectedMarketsIdsCache);
 
             // iterate over each connected market id and distribute its debt so we can have the latest credit
