@@ -444,11 +444,6 @@ contract CreditDelegationBranch is EngineAccessControl {
 
                 // swap the vault's assets to usdc in order to cover the usd denominated debt partially or fully
                 // both input and output in native precision
-                //
-                // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
-                // if this occurs, should `vault.marketsRealizedDebtUsd` and
-                // `usdTokenSwapConfig.usdcAvailableForEngine[vault.engine]`
-                // still be updated and the event emitted?
                 ctx.usdcOut = _convertAssetsToUsdc(
                     vault.swapStrategy.usdcDexSwapStrategyId,
                     ctx.vaultAsset,
@@ -471,11 +466,6 @@ contract CreditDelegationBranch is EngineAccessControl {
                 vault.marketsRealizedDebtUsd -= ctx.usdcOutX18.intoUint256().toInt256().toInt128();
 
                 // allocate the usdc acquired to back the engine's usd token
-                //
-                // @audit rg "usdcAvailableForEngine" inside /src/ folder shows this is the only
-                // place that references UsdTokenSwapConfig::usdcAvailableForEngine - this field
-                // is only ever increased and never decreased anywhere or used anywhere else?
-                // What is the point of this / is this correct?
                 UsdTokenSwapConfig.load().usdcAvailableForEngine[vault.engine] += ctx.usdcOutX18.intoUint256();
 
                 // update the variables to be logged
@@ -507,9 +497,6 @@ contract CreditDelegationBranch is EngineAccessControl {
                 // swaps the vault's usdc balance to more vault assets and
                 // send them to the ZLP Vault contract (index token address)
                 // both input and output in native precision
-                //
-                // @audit if ctx.vaultAsset == ctx.usdc, this swap will return without doing anything
-                // if this occurs, should `vault.depositedUsdc` still be updated and the event emitted?
                 ctx.assetOutAmount = _convertUsdcToAssets(
                     vault.swapStrategy.assetDexSwapStrategyId,
                     ctx.vaultAsset,
