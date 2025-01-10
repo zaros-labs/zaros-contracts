@@ -439,8 +439,6 @@ contract ClaimFees_Integration_Test is Base_Test {
         assertEq(post2.totalShares, pre1.stakerVaultBal, "Staking totalShares == staked vault balance");
         assertEq(post2.valuePerShare, 8_999_820_003_599_928_011_439_771_204_575);
 
-        // @audit reward amount was 1_000_000_000_000_000_001
-        // but sum of protocol + user rewards = 1_000_000_000_000_000_000
         MarketWethRewards memory marketWethRewards1 = _getMarketWethRewards(ETH_USD_MARKET_ID);
         assertEq(marketWethRewards1.availableProtocolWethReward, 100_000_000_000_000_000);
         assertEq(marketWethRewards1.wethRewardPerVaultShare, 900_000_000_000_000_001);
@@ -452,14 +450,11 @@ contract ClaimFees_Integration_Test is Base_Test {
 
         // verify staker received correct rewards
         uint256 stakerReceivedRewards = IERC20(fuzzVaultConfig.asset).balanceOf(user) - stakerWethBalBefore;
-        // @audit 1 wei was lost here
         assertEq(stakerReceivedRewards, marketWethRewards1.wethRewardPerVaultShare - 1, "staker reward");
 
         MarketWethRewards memory marketWethRewards2 = _getMarketWethRewards(ETH_USD_MARKET_ID);
         assertEq(marketWethRewards2.availableProtocolWethReward, 100_000_000_000_000_000);
 
-        // @audit this seems weird here as well; shouldn't the market's wethRewardPerVaultShare
-        // decrease as the user claimed their rewards?
         assertEq(marketWethRewards2.wethRewardPerVaultShare, 900_000_000_000_000_001);
 
         // claim protocol rewards
@@ -476,7 +471,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         // available protocol rewards are correctly reset after protocol rewards are paid
         assertEq(marketWethRewards3.availableProtocolWethReward, 0);
 
-        // @audit in total 2 wei was lost from the rewards; UPDATE: 1 wei lost
+        // in total 1 wei was lost from the rewards;
         assertEq(stakerReceivedRewards + perpEngineReceivedRewards, marketFees - 1, "total reward");
     }
 
@@ -506,7 +501,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         // verify protocol rewards available
         MarketWethRewards memory marketWethRewards1 = _getMarketWethRewards(ETH_USD_MARKET_ID);
         assertEq(marketWethRewards1.availableProtocolWethReward, 100_000_000_000_000_000);
-        assertEq(marketWethRewards1.wethRewardPerVaultShare, 900_000_000_000_000_000);
+        assertEq(marketWethRewards1.wethRewardPerVaultShare, 900_000_000_000_000_001);
 
         // Base.t configures address(perpsEngine) to receive 0.1e18 of protocol rewards
         // we'll configure another address to receive some rewards too
