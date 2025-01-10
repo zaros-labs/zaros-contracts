@@ -22,7 +22,6 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO, unary } from "@prb-math/SD59x18
 /// Debt Distribution System.
 /// @dev Vault's debt for asset settlement purposes = marketsRealizedDebtUsd
 /// @dev Vault's debt for credit delegation and ADL purposes = marketsUnrealizedDebtUsd + marketsRealizedDebtUsd
-/// todo: assert that when configuring the connected markets ids that they all belong to the same engine.
 library Vault {
     using Collateral for Collateral.Data;
     using CreditDelegation for CreditDelegation.Data;

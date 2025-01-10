@@ -32,7 +32,6 @@ library Market {
     using SafeCast for uint256;
 
     /// @notice ERC7201 storage location.
-    /// todo: create VaultService and MarketService
     bytes32 internal constant MARKET_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Market")) - 1));
 
@@ -255,8 +254,7 @@ library Market {
     /// @param self The market storage pointer.
     /// @return unrealizedDebtUsdX18 The market's total unrealized debt in USD.
     function getUnrealizedDebtUsd(Data storage self) internal view returns (SD59x18 unrealizedDebtUsdX18) {
-        unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.id)); // TODO error no engine set
-            // to market
+        unrealizedDebtUsdX18 = sd59x18(IEngine(self.engine).getUnrealizedDebt(self.id));
     }
 
     /// @notice Returns the market's total debt which is a combination of
@@ -306,11 +304,13 @@ library Market {
                 vaultCreditShareX18.intoSD59x18()
             )
             : SD59x18_ZERO;
+
         unrealizedDebtChangeUsdX18 = !lastVaultDistributedUnrealizedDebtUsdPerShareX18.isZero()
             ? sd59x18(self.unrealizedDebtUsdPerVaultShare).sub(lastVaultDistributedUnrealizedDebtUsdPerShareX18).mul(
                 vaultCreditShareX18.intoSD59x18()
             )
             : SD59x18_ZERO;
+
         usdcCreditChangeX18 = !lastVaultDistributedUsdcCreditPerShareX18.isZero()
             ? ud60x18(self.usdcCreditPerVaultShare).sub(lastVaultDistributedUsdcCreditPerShareX18).mul(
                 vaultCreditShareX18

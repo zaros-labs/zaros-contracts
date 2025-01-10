@@ -23,7 +23,8 @@ import { UD60x18 } from "@prb-math/UD60x18.sol";
 /// @dev It is deployed as a standalone proxy, separately from the `MarketMakingEngine`, and its core responsibility
 /// is to store and manage the assets and shares of a single ZLP Vault.
 /// @author 0xpedro.eth
-// TODO: add co-authors
+/// @author 0xjoaovpsantos
+/// @author yotov721
 contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626Upgradeable {
     using Math for uint256;
 
@@ -73,7 +74,7 @@ contract ZlpVault is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC4626
         zlpVaultStorage.decimalsOffset = decimalsOffset;
         zlpVaultStorage.vaultId = vaultId;
 
-        IERC20(asset_).approve(marketMakingEngine, type(uint256).max); // TODO move to script
+        IERC20(asset_).approve(marketMakingEngine, type(uint256).max);
     }
 
     /// @notice ERC7201 storage access function.

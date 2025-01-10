@@ -39,7 +39,6 @@ library MarketMakingEngineConfiguration {
         EnumerableMap.AddressToUintMap protocolFeeRecipients;
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
-        // TODO: define roles
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;
     }
 

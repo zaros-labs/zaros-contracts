@@ -178,7 +178,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     function getCustomReferralCodeReferrer(string memory customReferralCode) external view returns (address) { }
 
     /// @dev Invariants involved in the call:
-    /// TODO: add invariants
     function configureSystemParameters() external onlyOwner { }
 
     /// @notice Creates a custom referral code.
@@ -274,9 +273,6 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             }
         }
 
-        // todo: implement tstore/tload logic to avoid recalculating vaults that don't need to have their credit
-        // capacity updated in the current system state & execution context perform state updates for vaults connected
-        // to each market id
         for (uint256 i; i < marketIds.length; i++) {
             _configureMarketConnectedVaults(marketIds[i].toUint128(), vaultIds);
         }
