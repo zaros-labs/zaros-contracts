@@ -206,7 +206,6 @@ contract Unstake_Integration_Test is Base_Test {
     // play out in other protocols); when a staker unstakes the protocol should credit
     // any unclaimed rewards prior to unstaking them
     function test_stakerLosesUnclaimedRewardsWhenUnstakingBeforeClaiming() external {
-        vm.skip(true); // fixed
         // ensure valid vault and load vault config
         uint128 vaultId = WETH_CORE_VAULT_ID;
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -245,24 +244,26 @@ contract Unstake_Integration_Test is Base_Test {
         uint256 snapshotId = vm.snapshot();
 
         {
+            changePrank({ msgSender: user });
+
+            // claim fees
+            marketMakingEngine.claimFees(vaultId);
+
             // staker unstakes
             marketMakingEngine.unstake(vaultId, preStakeState.stakerVaultBal);
 
-            // @audit this is wrong; unstake should credit the stakers unclaimed rewards or
-            // unstake should revert if the staker has pending rewards
-            assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(user), 0, "Staker has no asset tokens after unstake");
+            assertGt(
+                IERC20(fuzzVaultConfig.indexToken).balanceOf(user),
+                0,
+                "Staker has shares/index tokens after full unstake"
+            );
             assertEq(
                 marketMakingEngine.getEarnedFees(vaultId, user), 0, "Staker has lost pending rewards after unstake"
             );
 
-            // attempting to claim fails as they have unstaked
             vm.expectRevert(Errors.NoSharesAvailable.selector);
             marketMakingEngine.claimFees(vaultId);
 
-            // @audit staker's last value per shares has not been preserved, the call to
-            // `Distribution::accumulateActor` inside `VaultRouterBranch::unstake` doesn't
-            // appear to have achieved anything as the subsequent call to `Distribution::setActorShares`
-            // overwrites it
             UnstakeState memory postUnstakeState =
                 _getUnstakeState(user, vaultId, IERC20(fuzzVaultConfig.asset), IERC20(fuzzVaultConfig.indexToken));
             assertEq(postUnstakeState.stakerLastValuePerShare, 0);
