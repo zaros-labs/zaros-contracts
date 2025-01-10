@@ -14,7 +14,7 @@ abstract contract WBtc {
     UD60x18 internal WBTC_DEPOSIT_CAP_X18 = ud60x18(1_000_000e18);
     uint120 internal constant WBTC_LOAN_TO_VALUE = 0.85e18;
     uint256 internal constant WBTC_MIN_DEPOSIT_MARGIN = 0.025e8;
-    uint256 internal constant MOCK_WBTC_USD_PRICE = 2000e18;
+    uint256 internal constant MOCK_WBTC_USD_PRICE = 2000e8;
     address internal constant WBTC_ADDRESS = address(0xd9433D0E5b5Ae4593ba3880c25046BBC4dC4926C);
     address internal constant WBTC_PRICE_FEED = address(0xd9433D0E5b5Ae4593ba3880c25046BBC4dC4926C);
     uint256 internal constant WBTC_LIQUIDATION_PRIORITY = 4;
