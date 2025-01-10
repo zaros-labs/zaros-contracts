@@ -375,10 +375,17 @@ contract FeeDistributionBranch is EngineAccessControl {
     {
         // cache the total fee recipients shares as UD60x18
         UD60x18 feeRecipientsSharesX18 = ud60x18(MarketMakingEngineConfiguration.load().totalFeeRecipientsShares);
+
         // calculate the weth rewards for protocol and vaults
         UD60x18 receivedProtocolWethRewardX18 = receivedWethX18.mul(feeRecipientsSharesX18);
         UD60x18 receivedVaultsWethRewardX18 =
             receivedWethX18.mul(ud60x18(Constants.MAX_SHARES).sub(feeRecipientsSharesX18));
+
+        // calculate leftover reward
+        UD60x18 leftover = receivedWethX18.sub(receivedProtocolWethRewardX18).sub(receivedVaultsWethRewardX18);
+
+        // add leftover reward to vault reward
+        receivedVaultsWethRewardX18 = receivedVaultsWethRewardX18.add(leftover);
 
         // adds the weth received for protocol and vaults rewards using the assets previously paid by the engine
         // as fees, and remove its balance from the market's `receivedMarketFees` map
