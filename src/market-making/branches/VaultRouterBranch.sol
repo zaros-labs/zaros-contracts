@@ -649,7 +649,7 @@ contract VaultRouterBranch {
     )
         external
         view
-        returns (uint128 totalShares, int128 valuePerShare, uint128 accountShares, int128 accountLastValuePerShare)
+        returns (uint128 totalShares, int256 valuePerShare, uint128 accountShares, int256 accountLastValuePerShare)
     {
         // get vault staking fee distribution data
         Distribution.Data storage distributionData = Vault.loadLive(vaultId).wethRewardDistribution;

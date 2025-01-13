@@ -117,10 +117,10 @@ contract Unstake_Integration_Test is Base_Test {
         uint128 marketEngineVaultBal;
         // Distribution stake total balances
         uint128 totalShares;
-        int128 valuePerShare;
+        int256 valuePerShare;
         // Distribution stake individual balances
         uint128 stakerShares;
-        int128 stakerLastValuePerShare;
+        int256 stakerLastValuePerShare;
     }
 
     function _getUnstakeState(

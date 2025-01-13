@@ -16,12 +16,12 @@ library Distribution {
 
     struct Actor {
         uint128 shares;
-        int128 lastValuePerShare;
+        int256 lastValuePerShare;
     }
 
     struct Data {
         uint128 totalShares;
-        int128 valuePerShare;
+        int256 valuePerShare;
         mapping(bytes32 actorId => Actor) actor;
     }
 
@@ -38,7 +38,7 @@ library Distribution {
 
         SD59x18 deltaValuePerShare = value.div(totalShares.intoSD59x18());
 
-        self.valuePerShare = sd59x18(self.valuePerShare).add(deltaValuePerShare).intoInt256().toInt128();
+        self.valuePerShare = sd59x18(self.valuePerShare).add(deltaValuePerShare).intoInt256();
     }
 
     function setActorShares(
@@ -77,7 +77,7 @@ library Distribution {
     )
         internal
         view
-        returns (uint128 totalShares, int128 valuePerShare, uint128 accountShares, int128 accountLastValuePerShare)
+        returns (uint128 totalShares, int256 valuePerShare, uint128 accountShares, int256 accountLastValuePerShare)
     {
         // global values
         (totalShares, valuePerShare) = (self.totalShares, self.valuePerShare);
@@ -100,7 +100,7 @@ library Distribution {
     {
         valueChange = _getActorValueChange(self, actor);
 
-        actor.lastValuePerShare = newActorShares.eq(UD60x18_ZERO) ? int128(0) : self.valuePerShare;
+        actor.lastValuePerShare = newActorShares.eq(UD60x18_ZERO) ? int256(0) : self.valuePerShare;
     }
 
     function _getActorValueChange(
