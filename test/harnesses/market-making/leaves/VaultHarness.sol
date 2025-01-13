@@ -36,7 +36,7 @@ contract VaultHarness {
         return stakingData.actor[actorId].shares;
     }
 
-    function workaround_Vault_getValuePerShare(uint128 vaultId) external view returns (int128) {
+    function workaround_Vault_getValuePerShare(uint128 vaultId) external view returns (int256) {
         Vault.Data storage vaultData = Vault.load(vaultId);
 
         Distribution.Data storage stakingData = vaultData.wethRewardDistribution;

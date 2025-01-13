@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.25;
 
-import { console } from "forge-std/console.sol";
-
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-import { FeeDistributionBranch } from "@zaros/market-making/branches/FeeDistributionBranch.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
@@ -35,10 +32,10 @@ contract Stake_Integration_Test is Base_Test {
         uint128 marketEngineVaultBal;
         // Distribution stake total balances
         uint128 totalShares;
-        int128 valuePerShare;
+        int256 valuePerShare;
         // Distribution stake individual balances
         uint128 stakerShares;
-        int128 stakerLastValuePerShare;
+        int256 stakerLastValuePerShare;
     }
 
     function _getStakeState(
