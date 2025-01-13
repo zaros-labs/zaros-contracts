@@ -82,7 +82,6 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         whenTheMarketExist
         whenThereIsAvailableFeesToWithdraw
     {
-
         // get fuzz dex adapter
         IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
 
