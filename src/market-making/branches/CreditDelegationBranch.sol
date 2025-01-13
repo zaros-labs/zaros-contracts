@@ -651,8 +651,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         );
 
         // prepare the data for executing the swap asset -> usdc
-        SwapExactInputPayload memory swapCallData = SwapExactInputPayload({
-            path: inDebtVault.swapStrategy.usdcDexSwapPath,
+        SwapExactInputSinglePayload memory swapCallData = SwapExactInputSinglePayload({
             tokenIn: ctx.inDebtVaultCollateralAsset,
             tokenOut: usdc,
             amountIn: assetInputNative,
@@ -661,7 +660,7 @@ contract CreditDelegationBranch is EngineAccessControl {
 
         // approve the collateral token to the dex adapter and swap assets for USDC
         IERC20(ctx.inDebtVaultCollateralAsset).approve(ctx.dexAdapter, assetInputNative);
-        dexSwapStrategy.executeSwapExactInput(swapCallData);
+        dexSwapStrategy.executeSwapExactInputSingle(swapCallData);
 
         // SD59x18 -> uint128 using zaros internal precision
         uint128 usdDelta = depositAmountUsdX18.intoUint256().toUint128();

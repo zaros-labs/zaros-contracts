@@ -279,7 +279,7 @@ contract ClaimFees_Integration_Test is Base_Test {
     // from asset -> weth as getPrice() returns 0. If this can be fixed it should
     // ideally replace both the weth-only working version and testFuzz_WhenAmountToClaimIsGreaterThenZero
     // which is currently failing
-    function testFuzz_WhenAmountToClaimIsGreaterThenZero_Failing(
+    function testFuzz_WhenAmountToClaimIsGreaterThenZero(
         uint128 vaultId,
         uint128 marketId,
         uint128 assetsToDeposit,

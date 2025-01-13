@@ -158,13 +158,15 @@ contract CreditDelegationBranch_RebalanceVaultsAssets_Integration_Test is Base_T
         marketMakingEngine.workaround_setVaultDepositedUsdc(inCreditVaultConfig.vaultId, 0);
 
         marketMakingEngine.workaround_setVaultDebt(inDebtVaultConfig.vaultId, -1e24);
-        marketMakingEngine.workaround_setVaultDepositedUsdc(inDebtVaultConfig.vaultId, 1e24);
+        marketMakingEngine.workaround_setVaultDepositedUsdc(inDebtVaultConfig.vaultId, 2e24);
 
         deal({
             token: address(inDebtVaultConfig.asset),
             to: address(inDebtVaultConfig.indexToken),
-            give: type(uint128).max
+            give: type(uint96).max
         });
+
+        deal({ token: address(inDebtVaultConfig.asset), to: address(marketMakingEngine), give: type(uint96).max });
 
         changePrank({ msgSender: address(perpsEngine) });
 
@@ -193,13 +195,13 @@ contract CreditDelegationBranch_RebalanceVaultsAssets_Integration_Test is Base_T
         int128 inCreditVaultDebtAfter = marketMakingEngine.workaround_getVaultDebt(inCreditVaultConfig.vaultId);
 
         // it should update vaults deposited usd and markets realized debt
-        assertEq(inDebtVaultDepositedUsdcBefore - 2e12, inDebtVaultDepositedUsdcAfter);
         assertEq(
-            inCreditVaultDepositedUsdcBefore + 2e24,
-            convertTokenAmountToUd60x18(address(usdc), inCreditVaultDepositedUsdcAfter).intoUint256()
+            inDebtVaultDepositedUsdcBefore - convertTokenAmountToUd60x18(address(usdc), 2e12).intoUint256(),
+            inDebtVaultDepositedUsdcAfter
         );
+        assertEq(inCreditVaultDepositedUsdcBefore + 2e24, inCreditVaultDepositedUsdcAfter);
 
-        assertEq(inDebtVaultDeptBefore - 2e24, inDebtVaultDeptAfter);
-        assertEq(inCreditVaultDebtBefore + 2e24, inCreditVaultDebtAfter);
+        assertEq(inDebtVaultDeptBefore - 2e24, inDebtVaultDeptAfter, "inDebtvault debt mismatch");
+        assertEq(inCreditVaultDebtBefore + 2e24, inCreditVaultDebtAfter, "inCreditVault debt mismatch");
     }
 }
