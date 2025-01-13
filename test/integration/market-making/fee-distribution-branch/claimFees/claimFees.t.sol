@@ -75,7 +75,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         marketMakingEngine.claimFees(fuzzVaultConfig.vaultId);
     }
 
-    function testFuzz_WhenAmountToClaimIsGreaterThenZeroJJ(
+    function testFuzz_WhenAmountToClaimIsGreaterThenZero(
         uint256 vaultId,
         uint256 marketId,
         uint256 amountToDepositMarketFee,

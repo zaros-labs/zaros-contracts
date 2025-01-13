@@ -226,10 +226,8 @@ contract FeeDistributionBranch is EngineAccessControl {
             // uint256 -> ud60x18
             ctx.receivedWethX18 = wethCollateral.convertTokenAmountToUd60x18(ctx.tokensSwapped);
         }
-
         // handles distribution of the weth reward between the protocol and market
         _handleWethRewardDistribution(market, asset, ctx.receivedWethX18);
-
 
         // emit event to log the conversion of fees to weth
         emit LogConvertAccumulatedFeesToWeth(ctx.receivedWethX18.intoUint256());

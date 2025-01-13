@@ -32,8 +32,6 @@ library Distribution {
 
         UD60x18 totalShares = ud60x18(self.totalShares);
 
-
-
         if (totalShares.eq(UD60x18_ZERO)) {
             revert Errors.EmptyDistribution();
         }
