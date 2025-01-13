@@ -82,30 +82,33 @@ contract SendWethToFeeRecipients_Integration_Test is Base_Test {
         whenTheMarketExist
         whenThereIsAvailableFeesToWithdraw
     {
-        vm.skip(true); // condition could not be hit
 
-        changePrank({ msgSender: address(perpsEngine) });
+        // get fuzz dex adapter
         IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
 
+        // get fuzz perp market credit config
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);
 
+        // receive market fee
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
         amount = bound({
             x: amount,
             min: USDC_MIN_DEPOSIT_MARGIN,
             max: convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18)
         });
-        deal({ token: address(usdc), to: address(perpsEngine), give: amount });
-
+        deal({ token: address(usdc), to: address(fuzzPerpMarketCreditConfig.engine), give: amount });
         marketMakingEngine.receiveMarketFee(fuzzPerpMarketCreditConfig.marketId, address(usdc), amount);
 
+        // convert accumulated fees to weth
+        changePrank({ msgSender: address(perpsEngine) });
         marketMakingEngine.convertAccumulatedFeesToWeth(
             fuzzPerpMarketCreditConfig.marketId, address(usdc), adapter.STRATEGY_ID(), bytes("")
         );
 
+        // remove all fee recipients
         changePrank({ msgSender: address(users.owner.account) });
         marketMakingEngine.configureFeeRecipient(address(perpsEngine), 0);
-
-        changePrank({ msgSender: address(perpsEngine) });
+        changePrank({ msgSender: address(fuzzPerpMarketCreditConfig.engine) });
 
         // it should revert
         vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.NoSharesAvailable.selector) });
