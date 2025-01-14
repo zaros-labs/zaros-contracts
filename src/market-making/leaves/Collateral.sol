@@ -18,7 +18,6 @@ library Collateral {
     bytes32 internal constant COLLATERAL_LOCATION =
         keccak256(abi.encode(uint256(keccak256("fi.zaros.market-making.Collateral")) - 1));
 
-    // TODO: pack storage slots
     struct Data {
         uint256 creditRatio;
         bool isEnabled;

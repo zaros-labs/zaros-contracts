@@ -174,7 +174,6 @@ contract VaultRouterBranch {
 
         // Get the asset amount out for the input amount of shares, taking into account the vault's debt
         // See {IERC4626-previewRedeem}
-        // TODO: check with Cyfrin if the potentially added dust value to assets out due to
         // `IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset` could lead to problems
         uint256 previewAssetsOut = sharesIn.mulDiv(
             totalAssetsMinusVaultDebt,
@@ -221,7 +220,6 @@ contract VaultRouterBranch {
 
         // Get the shares amount out for the input amount of tokens, taking into account the unsettled debt
         // See {IERC4626-previewDeposit}.
-        // TODO: check with Cyfrin if the potentially added dust value to shares out due to
         // `IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset` could lead to problems
         uint256 previewSharesOut = assetsIn.mulDiv(
             IERC4626(vault.indexToken).totalSupply() + 10 ** decimalOffset,
