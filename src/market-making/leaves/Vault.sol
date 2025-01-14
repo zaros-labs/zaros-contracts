@@ -136,11 +136,14 @@ library Vault {
     /// @param depositCap The new maximum amount of collateral assets that can be deposited in the vault.
     /// @param withdrawalDelay The new delay period, in seconds, before a withdrawal request can be fulfilled.
     /// @param isLive The new status of the vault.
+    /// @param lockedCreditRatio The ratio that determines how much of the vault's total assets can't be
+    /// withdrawn according to the Vault's total debt, in order to secure the credit delegation system.
     struct UpdateParams {
         uint128 vaultId;
         uint128 depositCap;
         uint128 withdrawalDelay;
         bool isLive;
+        uint128 lockedCreditRatio;
     }
 
     /// @notice Loads a {Vault} namespace.
@@ -453,6 +456,7 @@ library Vault {
         self.depositCap = params.depositCap;
         self.withdrawalDelay = params.withdrawalDelay;
         self.isLive = params.isLive;
+        self.lockedCreditRatio = params.lockedCreditRatio;
     }
 
     /// @notice Creates a new vault with the specified parameters.
