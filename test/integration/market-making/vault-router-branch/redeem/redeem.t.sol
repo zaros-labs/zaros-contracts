@@ -9,6 +9,7 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { Math } from "@zaros/utils/Math.sol";
 import { WithdrawalRequest } from "@zaros/market-making/leaves/WithdrawalRequest.sol";
 import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
+import { Vault } from "@zaros/market-making/leaves/Vault.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, IERC4626 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
@@ -145,6 +146,57 @@ contract Redeem_Integration_Test is Base_Test {
         marketMakingEngine.redeem(vaultId, WITHDRAW_REQUEST_ID, minAssetsOut);
     }
 
+    modifier whenAssetsAreMoreThanMinAmount() {
+        _;
+    }
+
+    function test_RevertWhen_UnlockedCreditCapacityIsNotEnough(
+        uint128 vaultId,
+        uint128 assetsToDeposit,
+        uint128 sharesToWithdraw
+    )
+        external
+        whenRequestIsNotFulfulled
+        whenDelayHasPassed
+        whenAssetsAreMoreThanMinAmount
+    {
+        // ensure valid vault and load vault config
+        vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        Vault.UpdateParams memory params = Vault.UpdateParams({
+            vaultId: fuzzVaultConfig.vaultId,
+            depositCap: fuzzVaultConfig.depositCap,
+            withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
+            isLive: true,
+            lockedCreditRatio: 1e18
+        });
+
+        changePrank({ msgSender: users.owner.account });
+        marketMakingEngine.updateVaultConfiguration(params);
+
+        // ensure valid deposit amount
+        address user = users.naruto.account;
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
+
+        fundUserAndDepositInVault(user, vaultId, uint128(assetsToDeposit));
+
+        uint128 userVaultShares = uint128(IERC20(fuzzVaultConfig.indexToken).balanceOf(user));
+        sharesToWithdraw = uint128(bound(sharesToWithdraw, 1, userVaultShares));
+
+        vm.startPrank(user);
+        marketMakingEngine.initiateWithdrawal(vaultId, sharesToWithdraw);
+
+        // fast forward block.timestamp to after withdraw delay has passed
+        skip(fuzzVaultConfig.withdrawalDelay + 1);
+
+        uint256 minAssetsOut = 0;
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NotEnoughUnlockedCreditCapacity.selector));
+        marketMakingEngine.redeem(vaultId, WITHDRAW_REQUEST_ID, minAssetsOut);
+    }
+
     struct RedeemState {
         // asset balances
         uint256 redeemerAssetBal;
@@ -172,7 +224,7 @@ contract Redeem_Integration_Test is Base_Test {
         state.marketEngineVaultBal = vault.balanceOf(address(marketMakingEngine));
     }
 
-    function testFuzz_WhenAssetsAreMoreThanMinAmount(
+    function test_WhenUnlockedCreditCapacityIsEnough(
         uint128 vaultId,
         uint128 assetsToDeposit,
         uint128 sharesToWithdraw
@@ -180,6 +232,7 @@ contract Redeem_Integration_Test is Base_Test {
         external
         whenRequestIsNotFulfulled
         whenDelayHasPassed
+        whenAssetsAreMoreThanMinAmount
     {
         // ensure valid vault and load vault config
         vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));

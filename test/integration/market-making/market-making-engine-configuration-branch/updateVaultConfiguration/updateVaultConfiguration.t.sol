@@ -24,7 +24,8 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
             vaultId: fuzzVaultConfig.vaultId,
             depositCap: 0,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
-            isLive: isLive
+            isLive: isLive,
+            lockedCreditRatio: 0
         });
 
         // it should revert
@@ -49,7 +50,8 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
             vaultId: fuzzVaultConfig.vaultId,
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: 0,
-            isLive: isLive
+            isLive: isLive,
+            lockedCreditRatio: 0
         });
 
         // it should revert
@@ -77,7 +79,8 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
             vaultId: 0,
             depositCap: uint128(depositCap),
             withdrawalDelay: uint128(withdrawDelay),
-            isLive: isLive
+            isLive: isLive,
+            lockedCreditRatio: 0
         });
 
         // it should revert
@@ -104,7 +107,8 @@ contract UpdateVaultConfiguration_Integration_Test is Base_Test {
             vaultId: fuzzVaultConfig.vaultId,
             depositCap: uint128(updatedDepositCap),
             withdrawalDelay: uint128(updatedWithdrawDelay),
-            isLive: isLive
+            isLive: isLive,
+            lockedCreditRatio: 0
         });
 
         // it should emit update event
