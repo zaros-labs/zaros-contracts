@@ -380,8 +380,10 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
             settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
             liquidationFeeRecipient: users.liquidationFeeRecipient.account,
             referralModule: address(referralModule),
+            whitelist: address(whitelist),
             marketMakingEngine: address(marketMakingEngine),
-            maxVerificationDelay: MAX_VERIFICATION_DELAY
+            maxVerificationDelay: MAX_VERIFICATION_DELAY,
+            isWhitelistMode: true
         });
 
         changePrank({ msgSender: users.naruto.account });

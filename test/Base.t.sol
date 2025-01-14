@@ -31,6 +31,7 @@ import { CurveAdapter } from "@zaros/utils/dex-adapters/CurveAdapter.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { SwapAssetConfigData } from "@zaros/utils/dex-adapters/BaseAdapter.sol";
 import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
+import { Whitelist } from "@zaros/utils/Whitelist.sol";
 
 // Zaros dependencies test
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
@@ -148,6 +149,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
                                    TEST CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
 
+    Whitelist internal whitelist;
+
     TradingAccountNFT internal tradingAccountToken;
 
     MockERC20 internal usdc;
@@ -196,6 +199,27 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         tradingAccountToken = TradingAccountNFT(
             address(new ERC1967Proxy(tradingAccountTokenImplementation, tradingAccountTokenInitializeData))
         );
+
+        // Whitelist setup
+
+        address whiteListImplementation = address(new Whitelist());
+        bytes memory whiteListInitializeParams =
+            abi.encodeWithSelector(Whitelist.initialize.selector, users.owner.account);
+        whitelist = Whitelist(address((new ERC1967Proxy(whiteListImplementation, whiteListInitializeParams))));
+
+        address[] memory userList = new address[](4);
+        userList[0] = users.naruto.account;
+        userList[1] = users.sasuke.account;
+        userList[2] = users.sakura.account;
+        userList[3] = users.madara.account;
+
+        bool[] memory isAllowedList = new bool[](4);
+        isAllowedList[0] = true;
+        isAllowedList[1] = true;
+        isAllowedList[2] = true;
+        isAllowedList[3] = true;
+
+        whitelist.updateWhitelist(userList, isAllowedList);
 
         // Perps Engine Set Up
 
@@ -479,7 +503,9 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             liquidationFeeRecipient: users.liquidationFeeRecipient.account,
             marketMakingEngine: address(marketMakingEngine),
             referralModule: address(referralModule),
-            maxVerificationDelay: MAX_VERIFICATION_DELAY
+            whitelist: address(whitelist),
+            maxVerificationDelay: MAX_VERIFICATION_DELAY,
+            isWhitelistMode: true
         });
     }
 

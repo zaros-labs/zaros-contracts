@@ -435,7 +435,7 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     upgradeBranchSelectors[0] = UpgradeBranch.upgrade.selector;
     upgradeBranchSelectors[1] = OwnableUpgradeable.transferOwnership.selector;
 
-    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](31);
+    bytes4[] memory marketMakingEngineConfigBranchSelectors = new bytes4[](32);
     marketMakingEngineConfigBranchSelectors[0] =
         MarketMakingEngineConfigurationBranch.configureSystemParameters.selector;
     marketMakingEngineConfigBranchSelectors[1] =
@@ -483,6 +483,8 @@ function getMarketMakerBranchesSelectors() pure returns (bytes4[][] memory) {
     marketMakingEngineConfigBranchSelectors[29] =
         MarketMakingEngineConfigurationBranch.getUsdTokenAvailableForEngine.selector;
     marketMakingEngineConfigBranchSelectors[30] = MarketMakingEngineConfigurationBranch.setVaultEngine.selector;
+    MarketMakingEngineConfigurationBranch.getUsdTokenAvailableForEngine.selector;
+    marketMakingEngineConfigBranchSelectors[31] = MarketMakingEngineConfigurationBranch.configureWhitelist.selector;
 
     bytes4[] memory vaultRouterBranchSelectors = new bytes4[](12);
     vaultRouterBranchSelectors[0] = VaultRouterBranch.deposit.selector;

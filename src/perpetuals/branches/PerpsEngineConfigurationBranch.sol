@@ -285,7 +285,9 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param liquidationFeeRecipient The address that receives the liquidation fees.
     /// @param marketMakingEngine The address of the market making engine.
     /// @param referralModule The address of the referral module.
+    /// @param whitelist The address of the whitelist.
     /// @param maxVerificationDelay The maximum verification delay.
+    /// @param isWhitelistMode The boolean that indicates to use whitelist.
     function configureSystemParameters(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
@@ -296,7 +298,9 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         address liquidationFeeRecipient,
         address marketMakingEngine,
         address referralModule,
-        uint256 maxVerificationDelay
+        address whitelist,
+        uint256 maxVerificationDelay,
+        bool isWhitelistMode
     )
         external
         onlyOwner
@@ -337,6 +341,10 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("maxVerificationDelay");
         }
 
+        if (isWhitelistMode && whitelist == address(0)) {
+            revert Errors.ZeroInput("whitelist");
+        }
+
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         perpsEngineConfiguration.maxPositionsPerAccount = maxPositionsPerAccount;
@@ -348,7 +356,9 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         perpsEngineConfiguration.liquidationFeeRecipient = liquidationFeeRecipient;
         perpsEngineConfiguration.marketMakingEngine = marketMakingEngine;
         perpsEngineConfiguration.referralModule = referralModule;
+        perpsEngineConfiguration.whitelist = whitelist;
         perpsEngineConfiguration.maxVerificationDelay = maxVerificationDelay;
+        perpsEngineConfiguration.isWhitelistMode = isWhitelistMode;
 
         emit LogConfigureSystemParameters(
             msg.sender, maxPositionsPerAccount, marketOrderMinLifetime, liquidationFeeUsdX18

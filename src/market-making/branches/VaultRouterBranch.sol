@@ -12,6 +12,7 @@ import { Constants } from "@zaros/utils/Constants.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { MarketMakingEngineConfiguration } from "@zaros/market-making/leaves/MarketMakingEngineConfiguration.sol";
 import { Math } from "@zaros/utils/Math.sol";
+import { Whitelist } from "@zaros/utils/Whitelist.sol";
 
 // Open Zeppelin dependencies
 import { IERC20, IERC4626, SafeERC20 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
@@ -273,6 +274,22 @@ contract VaultRouterBranch {
     {
         if (assets == 0) revert Errors.ZeroInput("assets");
 
+        // load the mm engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // verify if the whitelist mode is enabled
+        if (marketMakingEngineConfiguration.isWhitelistMode) {
+            // verify if the user is allowed
+            bool userIsAllowed =
+                Whitelist(marketMakingEngineConfiguration.whitelist).verifyIfUserIsAllowed(msg.sender);
+
+            // thrown if the user is not allowed
+            if (!userIsAllowed) {
+                revert Errors.UserIsNotAllowed(msg.sender);
+            }
+        }
+
         // fetch storage slot for vault by id, vault must exist with valid collateral
         Vault.Data storage vault = Vault.loadLive(vaultId);
         if (!vault.collateral.isEnabled) revert Errors.VaultDoesNotExist(vaultId);
@@ -289,10 +306,6 @@ contract VaultRouterBranch {
         // note: we need to update the vaults credit capacity before depositing new assets in order to calculate the
         // correct conversion rate between assets and shares, and to validate the involved invariants accurately
         Vault.recalculateVaultsCreditCapacity(vaultsIds);
-
-        // load the mm engine configuration from storage
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
 
         // load the referral module contract
         ctx.referralModule = IReferral(marketMakingEngineConfiguration.referralModule);

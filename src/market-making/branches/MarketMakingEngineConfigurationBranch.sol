@@ -172,6 +172,11 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param engine The engine address
     event LogSetVaultEngine(uint128 vaultId, address engine);
 
+    /// @notice Emitted when the whitelist configured.
+    /// @param whitelist The address of the whitelist.
+    /// @param isWhitelistMode The boolean that indicates to use whitelist.
+    event LogConfigureWhitelist(address whitelist, bool isWhitelistMode);
+
     /// @notice Returns the address of custom referral code
     /// @param customReferralCode The custom referral code.
     /// @return referrer The address of the referrer.
@@ -859,5 +864,29 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @return ids An array of `uint128` values representing the IDs of the live markets.
     function getLiveMarketIds() external view returns (uint128[] memory ids) {
         ids = LiveMarkets.load().getLiveMarketsIds();
+    }
+
+    /// @notice Configures the whitelist.
+    /// @dev Only owner can configure the whitelist.
+    /// @param whitelist The address of the whitelist.
+    /// @param isWhitelistMode The boolean that indicates to use whitelist.
+    function configureWhitelist(address whitelist, bool isWhitelistMode) external onlyOwner {
+        if (isWhitelistMode) {
+            // revert if the whitelist is zero
+            if (whitelist == address(0)) {
+                revert Errors.ZeroInput("whitelist");
+            }
+        }
+
+        // load the perps engine configuration from storage
+        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
+            MarketMakingEngineConfiguration.load();
+
+        // set the whitelist data
+        marketMakingEngineConfiguration.isWhitelistMode = isWhitelistMode;
+        marketMakingEngineConfiguration.whitelist = whitelist;
+
+        // emit the LogConfigureWhitelist event
+        emit LogConfigureWhitelist(whitelist, isWhitelistMode);
     }
 }

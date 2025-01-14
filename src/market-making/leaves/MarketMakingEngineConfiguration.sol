@@ -23,16 +23,19 @@ library MarketMakingEngineConfiguration {
     /// @param weth The WETH token address.
     /// @param feeDistributor The fee distributor address.
     /// @param referralModule The referral module address.
+    /// @param whitelist The address of the whitelist.
     /// @param vaultDepositAndRedeemFeeRecipient The vault collaterals fee recipient address.
     /// @param protocolFeeRecipients The protocol fee recipients.
     /// @param isRegisteredEngine The mapping of registered engines.
     /// @param usdTokenOfEngine The mapping of USD tokens of engines.
     /// @param isSystemKeeperEnabled The mapping of system keepers.
+    /// @param isWhitelistMode The boolean that indicates to use whitelist.
     struct Data {
         address usdc;
         address weth;
         address feeDistributor;
         address referralModule;
+        address whitelist;
         uint128 settlementBaseFeeUsdX18;
         uint128 totalFeeRecipientsShares;
         address vaultDepositAndRedeemFeeRecipient;
@@ -40,6 +43,7 @@ library MarketMakingEngineConfiguration {
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;
+        bool isWhitelistMode;
     }
 
     /// @notice Loads the {MarketMakingEngineConfiguration} namespace.

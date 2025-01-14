@@ -202,7 +202,9 @@ contract CancelMarketOrder_Integration_Test is Base_Test {
             liquidationFeeRecipient: users.liquidationFeeRecipient.account,
             marketMakingEngine: address(marketMakingEngine),
             referralModule: address(referralModule),
-            maxVerificationDelay: MAX_VERIFICATION_DELAY
+            whitelist: address(whitelist),
+            maxVerificationDelay: MAX_VERIFICATION_DELAY,
+            isWhitelistMode: true
         });
         changePrank({ msgSender: users.naruto.account });
 
