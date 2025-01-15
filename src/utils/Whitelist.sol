@@ -75,11 +75,7 @@ contract Whitelist is OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Verify if user is allowed
     /// @param user The user address
     function verifyIfUserIsAllowed(address user) public view returns (bool) {
-        if (user == owner()) {
-            return true;
-        } else {
-            return whitelist[user];
-        }
+        return whitelist[user];
     }
 
     /*//////////////////////////////////////////////////////////////////////////
