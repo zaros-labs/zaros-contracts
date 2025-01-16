@@ -13,6 +13,7 @@ import { Math } from "@zaros/utils/Math.sol";
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 import { ERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
 import { ERC4626Upgradeable } from "@openzeppelin-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import { IERC4626 } from "@openzeppelin/token/ERC20/extensions/ERC4626.sol";
 
 // PRB Math
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
@@ -26,7 +27,60 @@ contract Deposit_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function test_RevertWhen_VaultDoesNotExist(uint128 assetsToDeposit) external {
+    function test_RevertWhen_DepositedAssetsAreZero(uint256 vaultId) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.ZeroInput.selector, "assets"));
+
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, 0, 0, "", false);
+    }
+
+    modifier whenDepositedAssetsAreNotZero() {
+        _;
+    }
+
+    modifier whenWhitelistIsEnabled() {
+        _;
+    }
+
+    function test_RevertWhen_UserIsNotAllowed(
+        uint256 vaultId,
+        uint128 assetsToDeposit
+    )
+        external
+        whenDepositedAssetsAreNotZero
+        whenWhitelistIsEnabled
+    {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        assetsToDeposit = uint128(
+            bound(assetsToDeposit, calculateMinOfSharesToStake(fuzzVaultConfig.vaultId), fuzzVaultConfig.depositCap)
+        );
+
+        address mockUser = address(123);
+        deal(fuzzVaultConfig.asset, mockUser, assetsToDeposit);
+
+        changePrank(users.owner.account);
+        marketMakingEngine.configureWhitelist(address(whitelist), true);
+
+        changePrank(mockUser);
+
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.UserIsNotAllowed.selector, mockUser));
+
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, assetsToDeposit, 0, "", false);
+    }
+
+    modifier whenWhitelistIsDisabledOrUserIsAllowed() {
+        _;
+    }
+
+    function test_RevertWhen_VaultDoesNotExist(uint128 assetsToDeposit)
+        external
+        whenDepositedAssetsAreNotZero
+        whenWhitelistIsDisabledOrUserIsAllowed
+    {
         assetsToDeposit = uint128(bound(assetsToDeposit, 1, type(uint128).max));
 
         uint128 minSharesOut = 0;
@@ -40,12 +94,101 @@ contract Deposit_Integration_Test is Base_Test {
         _;
     }
 
+    modifier whenTheDepositFeeIsNotZero() {
+        _;
+    }
+
+    function test_RevertWhen_AssetFeeIsZero(
+        uint128 vaultId,
+        uint128 assetsToDeposit
+    )
+        external
+        whenDepositedAssetsAreNotZero
+        whenWhitelistIsDisabledOrUserIsAllowed
+        whenVaultDoesExist
+        whenTheDepositFeeIsNotZero
+    {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        assetsToDeposit = uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), 1e18));
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+
+        uint128 minSharesOut = 0;
+
+        uint128[] memory vaultsIds = new uint128[](1);
+        uint128[] memory depositFees = new uint128[](1);
+        uint128[] memory redeemFees = new uint128[](1);
+
+        vaultsIds[0] = fuzzVaultConfig.vaultId;
+        depositFees[0] = 1;
+
+        changePrank(users.owner.account);
+        marketMakingEngine.configureDepositAndRedeemFees(vaultsIds, depositFees, redeemFees);
+
+        changePrank(users.naruto.account);
+
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.ZeroFeeNotAllowed.selector));
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, assetsToDeposit, minSharesOut, "", false);
+    }
+
+    modifier whenAssetFeeIsNotZero() {
+        _;
+    }
+
+    function test_RevertWhen_AssetMinusFeeIsZero(
+        uint128 vaultId,
+        uint128 assetsToDeposit
+    )
+        external
+        whenDepositedAssetsAreNotZero
+        whenWhitelistIsDisabledOrUserIsAllowed
+        whenVaultDoesExist
+        whenTheDepositFeeIsNotZero
+        whenAssetFeeIsNotZero
+    {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+
+        UD60x18 assetsToDepositX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
+
+        UD60x18 assetFeesX18 = assetsToDepositX18.mul(ud60x18(fuzzVaultConfig.depositFee));
+
+        uint128 minSharesOut = 0;
+
+        uint128[] memory vaultsIds = new uint128[](1);
+        uint128[] memory depositFees = new uint128[](1);
+        uint128[] memory redeemFees = new uint128[](1);
+
+        vaultsIds[0] = fuzzVaultConfig.vaultId;
+        depositFees[0] = 1e18;
+
+        changePrank(users.owner.account);
+        marketMakingEngine.configureDepositAndRedeemFees(vaultsIds, depositFees, redeemFees);
+
+        changePrank(users.naruto.account);
+
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.DepositTooSmall.selector));
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, assetsToDeposit, minSharesOut, "", false);
+    }
+
+    modifier whenTheDepositFeeIsZero() {
+        _;
+    }
+
     function testFuzz_RevertWhen_TheDepositCapIsReached(
         uint128 vaultId,
         uint128 assetsToDeposit
     )
         external
+        whenDepositedAssetsAreNotZero
+        whenWhitelistIsDisabledOrUserIsAllowed
         whenVaultDoesExist
+        whenTheDepositFeeIsZero
     {
         // ensure valid vault and load vault config
         vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
@@ -97,7 +240,10 @@ contract Deposit_Integration_Test is Base_Test {
         uint128 assetsToDeposit
     )
         external
+        whenDepositedAssetsAreNotZero
+        whenWhitelistIsDisabledOrUserIsAllowed
         whenVaultDoesExist
+        whenTheDepositFeeIsZero
         whenTheDepositCapIsNotReached
     {
         // ensure valid vault and load vault config
@@ -124,6 +270,41 @@ contract Deposit_Integration_Test is Base_Test {
         // it should revert
         vm.expectRevert(abi.encodeWithSelector(Errors.SlippageCheckFailed.selector, minShares, assetsMinusFees));
         marketMakingEngine.deposit(vaultId, assetsToDeposit, minShares, "", false);
+    }
+
+    modifier whenSharesMintedAreMoreThanMinAmount() {
+        _;
+    }
+
+    function test_RevertWhen_SharesMintedAreZero(
+        uint128 vaultId,
+        uint128 assetsToDeposit
+    )
+        external
+        whenDepositedAssetsAreNotZero
+        whenWhitelistIsDisabledOrUserIsAllowed
+        whenVaultDoesExist
+        whenTheDepositFeeIsZero
+        whenTheDepositCapIsNotReached
+        whenSharesMintedAreMoreThanMinAmount
+    {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
+        deal(fuzzVaultConfig.asset, users.naruto.account, assetsToDeposit);
+
+        uint128 minSharesOut = 0;
+
+        vm.mockCall(
+            address(fuzzVaultConfig.indexToken), abi.encodeWithSelector(IERC4626.deposit.selector), abi.encode(0)
+        );
+
+        changePrank(users.naruto.account);
+
+        // it should revert
+        vm.expectRevert(abi.encodeWithSelector(Errors.DepositMustReceiveShares.selector));
+        marketMakingEngine.deposit(fuzzVaultConfig.vaultId, assetsToDeposit, minSharesOut, "", false);
     }
 
     struct DepositState {
@@ -155,13 +336,17 @@ contract Deposit_Integration_Test is Base_Test {
         state.marketEngineVaultBal = vault.balanceOf(address(marketMakingEngine));
     }
 
-    function testFuzz_WhenSharesMintedAreMoreThanMinAmount(
+    function test_WhenSharesMintedAreNotZero(
         uint128 vaultId,
         uint128 assetsToDeposit
     )
         external
+        whenDepositedAssetsAreNotZero
+        whenWhitelistIsDisabledOrUserIsAllowed
         whenVaultDoesExist
+        whenTheDepositFeeIsZero
         whenTheDepositCapIsNotReached
+        whenSharesMintedAreMoreThanMinAmount
     {
         // ensure valid vault and load vault config
         vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));

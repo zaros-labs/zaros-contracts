@@ -138,12 +138,14 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     event LogConfiguredSwapPath(address asset, address[] assets, uint128[] dexSwapStrategyIds, bool enabled);
 
     /// @notice Emitted when the deposit fee is configured.
+    /// @param vaultId The vault id.
     /// @param depositFee The deposit fee.
-    event LogConfigureDepositFee(uint256 depositFee);
+    event LogConfigureDepositFee(uint128 vaultId, uint256 depositFee);
 
     /// @notice Emitted when the redeem fee is configured.
+    /// @param vaultId The vault id.
     /// @param redeemFee The redeem fee.
-    event LogConfigureRedeemFee(uint256 redeemFee);
+    event LogConfigureRedeemFee(uint128 vaultId, uint256 redeemFee);
 
     /// @notice Emitted when the vault deposit and redeem fee recipient is configured.
     /// @param vaultDepositAndRedeemFeeRecipient The vault deposit and redeem fee recipient address.
@@ -794,6 +796,10 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
             // update deposit and redeem fees
             vault.depositFee = depositFees[i];
             vault.redeemFee = redeemFees[i];
+
+            // emit events
+            emit LogConfigureRedeemFee(vaultsIds[i], redeemFees[i]);
+            emit LogConfigureDepositFee(vaultsIds[i], depositFees[i]);
         }
     }
 
