@@ -11,6 +11,8 @@ library Errors {
     error Unauthorized(address sender);
     /// @notice Thrown when two or more array parameters are expected to have the same length, but they don't.
     error ArrayLengthMismatch(uint256 expected, uint256 actual);
+    /// @notice Thrown when the whitelist mode is enabled and user is not allowed
+    error UserIsNotAllowed(address user);
 
     /// @notice AssetToAmountMap utility errors.
 

@@ -13,6 +13,7 @@ import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
+import { Whitelist } from "@zaros/utils/Whitelist.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -233,6 +234,17 @@ contract TradingAccountBranch {
     {
         // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+
+        // verify if the whitelist mode is enabled
+        if (perpsEngineConfiguration.isWhitelistMode) {
+            // verify if the user is allowed
+            bool userIsAllowed = Whitelist(perpsEngineConfiguration.whitelist).verifyIfUserIsAllowed(msg.sender);
+
+            // thrown if the user is not allowed
+            if (!userIsAllowed) {
+                revert Errors.UserIsNotAllowed(msg.sender);
+            }
+        }
 
         // increment next account id & output
         tradingAccountId = ++perpsEngineConfiguration.nextAccountId;

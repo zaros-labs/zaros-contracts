@@ -29,12 +29,14 @@ library PerpsEngineConfiguration {
     /// @param usdToken The address of the USD token (USD Token).
     /// @param tradingAccountToken The address of the trading account NFT.
     /// @param referralModule The address of the referral module.
+    /// @param whitelist The address of the whitelist.
     /// @param maxVerificationDelay The maximum delay allowed for the off chain price verification.
     /// @param nextAccountId The next available trading account id.
     /// @param isLiquidatorEnabled The mapping of liquidator addresses to their enabled status.
     /// @param collateralLiquidationPriority The set of collateral types in order of liquidation priority.
     /// @param enabledMarketsIds The set of enabled perp markets.
     /// @param accountsIdsWithActivePositions The set of trading account ids with active positions
+    /// @param isWhitelistMode The boolean that indicates to use whitelist.
     struct Data {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMinLifetime;
@@ -49,12 +51,14 @@ library PerpsEngineConfiguration {
         address usdToken;
         address tradingAccountToken;
         address referralModule;
+        address whitelist;
         uint256 maxVerificationDelay;
         uint96 nextAccountId;
         mapping(address => bool) isLiquidatorEnabled;
         EnumerableSet.AddressSet collateralLiquidationPriority;
         EnumerableSet.UintSet enabledMarketsIds;
         EnumerableSet.UintSet accountsIdsWithActivePositions;
+        bool isWhitelistMode;
     }
 
     /// @notice Loads the {PerpsEngineConfiguration}.

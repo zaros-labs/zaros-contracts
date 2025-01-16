@@ -37,7 +37,9 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
-            MAX_VERIFICATION_DELAY
+            address(whitelist),
+            MAX_VERIFICATION_DELAY,
+            true
         );
     }
 
@@ -69,7 +71,9 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
-            MAX_VERIFICATION_DELAY
+            address(whitelist),
+            MAX_VERIFICATION_DELAY,
+            true
         );
     }
 
@@ -104,7 +108,9 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
-            MAX_VERIFICATION_DELAY
+            address(whitelist),
+            MAX_VERIFICATION_DELAY,
+            true
         );
     }
 
@@ -140,7 +146,9 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
-            MAX_VERIFICATION_DELAY
+            address(whitelist),
+            MAX_VERIFICATION_DELAY,
+            true
         );
     }
 
@@ -177,7 +185,9 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
-            MAX_VERIFICATION_DELAY
+            address(whitelist),
+            MAX_VERIFICATION_DELAY,
+            true
         );
     }
 
@@ -215,7 +225,9 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             address(0),
             address(marketMakingEngine),
             address(referralModule),
-            MAX_VERIFICATION_DELAY
+            address(whitelist),
+            MAX_VERIFICATION_DELAY,
+            true
         );
     }
 
@@ -254,7 +266,9 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(0),
-            MAX_VERIFICATION_DELAY
+            address(whitelist),
+            MAX_VERIFICATION_DELAY,
+            true
         );
     }
 
@@ -294,7 +308,9 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
-            0
+            address(whitelist),
+            0,
+            true
         );
     }
 
@@ -333,7 +349,9 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
-            MAX_VERIFICATION_DELAY
+            address(whitelist),
+            MAX_VERIFICATION_DELAY,
+            true
         );
     }
 }

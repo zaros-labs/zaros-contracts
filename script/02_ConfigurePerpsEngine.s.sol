@@ -55,7 +55,9 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
             liquidationFeeRecipient: MSIG_ADDRESS,
             marketMakingEngine: address(marketMakingEngine),
             referralModule: address(referralModule),
-            maxVerificationDelay: MAX_VERIFICATION_DELAY
+            whitelist: address(0),
+            maxVerificationDelay: MAX_VERIFICATION_DELAY,
+            isWhitelistMode: false
         });
 
         setupSequencerUptimeFeeds();
