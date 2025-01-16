@@ -503,9 +503,9 @@ contract SettlementBranch is EIP712Upgradeable {
 
             // mint settlement tokens credited to trader; tokens are minted to
             // address(this) since they have been credited to trader's deposited collateral
-            //
-            // NOTE: testnet only - this call will be updated once the Market Making Engine is finalized
-            LimitedMintingERC20(ctx.usdToken).mint(address(this), ctx.marginToAddX18.intoUint256());
+            IMarketMakingEngine(perpsEngineConfiguration.marketMakingEngine).withdrawUsdTokenFromMarket(
+                marketId, ctx.marginToAddX18.intoUint256()
+            );
         }
 
         // pay order/settlement fees and deduct collateral
