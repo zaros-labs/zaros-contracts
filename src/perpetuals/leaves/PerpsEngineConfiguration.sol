@@ -22,6 +22,8 @@ library PerpsEngineConfiguration {
     /// @param maxPositionsPerAccount The maximum amount of active positions a trading account may have.
     /// @param marketOrderMinLifetime The minimum amount of time an active market order needs to be canceled.
     /// @param liquidationFeeUsdX18 The liquidation fee charged in USD.
+    /// @param nextAccountId The next available trading account id.
+    /// @param isWhitelistMode The boolean that indicates to use whitelist.
     /// @param marginCollateralRecipient The address that receives deducted margin collateral.
     /// @param orderFeeRecipient The address that receives order fees.
     /// @param settlementFeeRecipient The address that receives settlement fees.
@@ -31,16 +33,16 @@ library PerpsEngineConfiguration {
     /// @param referralModule The address of the referral module.
     /// @param whitelist The address of the whitelist.
     /// @param maxVerificationDelay The maximum delay allowed for the off chain price verification.
-    /// @param nextAccountId The next available trading account id.
     /// @param isLiquidatorEnabled The mapping of liquidator addresses to their enabled status.
     /// @param collateralLiquidationPriority The set of collateral types in order of liquidation priority.
     /// @param enabledMarketsIds The set of enabled perp markets.
     /// @param accountsIdsWithActivePositions The set of trading account ids with active positions
-    /// @param isWhitelistMode The boolean that indicates to use whitelist.
     struct Data {
         uint128 maxPositionsPerAccount;
         uint128 marketOrderMinLifetime;
         uint128 liquidationFeeUsdX18;
+        uint96 nextAccountId;
+        bool isWhitelistMode;
         // TODO: We may need to update the two following recipients
         // to call functions from the MM engine.
         address marginCollateralRecipient;
@@ -53,12 +55,10 @@ library PerpsEngineConfiguration {
         address referralModule;
         address whitelist;
         uint256 maxVerificationDelay;
-        uint96 nextAccountId;
         mapping(address => bool) isLiquidatorEnabled;
         EnumerableSet.AddressSet collateralLiquidationPriority;
         EnumerableSet.UintSet enabledMarketsIds;
         EnumerableSet.UintSet accountsIdsWithActivePositions;
-        bool isWhitelistMode;
     }
 
     /// @notice Loads the {PerpsEngineConfiguration}.
