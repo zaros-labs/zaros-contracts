@@ -3,6 +3,8 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
+import { Errors } from "@zaros/utils/Errors.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
@@ -16,14 +18,43 @@ contract Stake_Integration_Test is Base_Test {
         changePrank({ msgSender: users.naruto.account });
     }
 
-    function testFuzz_RevertWhen_VaultIsInvalid(uint128 sharesToStake) external {
+    function test_RevertWhen_QualityOfSharesIsLessThanMinAmount(uint128 vaultId, uint128 assetsToDeposit) external {
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        assetsToDeposit =
+            uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
+
+        fundUserAndDepositInVault(users.naruto.account, fuzzVaultConfig.vaultId, assetsToDeposit);
+
+        uint128 stakeAmount = uint128(IERC20(fuzzVaultConfig.indexToken).balanceOf(users.naruto.account));
+
+        stakeAmount = uint128(bound(assetsToDeposit, 0, Constants.MIN_OF_SHARES_TO_STAKE - 1));
+
+        changePrank({ msgSender: users.naruto.account });
+
+        // it should revert
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.QuantityOfSharesLessThanTheMinimumAllowed.selector,
+                Constants.MIN_OF_SHARES_TO_STAKE,
+                stakeAmount
+            )
+        );
+
+        marketMakingEngine.stake(fuzzVaultConfig.vaultId, stakeAmount);
+    }
+
+    modifier whenQualityOfSharesIsMoreThanMinAmount() {
+        _;
+    }
+
+    function testFuzz_RevertWhen_VaultIsInvalid(uint128 sharesToStake)
+        external
+        whenQualityOfSharesIsMoreThanMinAmount
+    {
         // it should revert
         vm.expectRevert();
         marketMakingEngine.stake(INVALID_VAULT_ID, sharesToStake);
-    }
-
-    modifier whenVaultIdIsValid() {
-        _;
     }
 
     struct StakeState {
@@ -54,7 +85,13 @@ contract Stake_Integration_Test is Base_Test {
             marketMakingEngine.getTotalAndAccountStakingData(vaultId, staker);
     }
 
-    function testFuzz_WhenUserHasShares(uint128 vaultId, uint128 assetsToDeposit) external whenVaultIdIsValid {
+    function test_WhenVaultIdIsValid(
+        uint128 vaultId,
+        uint128 assetsToDeposit
+    )
+        external
+        whenQualityOfSharesIsMoreThanMinAmount
+    {
         // ensure valid vault and load vault config
         vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
@@ -86,48 +123,5 @@ contract Stake_Integration_Test is Base_Test {
         assertEq(post.valuePerShare, 0, "Staking valuePerShare 0 as no value distributed");
         assertEq(post.stakerShares, pre.stakerVaultBal, "Staker shares == staked vault balance");
         assertEq(post.stakerLastValuePerShare, 0, "Staker has no value per share as no value distributed");
-    }
-
-    modifier whenTheUserHasAReferralCode() {
-        _;
-    }
-
-    modifier whenTheReferralCodeIsCustom() {
-        _;
-    }
-
-    function test_RevertWhen_TheReferralCodeIsInvalid()
-        external
-        whenVaultIdIsValid
-        whenTheUserHasAReferralCode
-        whenTheReferralCodeIsCustom
-    {
-        // it should revert
-    }
-
-    function test_WhenTheReferralCodeIsValid() external whenTheUserHasAReferralCode whenTheReferralCodeIsCustom {
-        // it should emit {LogReferralSet} event
-    }
-
-    modifier whenTheReferralCodeIsNotCustom() {
-        _;
-    }
-
-    function test_RevertWhen_TheReferralCodeIsEqualToMsgSender()
-        external
-        whenVaultIdIsValid
-        whenTheUserHasAReferralCode
-        whenTheReferralCodeIsNotCustom
-    {
-        // it should revert
-    }
-
-    function test_WhenTheReferralCodeIsNotEqualToMsgSender()
-        external
-        whenVaultIdIsValid
-        whenTheUserHasAReferralCode
-        whenTheReferralCodeIsNotCustom
-    {
-        // it should emit {LogReferralSet} event
     }
 }
