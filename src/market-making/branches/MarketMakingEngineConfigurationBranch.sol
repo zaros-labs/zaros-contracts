@@ -871,20 +871,13 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param whitelist The address of the whitelist.
     /// @param isWhitelistMode The boolean that indicates to use whitelist.
     function configureWhitelist(address whitelist, bool isWhitelistMode) external onlyOwner {
-        if (isWhitelistMode) {
-            // revert if the whitelist is zero
-            if (whitelist == address(0)) {
-                revert Errors.ZeroInput("whitelist");
-            }
+        // if whitelist mode is enabled, must have valid address
+        if (isWhitelistMode && whitelist == address(0)) {
+            revert Errors.ZeroInput("whitelist");
         }
 
-        // load the perps engine configuration from storage
-        MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
-            MarketMakingEngineConfiguration.load();
-
-        // set the whitelist data
-        marketMakingEngineConfiguration.isWhitelistMode = isWhitelistMode;
-        marketMakingEngineConfiguration.whitelist = whitelist;
+        // set the whitelist address
+        MarketMakingEngineConfiguration.load().whitelist = whitelist;
 
         // emit the LogConfigureWhitelist event
         emit LogConfigureWhitelist(whitelist, isWhitelistMode);

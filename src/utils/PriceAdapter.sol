@@ -73,7 +73,12 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
                                      INITIALIZE
     //////////////////////////////////////////////////////////////////////////*/
 
-    function initialize(InitializeParams memory params) external initializer {
+    /// @dev Disables initialize functions at the implementation.
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(InitializeParams calldata params) external initializer {
         __Ownable_init(params.owner);
 
         name = params.name;
@@ -124,5 +129,5 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
         }
     }
 
-    function _authorizeUpgrade(address newImplementation) internal virtual override onlyOwner { }
+    function _authorizeUpgrade(address) internal virtual override onlyOwner { }
 }

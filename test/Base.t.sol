@@ -221,6 +221,22 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         whitelist.updateWhitelist(userList, isAllowedList);
 
+        // verify whitelist has valid owner
+        assertEq(whitelist.owner(), users.owner.account);
+
+        // verify whitelist setup
+        for (uint256 i; i < userList.length; i++) {
+            assertTrue(whitelist.verifyIfUserIsAllowed(userList[i]));
+        }
+
+        // verify owner is always whitelisted
+        assertTrue(whitelist.verifyIfUserIsAllowed(users.owner.account));
+
+        // verify owner can't be set in whitelist
+        userList[0] = users.owner.account;
+        vm.expectRevert(Whitelist.OwnerCantBeUpdatedInTheWhitelist.selector);
+        whitelist.updateWhitelist(userList, isAllowedList);
+
         // Perps Engine Set Up
 
         bool isTestnet = false;

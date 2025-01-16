@@ -36,6 +36,11 @@ contract Whitelist is OwnableUpgradeable, UUPSUpgradeable {
                                      INITIALIZE
     //////////////////////////////////////////////////////////////////////////*/
 
+    /// @dev Disables initialize functions at the implementation.
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice Called when initialize the contract
     /// @param owner The owner of the contract
     function initialize(address owner) external initializer {
@@ -49,23 +54,25 @@ contract Whitelist is OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Function to control the updates in the whitelist
     /// @param userList The array of user addresses
     /// @param isAllowedList The array of booleans that indicates if user is allowed
-    function updateWhitelist(address[] memory userList, bool[] memory isAllowedList) public onlyOwner {
+    function updateWhitelist(address[] calldata userList, bool[] calldata isAllowedList) external onlyOwner {
         // verify array mismatch
         if (userList.length != isAllowedList.length) {
             revert Errors.ArrayLengthMismatch(userList.length, isAllowedList.length);
         }
 
-        // cache the user list length
-        uint256 userListLengthCache = userList.length;
+        // cache owner to save 1 storage read per loop iteration
+        address currentOwnerCache = owner();
 
-        for (uint256 i; i < userListLengthCache; i++) {
-            // the owner always is allowed
-            if (userList[i] == owner()) {
+        // cheaper to not cache calldata array length
+        for (uint256 i; i < userList.length; i++) {
+            // owner always allowed
+            if (userList[i] == currentOwnerCache) {
                 revert OwnerCantBeUpdatedInTheWhitelist();
             }
 
             // update the whitelist
-            whitelist[userList[i]] = isAllowedList[i];
+            if (isAllowedList[i]) whitelist[userList[i]] = true;
+            else delete whitelist[userList[i]];
 
             // emit the update whitelist event
             emit LogUpdateWhitelist(userList[i], isAllowedList[i]);
@@ -74,8 +81,10 @@ contract Whitelist is OwnableUpgradeable, UUPSUpgradeable {
 
     /// @notice Verify if user is allowed
     /// @param user The user address
-    function verifyIfUserIsAllowed(address user) public view returns (bool) {
-        return whitelist[user];
+    function verifyIfUserIsAllowed(address user) external view returns (bool isAllowed) {
+        // owner always allowed
+        if (user == owner()) isAllowed = true;
+        else isAllowed = whitelist[user];
     }
 
     /*//////////////////////////////////////////////////////////////////////////

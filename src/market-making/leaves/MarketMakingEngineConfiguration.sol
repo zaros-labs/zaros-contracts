@@ -29,7 +29,6 @@ library MarketMakingEngineConfiguration {
     /// @param isRegisteredEngine The mapping of registered engines.
     /// @param usdTokenOfEngine The mapping of USD tokens of engines.
     /// @param isSystemKeeperEnabled The mapping of system keepers.
-    /// @param isWhitelistMode The boolean that indicates to use whitelist.
     struct Data {
         address usdc;
         address weth;
@@ -43,7 +42,6 @@ library MarketMakingEngineConfiguration {
         mapping(address engine => bool isRegistered) isRegisteredEngine;
         mapping(address engine => address usdToken) usdTokenOfEngine;
         mapping(address keeper => bool isEnabled) isSystemKeeperEnabled;
-        bool isWhitelistMode;
     }
 
     /// @notice Loads the {MarketMakingEngineConfiguration} namespace.
