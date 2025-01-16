@@ -116,6 +116,11 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
     /// @param referralModule The address of the referral module.
     event LogConfigureReferralModule(address sender, address referralModule);
 
+    /// @notice Emitted when the whitelist configured.
+    /// @param whitelist The address of the whitelist.
+    /// @param isWhitelistMode The boolean that indicates to use whitelist.
+    event LogConfigureWhitelist(address whitelist, bool isWhitelistMode);
+
     /// @notice Ensures that perp market is initialized.
     /// @param marketId The perps market id.
     modifier onlyWhenPerpMarketIsInitialized(uint128 marketId) {
@@ -341,6 +346,7 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
             revert Errors.ZeroInput("maxVerificationDelay");
         }
 
+        // if whitelist mode is enabled, must have valid address
         if (isWhitelistMode && whitelist == address(0)) {
             revert Errors.ZeroInput("whitelist");
         }
@@ -358,11 +364,13 @@ contract PerpsEngineConfigurationBranch is OwnableUpgradeable {
         perpsEngineConfiguration.referralModule = referralModule;
         perpsEngineConfiguration.whitelist = whitelist;
         perpsEngineConfiguration.maxVerificationDelay = maxVerificationDelay;
-        perpsEngineConfiguration.isWhitelistMode = isWhitelistMode;
 
         emit LogConfigureSystemParameters(
             msg.sender, maxPositionsPerAccount, marketOrderMinLifetime, liquidationFeeUsdX18
         );
+
+        // emit the LogConfigureWhitelist event
+        emit LogConfigureWhitelist(whitelist, isWhitelistMode);
     }
 
     /// @notice `createPerpMarket` function parameters.

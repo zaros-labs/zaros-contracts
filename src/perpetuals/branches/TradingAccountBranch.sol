@@ -235,15 +235,11 @@ contract TradingAccountBranch {
         // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
-        // verify if the whitelist mode is enabled
-        if (perpsEngineConfiguration.isWhitelistMode) {
-            // verify if the user is allowed
-            bool userIsAllowed = Whitelist(perpsEngineConfiguration.whitelist).verifyIfUserIsAllowed(msg.sender);
-
-            // thrown if the user is not allowed
-            if (!userIsAllowed) {
+        // enforce whitelist if enabled
+        address whitelistCache = perpsEngineConfiguration.whitelist;
+        if(whitelistCache != address(0)) {
+            if(!Whitelist(whitelistCache).verifyIfUserIsAllowed(msg.sender))
                 revert Errors.UserIsNotAllowed(msg.sender);
-            }
         }
 
         // increment next account id & output
