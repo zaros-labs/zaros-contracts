@@ -176,19 +176,20 @@ contract Deposit_Integration_Test is Base_Test {
         marketMakingEngine.deposit(fuzzVaultConfig.vaultId, assetsToDeposit, minSharesOut, "", false);
     }
 
-    modifier whenTheDepositFeeIsZero() {
+    modifier whenTheDepositFeeIsZeroOrNot() {
         _;
     }
 
     function testFuzz_RevertWhen_TheDepositCapIsReached(
         uint128 vaultId,
-        uint128 assetsToDeposit
+        uint128 assetsToDeposit,
+        bool depositFeeZero
     )
         external
         whenDepositedAssetsAreNotZero
         whenWhitelistIsDisabledOrUserIsAllowed
         whenVaultDoesExist
-        whenTheDepositFeeIsZero
+        whenTheDepositFeeIsZeroOrNot
     {
         // ensure valid vault and load vault config
         vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
@@ -202,7 +203,9 @@ contract Deposit_Integration_Test is Base_Test {
             fuzzVaultConfig.priceAdapter
         );
 
-        uint256 depositFee = vaultsConfig[fuzzVaultConfig.vaultId].depositFee;
+        uint128 depositFee = depositFeeZero ? uint128(0) : uint128(vaultsConfig[fuzzVaultConfig.vaultId].depositFee);
+
+        _setDepositFee(depositFee, fuzzVaultConfig.vaultId);
 
         uint256 minDeposit = ud60x18(fuzzVaultConfig.depositCap).add(
             ud60x18(fuzzVaultConfig.depositCap).mul(ud60x18(depositFee))
@@ -237,18 +240,23 @@ contract Deposit_Integration_Test is Base_Test {
 
     function testFuzz_RevertWhen_SharesMintedAreLessThanMinAmount(
         uint128 vaultId,
-        uint128 assetsToDeposit
+        uint128 assetsToDeposit,
+        bool depositFeeZero
     )
         external
         whenDepositedAssetsAreNotZero
         whenWhitelistIsDisabledOrUserIsAllowed
         whenVaultDoesExist
-        whenTheDepositFeeIsZero
+        whenTheDepositFeeIsZeroOrNot
         whenTheDepositCapIsNotReached
     {
         // ensure valid vault and load vault config
         vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        uint128 depositFee = depositFeeZero ? uint128(0) : uint128(vaultsConfig[fuzzVaultConfig.vaultId].depositFee);
+
+        _setDepositFee(depositFee, fuzzVaultConfig.vaultId);
 
         // ensure valid deposit amount
         address user = users.naruto.account;
@@ -257,7 +265,6 @@ contract Deposit_Integration_Test is Base_Test {
         deal(fuzzVaultConfig.asset, user, assetsToDeposit);
 
         // calculate expected fees
-        uint256 depositFee = vaultsConfig[fuzzVaultConfig.vaultId].depositFee;
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
         UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
 
@@ -278,17 +285,22 @@ contract Deposit_Integration_Test is Base_Test {
 
     function test_RevertWhen_SharesMintedAreZero(
         uint128 vaultId,
-        uint128 assetsToDeposit
+        uint128 assetsToDeposit,
+        bool depositFeeZero
     )
         external
         whenDepositedAssetsAreNotZero
         whenWhitelistIsDisabledOrUserIsAllowed
         whenVaultDoesExist
-        whenTheDepositFeeIsZero
+        whenTheDepositFeeIsZeroOrNot
         whenTheDepositCapIsNotReached
         whenSharesMintedAreMoreThanMinAmount
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        uint128 depositFee = depositFeeZero ? uint128(0) : uint128(vaultsConfig[fuzzVaultConfig.vaultId].depositFee);
+
+        _setDepositFee(depositFee, fuzzVaultConfig.vaultId);
 
         assetsToDeposit =
             uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap));
@@ -338,19 +350,24 @@ contract Deposit_Integration_Test is Base_Test {
 
     function test_WhenSharesMintedAreNotZero(
         uint128 vaultId,
-        uint128 assetsToDeposit
+        uint128 assetsToDeposit,
+        bool depositFeeZero
     )
         external
         whenDepositedAssetsAreNotZero
         whenWhitelistIsDisabledOrUserIsAllowed
         whenVaultDoesExist
-        whenTheDepositFeeIsZero
+        whenTheDepositFeeIsZeroOrNot
         whenTheDepositCapIsNotReached
         whenSharesMintedAreMoreThanMinAmount
     {
         // ensure valid vault and load vault config
         vaultId = uint128(bound(vaultId, INITIAL_VAULT_ID, FINAL_VAULT_ID));
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        uint128 depositFee = depositFeeZero ? uint128(0) : uint128(vaultsConfig[fuzzVaultConfig.vaultId].depositFee);
+
+        _setDepositFee(depositFee, fuzzVaultConfig.vaultId);
 
         // ensure valid deposit amount
         address user = users.naruto.account;
@@ -360,7 +377,7 @@ contract Deposit_Integration_Test is Base_Test {
 
         // calculate expected fees
         UD60x18 assetsX18 = Math.convertTokenAmountToUd60x18(fuzzVaultConfig.decimals, assetsToDeposit);
-        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(vaultsConfig[vaultId].depositFee));
+        UD60x18 assetFeesX18 = assetsX18.mul(ud60x18(depositFee));
         uint256 expectedAssetFees = Math.convertUd60x18ToTokenAmount(fuzzVaultConfig.decimals, assetFeesX18);
         uint256 assetsMinusFees = assetsToDeposit - expectedAssetFees;
 
@@ -396,5 +413,19 @@ contract Deposit_Integration_Test is Base_Test {
 
         assertGt(post.depositorVaultBal, 0, "Depositor got vault shares");
         assertEq(post.marketEngineVaultBal, 0, "MarketEngine got no vault shares");
+    }
+
+    function _setDepositFee(uint128 depositFee, uint128 vaultId) internal {
+        uint128[] memory vaultsIds = new uint128[](1);
+        uint128[] memory depositFees = new uint128[](1);
+        uint128[] memory redeemFees = new uint128[](1);
+
+        vaultsIds[0] = vaultId;
+        depositFees[0] = depositFee;
+
+        changePrank(users.owner.account);
+        marketMakingEngine.configureDepositAndRedeemFees(vaultsIds, depositFees, redeemFees);
+
+        changePrank(users.naruto.account);
     }
 }

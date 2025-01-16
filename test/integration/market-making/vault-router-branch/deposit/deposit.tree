@@ -15,7 +15,7 @@ Deposit_Integration_Test
             │   └── when asset fee is not zero
             │       └── when asset minus fee is zero
             │           └── it should revert
-            └── when the deposit fee is zero
+            └── when the deposit fee is zero or not
                 ├── when the deposit cap is reached
                 │   └── it should revert
                 └── when the deposit cap is not reached
