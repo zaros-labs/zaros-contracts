@@ -59,7 +59,7 @@ contract Whitelist is OwnableUpgradeable, UUPSUpgradeable {
         if (userList.length != isAllowedList.length) {
             revert Errors.ArrayLengthMismatch(userList.length, isAllowedList.length);
         }
-        
+
         // cache owner to save 1 storage read per loop iteration
         address currentOwnerCache = owner();
 
@@ -71,7 +71,7 @@ contract Whitelist is OwnableUpgradeable, UUPSUpgradeable {
             }
 
             // update the whitelist
-            if(isAllowedList[i]) whitelist[userList[i]] = true;
+            if (isAllowedList[i]) whitelist[userList[i]] = true;
             else delete whitelist[userList[i]];
 
             // emit the update whitelist event
@@ -83,7 +83,7 @@ contract Whitelist is OwnableUpgradeable, UUPSUpgradeable {
     /// @param user The user address
     function verifyIfUserIsAllowed(address user) external view returns (bool isAllowed) {
         // owner always allowed
-        if(user == owner()) isAllowed = true;
+        if (user == owner()) isAllowed = true;
         else isAllowed = whitelist[user];
     }
 

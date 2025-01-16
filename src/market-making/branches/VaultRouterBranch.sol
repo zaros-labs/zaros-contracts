@@ -280,9 +280,10 @@ contract VaultRouterBranch {
 
         // enforce whitelist if enabled
         address whitelistCache = marketMakingEngineConfiguration.whitelist;
-        if(whitelistCache != address(0)) {
-            if(!Whitelist(whitelistCache).verifyIfUserIsAllowed(msg.sender))
+        if (whitelistCache != address(0)) {
+            if (!Whitelist(whitelistCache).verifyIfUserIsAllowed(msg.sender)) {
                 revert Errors.UserIsNotAllowed(msg.sender);
+            }
         }
 
         // fetch storage slot for vault by id, vault must exist with valid collateral

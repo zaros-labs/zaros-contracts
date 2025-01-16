@@ -872,8 +872,9 @@ contract MarketMakingEngineConfigurationBranch is OwnableUpgradeable {
     /// @param isWhitelistMode The boolean that indicates to use whitelist.
     function configureWhitelist(address whitelist, bool isWhitelistMode) external onlyOwner {
         // if whitelist mode is enabled, must have valid address
-        if (isWhitelistMode && whitelist == address(0))
+        if (isWhitelistMode && whitelist == address(0)) {
             revert Errors.ZeroInput("whitelist");
+        }
 
         // set the whitelist address
         MarketMakingEngineConfiguration.load().whitelist = whitelist;

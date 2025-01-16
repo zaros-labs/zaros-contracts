@@ -225,7 +225,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         assertEq(whitelist.owner(), users.owner.account);
 
         // verify whitelist setup
-        for(uint256 i; i<userList.length; i++) {
+        for (uint256 i; i < userList.length; i++) {
             assertTrue(whitelist.verifyIfUserIsAllowed(userList[i]));
         }
 
