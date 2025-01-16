@@ -13,6 +13,7 @@ import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineCo
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 
 // Open Zeppelin dependencies
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -495,7 +496,9 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // if trader's old position had positive pnl then credit that to the trader
         if (ctx.pnlUsdX18.gt(SD59x18_ZERO)) {
-            ctx.marginToAddX18 = ctx.pnlUsdX18.intoUD60x18();
+            ctx.marginToAddX18 = IMarketMakingEngine(perpsEngineConfiguration.marketMakingEngine)
+                .getAdjustedProfitForMarketId(marketId, ctx.pnlUsdX18.intoUD60x18().intoUint256());
+
             tradingAccount.deposit(ctx.usdToken, ctx.marginToAddX18);
 
             // mint settlement tokens credited to trader; tokens are minted to

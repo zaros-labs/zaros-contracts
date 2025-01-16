@@ -15,13 +15,29 @@ import { StdCheats, StdUtils } from "forge-std/Test.sol";
 // Markets
 import { BtcPerpMarketCreditConfig } from "script/perp-markets-credit-config/BtcPerpMarketCreditConfig.sol";
 import { EthPerpMarketCreditConfig } from "script/perp-markets-credit-config/EthPerpMarketCreditConfig.sol";
+import { ArbPerpMarketCreditConfig } from "script/perp-markets-credit-config/ArbPerpMarketCreditConfig.sol";
+import { BnbPerpMarketCreditConfig } from "script/perp-markets-credit-config/BnbPerpMarketCreditConfig.sol";
+import { DogePerpMarketCreditConfig } from "script/perp-markets-credit-config/DogePerpMarketCreditConfig.sol";
+import { FtmPerpMarketCreditConfig } from "script/perp-markets-credit-config/FtmPerpMarketCreditConfig.sol";
+import { LinkPerpMarketCreditConfig } from "script/perp-markets-credit-config/LinkPerpMarketCreditConfig.sol";
+import { LtcPerpMarketCreditConfig } from "script/perp-markets-credit-config/LtcPerpMarketCreditConfig.sol";
+import { MaticPerpMarketCreditConfig } from "script/perp-markets-credit-config/MaticPerpMarketCreditConfig.sol";
+import { SolPerpMarketCreditConfig } from "script/perp-markets-credit-config/SolPerpMarketCreditConfig.sol";
 
 /// @notice PerpMarketsCreditConfig contract
 abstract contract PerpMarketsCreditConfig is
     StdCheats,
     StdUtils,
     BtcPerpMarketCreditConfig,
-    EthPerpMarketCreditConfig
+    EthPerpMarketCreditConfig,
+    ArbPerpMarketCreditConfig,
+    BnbPerpMarketCreditConfig,
+    DogePerpMarketCreditConfig,
+    FtmPerpMarketCreditConfig,
+    LinkPerpMarketCreditConfig,
+    LtcPerpMarketCreditConfig,
+    MaticPerpMarketCreditConfig,
+    SolPerpMarketCreditConfig
 {
     /// @notice Perp Market Credit Config
     /// @param engine Engine address
@@ -90,6 +106,150 @@ abstract contract PerpMarketsCreditConfig is
             autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
             autoDeleverageExpoentZ: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[SOL_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? address(new MockEngine(initParams)) : SOL_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : SOL_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: SOL_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: SOL_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: SOL_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: SOL_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[MATIC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? address(new MockEngine(initParams)) : MATIC_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : MATIC_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: MATIC_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: MATIC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: MATIC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: MATIC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[LTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? address(new MockEngine(initParams)) : LTC_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : LTC_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: LTC_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: LTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: LTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: LTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[LINK_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? address(new MockEngine(initParams)) : LINK_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : LINK_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: LINK_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: LINK_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: LINK_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: LINK_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[FTM_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? address(new MockEngine(initParams)) : FTM_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : FTM_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: FTM_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: FTM_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: FTM_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: FTM_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[DOGE_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? address(new MockEngine(initParams)) : DOGE_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : DOGE_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: DOGE_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: DOGE_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: DOGE_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: DOGE_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[BNB_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? address(new MockEngine(initParams)) : BNB_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : BNB_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: BNB_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: BNB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: BNB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: BNB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[ARB_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? address(new MockEngine(initParams)) : ARB_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest
+                ? address(
+                    new MockUsdToken({
+                        owner: address(0x1),
+                        deployerBalance: 100_000_000e18,
+                        _name: "Mock USD Token",
+                        _symbol: "USD"
+                    })
+                )
+                : ARB_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: ARB_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: ARB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: ARB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: ARB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
         });
     }
 
