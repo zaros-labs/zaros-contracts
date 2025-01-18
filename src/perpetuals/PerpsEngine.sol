@@ -3,6 +3,7 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
+import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
 import { UpgradeBranch } from "@zaros/tree-proxy/branches/UpgradeBranch.sol";
 import { LookupBranch } from "@zaros/tree-proxy/branches/LookupBranch.sol";
 import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/PerpsEngineConfigurationBranch.sol";

@@ -2,6 +2,7 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
+import { IEngine } from "@zaros/market-making/interfaces/IEngine.sol";
 import { OrderFees } from "../leaves/OrderFees.sol";
 import { Position } from "../leaves/Position.sol";
 import { PerpMarket } from "../leaves/PerpMarket.sol";
@@ -27,6 +28,14 @@ contract PerpMarketBranch {
     /// @param marketId The perps market id.
     function getSymbol(uint128 marketId) external view returns (string memory) {
         return PerpMarket.load(marketId).configuration.symbol;
+    }
+
+    /// @notice Returns the unrealized debt of a given market.
+    /// @dev In v1 it will always return 0.
+    /// @dev The MarketMakingEngine must have its parameters safely configured by the protocol admin with an
+    /// additional security buffer in order to manage economic risk.
+    function getUnrealizedDebt(uint128) external view returns (int256) {
+        return int256(0);
     }
 
     /// @notice Returns the maximum total open interest of the given market.
