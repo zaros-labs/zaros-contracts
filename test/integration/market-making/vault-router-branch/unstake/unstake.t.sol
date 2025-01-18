@@ -144,7 +144,7 @@ contract Unstake_Integration_Test is Base_Test {
             marketMakingEngine.getTotalAndAccountStakingData(vaultId, staker);
     }
 
-    // a staker's unclaimed rewards apear to double every time
+    // a staker's unclaimed rewards appear to double every time
     // `Vault.recalculateVaultsCreditCapacity` is called
     function test_stakerUnclaimedRewardsNoDoubleAfterDeposit() external {
         // ensure valid vault and load vault config
