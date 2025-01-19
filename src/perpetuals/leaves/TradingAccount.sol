@@ -584,7 +584,6 @@ library TradingAccount {
 
                 // verify if we have the asset to send to the market making engine
                 if (ctx.assetAmount > 0) {
-
                     // create variable to cache the sum of all position usd
                     UD60x18 sumOfAllPositionsUsdX18;
 
@@ -604,7 +603,8 @@ library TradingAccount {
                         UD60x18 collateralAmountX18 =
                             marginCollateralConfiguration.convertTokenAmountToUd60x18(ctx.assetAmount);
 
-                        // if we have more than one market id, we need to calculate the percentage that will be deposited for this market
+                        // if we have more than one market id, we need to calculate the percentage that will be
+                        // deposited for this market
                         if (cacheMarketIdsLengt > 1) {
                             // calculate the percentage to deposit to this market
                             UD60x18 percentDeductForThisMarketX18 =

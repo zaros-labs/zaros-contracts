@@ -523,7 +523,7 @@ contract SettlementBranch is EIP712Upgradeable {
                 settlementFeeUsdX18: ctx.settlementFeeUsdX18,
                 marketIds: ctx.marketIds,
                 positionsUsdX18: new UD60x18[](1) // when we have only one market id, this property will be not used
-            })
+             })
         );
 
         {
