@@ -226,7 +226,7 @@ contract TradingAccountHarness {
         UD60x18 settlementFeeUsdX18,
         UD60x18 orderFeeUsdX18,
         uint256[] calldata marketIds,
-        UD60x18[] calldata positionsUsdX18
+        UD60x18[] calldata accountPositionsNotionalValueX18
     )
         external
         returns (UD60x18)
@@ -236,7 +236,12 @@ contract TradingAccountHarness {
         return TradingAccount.deductAccountMargin(
             self,
             TradingAccount.DeductAccountMarginParams(
-                feeRecipients, pnlUsdX18, settlementFeeUsdX18, orderFeeUsdX18, marketIds, positionsUsdX18
+                feeRecipients,
+                pnlUsdX18,
+                settlementFeeUsdX18,
+                orderFeeUsdX18,
+                marketIds,
+                accountPositionsNotionalValueX18
             )
         );
     }

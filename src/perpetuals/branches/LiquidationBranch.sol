@@ -93,7 +93,7 @@ contract LiquidationBranch {
     }
 
     struct LiquidationContext {
-        UD60x18[] positionsUsdX18;
+        UD60x18[] accountPositionsNotionalValueX18;
         UD60x18 liquidationFeeUsdX18;
         uint128 tradingAccountId;
         SD59x18 marginBalanceUsdX18;
@@ -168,7 +168,7 @@ contract LiquidationBranch {
             ctx.activeMarketsIds = tradingAccount.activeMarketsIds.values();
 
             // instatiate the array of positions in usd value
-            ctx.positionsUsdX18 = new UD60x18[](ctx.activeMarketsIds.length);
+            ctx.accountPositionsNotionalValueX18 = new UD60x18[](ctx.activeMarketsIds.length);
 
             // iterate over memory copy of active market ids
             // intentionally not caching length as expected size < 3 in most cases
@@ -191,8 +191,9 @@ contract LiquidationBranch {
                 // calculate price impact of open position being closed
                 ctx.markPriceX18 = perpMarket.getMarkPrice(ctx.liquidationSizeX18, perpMarket.getIndexPrice());
 
-                // add the markPriceX18 to positions usd array
-                ctx.positionsUsdX18[j] = ctx.markPriceX18;
+                // calculate notional value of the position being liquidated and push it to the array
+                ctx.accountPositionsNotionalValueX18[j] =
+                    ctx.oldPositionSizeX18.abs().intoUD60x18().mul(ctx.markPriceX18);
 
                 // get current funding rates
                 ctx.fundingRateX18 = perpMarket.getCurrentFundingRate();
@@ -236,7 +237,7 @@ contract LiquidationBranch {
                     orderFeeUsdX18: UD60x18_ZERO,
                     settlementFeeUsdX18: ctx.liquidationFeeUsdX18,
                     marketIds: ctx.activeMarketsIds,
-                    positionsUsdX18: ctx.positionsUsdX18
+                    accountPositionsNotionalValueX18: ctx.accountPositionsNotionalValueX18
                 })
             );
 

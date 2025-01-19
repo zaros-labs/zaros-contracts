@@ -485,21 +485,24 @@ library TradingAccount {
     /// @param pnlUsdX18 The total unrealized PnL of the account.
     /// @param settlementFeeUsdX18 The total settlement fee to be deducted from the account.
     /// @param orderFeeUsdX18 The total order fee to be deducted from the account.
-    /// @return marginDeductedUsdX18 The total margin deducted from the account.
+    /// @param marketIds The account's active market ids.
+    /// @param accountPositionsNotionalValueX18 The USD denominated open interest of the account's active positions.
     struct DeductAccountMarginParams {
         FeeRecipients.Data feeRecipients;
         UD60x18 pnlUsdX18;
         UD60x18 settlementFeeUsdX18;
         UD60x18 orderFeeUsdX18;
         uint256[] marketIds;
-        UD60x18[] positionsUsdX18;
+        UD60x18[] accountPositionsNotionalValueX18;
     }
 
     /// @notice Deducts the account's margin to pay for the settlement fee, order fee, and realize the pnl.
     /// @dev When a fee recipient is passed as `address(0)`, its fee MUST be zero, otherwise this function may produce
     /// unexpected behaviors.
+    /// @dev When DeductAccountMarginParams::marketIds length is <= 1, accountPositionsNotionalValueX18 is not used.
     /// @param self The trading account storage pointer.
     /// @param params The deduct account margin params.
+    /// @return marginDeductedUsdX18 The total margin deducted from the account.
     function deductAccountMargin(
         Data storage self,
         DeductAccountMarginParams memory params
@@ -588,27 +591,29 @@ library TradingAccount {
                     UD60x18 sumOfAllPositionsUsdX18;
 
                     // cache market ids length
-                    uint256 cacheMarketIdsLengt = params.marketIds.length;
+                    uint256 cachedMarketIdsLength = params.marketIds.length;
 
-                    // we need to sum of all positions usd only if cache market ids length will be > 1
-                    if (cacheMarketIdsLengt > 1) {
-                        for (uint256 j; j < params.positionsUsdX18.length; j++) {
-                            sumOfAllPositionsUsdX18 = sumOfAllPositionsUsdX18.add(params.positionsUsdX18[j]);
+                    // we need to sum the notional value of all active positions only if we're handling more than one
+                    // market id
+                    if (cachedMarketIdsLength > 1) {
+                        for (uint256 j; j < params.accountPositionsNotionalValueX18.length; j++) {
+                            sumOfAllPositionsUsdX18 =
+                                sumOfAllPositionsUsdX18.add(params.accountPositionsNotionalValueX18[j]);
                         }
                     }
 
                     // loop into market ids
-                    for (uint256 j; j < cacheMarketIdsLengt; j++) {
+                    for (uint256 j; j < cachedMarketIdsLength; j++) {
                         // collateral native precision -> collateral zaros precision
                         UD60x18 collateralAmountX18 =
                             marginCollateralConfiguration.convertTokenAmountToUd60x18(ctx.assetAmount);
 
                         // if we have more than one market id, we need to calculate the percentage that will be
                         // deposited for this market
-                        if (cacheMarketIdsLengt > 1) {
+                        if (cachedMarketIdsLength > 1) {
                             // calculate the percentage to deposit to this market
                             UD60x18 percentDeductForThisMarketX18 =
-                                params.positionsUsdX18[j].div(sumOfAllPositionsUsdX18);
+                                params.accountPositionsNotionalValueX18[j].div(sumOfAllPositionsUsdX18);
                             collateralAmountX18 = collateralAmountX18.mul(percentDeductForThisMarketX18);
                         }
 

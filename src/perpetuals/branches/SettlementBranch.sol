@@ -501,7 +501,7 @@ contract SettlementBranch is EIP712Upgradeable {
             tradingAccount.deposit(perpsEngineConfiguration.usdToken, ctx.marginToAddX18);
 
             // mint settlement tokens credited to trader; tokens are minted to
-            // address(this) since they have been credited to trader's deposited collateral
+            // address(this) since they have been credited to the trader's margin
             marketMakingEngine.withdrawUsdTokenFromMarket(marketId, ctx.marginToAddX18.intoUint256());
         }
 
@@ -522,7 +522,8 @@ contract SettlementBranch is EIP712Upgradeable {
                 orderFeeUsdX18: ctx.orderFeeUsdX18,
                 settlementFeeUsdX18: ctx.settlementFeeUsdX18,
                 marketIds: ctx.marketIds,
-                positionsUsdX18: new UD60x18[](1) // when we have only one market id, this property will be not used
+                accountPositionsNotionalValueX18: new UD60x18[](1) // when we have only one market id, this property
+                    // isn't used, so we can pass an empty array
              })
         );
 
