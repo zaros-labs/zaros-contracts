@@ -606,7 +606,6 @@ library TradingAccount {
 
                         // if we have more than one market id, we need to calculate the percentage that will be deposited for this market
                         if (cacheMarketIdsLengt > 1) {
-
                             // calculate the percentage to deposit to this market
                             UD60x18 percentDeductForThisMarketX18 =
                                 params.positionsUsdX18[j].div(sumOfAllPositionsUsdX18);
