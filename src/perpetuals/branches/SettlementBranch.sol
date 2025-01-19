@@ -155,11 +155,13 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // perform the fill
         _fillOrder(
-            tradingAccountId,
-            marketId,
-            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
-            ctx.sizeDeltaX18,
-            ctx.fillPriceX18
+            FillOrderParams(
+                tradingAccountId,
+                marketId,
+                SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+                ctx.sizeDeltaX18,
+                ctx.fillPriceX18
+            )
         );
 
         // reset pending order details
@@ -319,23 +321,26 @@ contract SettlementBranch is EIP712Upgradeable {
 
             // fill the offchain order.
             _fillOrder(
-                ctx.offchainOrder.tradingAccountId,
-                marketId,
-                SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
-                sd59x18(ctx.offchainOrder.sizeDelta),
-                ctx.fillPriceX18
+                FillOrderParams(
+                    ctx.offchainOrder.tradingAccountId,
+                    marketId,
+                    SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID,
+                    sd59x18(ctx.offchainOrder.sizeDelta),
+                    ctx.fillPriceX18
+                )
             );
         }
     }
 
     struct FillOrderContext {
+        uint256[] marketIds;
         uint128 marketId;
         uint128 tradingAccountId;
         Position.Data newPosition;
         UD60x18 orderFeeUsdX18;
         UD60x18 settlementFeeUsdX18;
         UD60x18 newOpenInterestX18;
-        UD60x18 requiredMarginUsdX18;
+        UD60x18 requiredMarginUsdX18; // da pra tirar
         UD60x18 marginToAddX18;
         SD59x18 oldPositionSizeX18;
         SD59x18 newPositionSizeX18;
@@ -343,7 +348,6 @@ contract SettlementBranch is EIP712Upgradeable {
         SD59x18 fundingFeePerUnitX18;
         SD59x18 fundingRateX18;
         SD59x18 newSkewX18;
-        address usdToken;
         bool shouldUseMaintenanceMargin;
         bool isNotionalValueIncreasing;
     }
@@ -353,16 +357,15 @@ contract SettlementBranch is EIP712Upgradeable {
     /// @param settlementConfigurationId The perp market settlement configuration id.
     /// @param sizeDeltaX18 The size delta of the order normalized to 18 decimals.
     /// @param fillPriceX18 The fill price of the order normalized to 18 decimals.
-    function _fillOrder(
-        uint128 tradingAccountId,
-        uint128 marketId,
-        uint128 settlementConfigurationId,
-        SD59x18 sizeDeltaX18,
-        UD60x18 fillPriceX18
-    )
-        internal
-        virtual
-    {
+    struct FillOrderParams {
+        uint128 tradingAccountId;
+        uint128 marketId;
+        uint128 settlementConfigurationId;
+        SD59x18 sizeDeltaX18;
+        UD60x18 fillPriceX18;
+    }
+
+    function _fillOrder(FillOrderParams memory params) internal virtual {
         // working data
         FillOrderContext memory ctx;
 
@@ -371,14 +374,12 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // fetch storage slot for perp market's settlement config
         SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, settlementConfigurationId);
-
-        // cache settlement token
-        ctx.usdToken = perpsEngineConfiguration.usdToken;
+            SettlementConfiguration.load(params.marketId, params.settlementConfigurationId);
 
         // determine whether position is being increased or not
-        ctx.isNotionalValueIncreasing =
-            Position.isNotionalValueIncreasing(tradingAccountId, marketId, sizeDeltaX18.intoInt256().toInt128());
+        ctx.isNotionalValueIncreasing = Position.isNotionalValueIncreasing(
+            params.tradingAccountId, params.marketId, params.sizeDeltaX18.intoInt256().toInt128()
+        );
 
         // both markets and settlement can be disabled, however when this happens we want to:
         // 1) allow open positions not subject to liquidation to decrease their size or close
@@ -389,32 +390,32 @@ contract SettlementBranch is EIP712Upgradeable {
         // would severly disadvantage traders
         if (ctx.isNotionalValueIncreasing) {
             // both checks revert if disabled
-            perpsEngineConfiguration.checkMarketIsEnabled(marketId);
+            perpsEngineConfiguration.checkMarketIsEnabled(params.marketId);
             settlementConfiguration.checkIsSettlementEnabled();
         }
 
         // load existing trading account; reverts for non-existent account
-        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(tradingAccountId);
+        TradingAccount.Data storage tradingAccount = TradingAccount.loadExisting(params.tradingAccountId);
 
         // fetch storage slot for perp market
-        PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
+        PerpMarket.Data storage perpMarket = PerpMarket.load(params.marketId);
 
         // enforce minimum trade size
-        perpMarket.checkTradeSize(sizeDeltaX18);
+        perpMarket.checkTradeSize(params.sizeDeltaX18);
 
         // get funding rates for this perp market
         ctx.fundingRateX18 = perpMarket.getCurrentFundingRate();
-        ctx.fundingFeePerUnitX18 = perpMarket.getNextFundingFeePerUnit(ctx.fundingRateX18, fillPriceX18);
+        ctx.fundingFeePerUnitX18 = perpMarket.getNextFundingFeePerUnit(ctx.fundingRateX18, params.fillPriceX18);
 
         // update funding rates
         perpMarket.updateFunding(ctx.fundingRateX18, ctx.fundingFeePerUnitX18);
 
         // calculate order & settlement fees
-        ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(sizeDeltaX18, fillPriceX18);
+        ctx.orderFeeUsdX18 = perpMarket.getOrderFeeUsd(params.sizeDeltaX18, params.fillPriceX18);
         ctx.settlementFeeUsdX18 = ud60x18(uint256(settlementConfiguration.fee));
 
         // fetch storage slot for account's potential existing position in this market
-        Position.Data storage oldPosition = Position.load(tradingAccountId, marketId);
+        Position.Data storage oldPosition = Position.load(params.tradingAccountId, params.marketId);
         // int256 -> SD59x18
         ctx.oldPositionSizeX18 = sd59x18(oldPosition.size);
 
@@ -425,7 +426,7 @@ contract SettlementBranch is EIP712Upgradeable {
                 UD60x18 requiredInitialMarginUsdX18,
                 UD60x18 requiredMaintenanceMarginUsdX18,
                 SD59x18 accountTotalUnrealizedPnlUsdX18
-            ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(marketId, sizeDeltaX18);
+            ) = tradingAccount.getAccountMarginRequirementUsdAndUnrealizedPnlUsd(params.marketId, params.sizeDeltaX18);
 
             // check maintenance margin if:
             // 1) position is not increasing AND
@@ -455,13 +456,14 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // cache unrealized PNL from potential existing position in this market
         // including accrued funding
-        ctx.pnlUsdX18 =
-            oldPosition.getUnrealizedPnl(fillPriceX18).add(oldPosition.getAccruedFunding(ctx.fundingFeePerUnitX18));
+        ctx.pnlUsdX18 = oldPosition.getUnrealizedPnl(params.fillPriceX18).add(
+            oldPosition.getAccruedFunding(ctx.fundingFeePerUnitX18)
+        );
 
         // create new position in working area
         ctx.newPosition = Position.Data({
-            size: ctx.oldPositionSizeX18.add(sizeDeltaX18).intoInt256(),
-            lastInteractionPrice: fillPriceX18.intoUint128(),
+            size: ctx.oldPositionSizeX18.add(params.sizeDeltaX18).intoInt256(),
+            lastInteractionPrice: params.fillPriceX18.intoUint128(),
             lastInteractionFundingFeePerUnit: ctx.fundingFeePerUnitX18.intoInt256().toInt128()
         });
         // int256 -> SD59x18
@@ -469,15 +471,20 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // enforce open interest and skew limits for target market and calculate
         // new open interest and new skew
-        (ctx.newOpenInterestX18, ctx.newSkewX18) =
-            perpMarket.checkOpenInterestLimits(sizeDeltaX18, ctx.oldPositionSizeX18, ctx.newPositionSizeX18, true);
+        (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
+            PerpMarket.CheckOpenInterestLimitsParams(
+                params.sizeDeltaX18, ctx.oldPositionSizeX18, ctx.newPositionSizeX18, true
+            )
+        );
 
         // update open interest and skew for this perp market
         perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
 
         // update active markets for this account; may also trigger update
         // to perps engine config set of active accounts
-        tradingAccount.updateActiveMarkets(marketId, ctx.oldPositionSizeX18, ctx.newPositionSizeX18);
+        tradingAccount.updateActiveMarkets(
+            TradingAccount.UpdateActiveMarketsParams(params.marketId, ctx.oldPositionSizeX18, ctx.newPositionSizeX18)
+        );
 
         // if the position is being closed, clear old position data
         if (ctx.newPositionSizeX18.isZero()) {
@@ -496,30 +503,37 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // if trader's old position had positive pnl then credit that to the trader
         if (ctx.pnlUsdX18.gt(SD59x18_ZERO)) {
-            ctx.marginToAddX18 = IMarketMakingEngine(perpsEngineConfiguration.marketMakingEngine)
-                .getAdjustedProfitForMarketId(marketId, ctx.pnlUsdX18.intoUD60x18().intoUint256());
+            IMarketMakingEngine marketMakingEngine = IMarketMakingEngine(perpsEngineConfiguration.marketMakingEngine);
+            ctx.marginToAddX18 = marketMakingEngine.getAdjustedProfitForMarketId(
+                params.marketId, ctx.pnlUsdX18.intoUD60x18().intoUint256()
+            );
 
-            tradingAccount.deposit(ctx.usdToken, ctx.marginToAddX18);
+            tradingAccount.deposit(perpsEngineConfiguration.usdToken, ctx.marginToAddX18);
 
             // mint settlement tokens credited to trader; tokens are minted to
             // address(this) since they have been credited to trader's deposited collateral
-            IMarketMakingEngine(perpsEngineConfiguration.marketMakingEngine).withdrawUsdTokenFromMarket(
-                marketId, ctx.marginToAddX18.intoUint256()
-            );
+            marketMakingEngine.withdrawUsdTokenFromMarket(params.marketId, ctx.marginToAddX18.intoUint256());
         }
+
+        ctx.marketIds = new uint256[](1);
+        ctx.marketIds[0] = params.marketId;
 
         // pay order/settlement fees and deduct collateral
         // if trader's old position had negative pnl
-        tradingAccount.deductAccountMargin({
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
-                orderFeeRecipient: perpsEngineConfiguration.orderFeeRecipient,
-                settlementFeeRecipient: perpsEngineConfiguration.settlementFeeRecipient
-            }),
-            pnlUsdX18: ctx.pnlUsdX18.lt(SD59x18_ZERO) ? ctx.pnlUsdX18.abs().intoUD60x18() : UD60x18_ZERO,
-            orderFeeUsdX18: ctx.orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
-        });
+        tradingAccount.deductAccountMargin(
+            TradingAccount.DeductAccountMarginParams({
+                feeRecipients: FeeRecipients.Data({
+                    marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
+                    orderFeeRecipient: perpsEngineConfiguration.orderFeeRecipient,
+                    settlementFeeRecipient: perpsEngineConfiguration.settlementFeeRecipient
+                }),
+                pnlUsdX18: ctx.pnlUsdX18.lt(SD59x18_ZERO) ? ctx.pnlUsdX18.abs().intoUD60x18() : UD60x18_ZERO,
+                orderFeeUsdX18: ctx.orderFeeUsdX18,
+                settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+                marketIds: ctx.marketIds,
+                positionsUsdX18: new UD60x18[](1)
+            })
+        );
 
         {
             // // get account's required maintenance margin & unrealized PNL
@@ -537,16 +551,16 @@ contract SettlementBranch is EIP712Upgradeable {
                     ud60x18(perpsEngineConfiguration.liquidationFeeUsdX18)
                 )
             ) {
-                revert Errors.AccountIsLiquidatable(tradingAccountId);
+                revert Errors.AccountIsLiquidatable(params.tradingAccountId);
             }
         }
 
         emit LogFillOrder(
             msg.sender,
-            tradingAccountId,
-            marketId,
-            sizeDeltaX18.intoInt256(),
-            fillPriceX18.intoUint256(),
+            params.tradingAccountId,
+            params.marketId,
+            params.sizeDeltaX18.intoInt256(),
+            params.fillPriceX18.intoUint256(),
             ctx.orderFeeUsdX18.intoUint256(),
             ctx.settlementFeeUsdX18.intoUint256(),
             ctx.pnlUsdX18.intoInt256(),

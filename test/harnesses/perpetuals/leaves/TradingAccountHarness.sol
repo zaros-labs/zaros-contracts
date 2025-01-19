@@ -210,7 +210,7 @@ contract TradingAccountHarness {
         address recipient
     )
         external
-        returns (UD60x18, bool)
+        returns (UD60x18, bool, uint256)
     {
         TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
 
@@ -224,14 +224,21 @@ contract TradingAccountHarness {
         FeeRecipients.Data memory feeRecipients,
         UD60x18 pnlUsdX18,
         UD60x18 settlementFeeUsdX18,
-        UD60x18 orderFeeUsdX18
+        UD60x18 orderFeeUsdX18,
+        uint256[] calldata marketIds,
+        UD60x18[] calldata positionsUsdX18
     )
         external
         returns (UD60x18)
     {
         TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
 
-        return TradingAccount.deductAccountMargin(self, feeRecipients, pnlUsdX18, settlementFeeUsdX18, orderFeeUsdX18);
+        return TradingAccount.deductAccountMargin(
+            self,
+            TradingAccount.DeductAccountMarginParams(
+                feeRecipients, pnlUsdX18, settlementFeeUsdX18, orderFeeUsdX18, marketIds, positionsUsdX18
+            )
+        );
     }
 
     function exposed_updateActiveMarkets(
@@ -244,6 +251,8 @@ contract TradingAccountHarness {
     {
         TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
 
-        TradingAccount.updateActiveMarkets(self, marketId, oldPositionSize, newPositionSize);
+        TradingAccount.updateActiveMarkets(
+            self, TradingAccount.UpdateActiveMarketsParams(marketId, oldPositionSize, newPositionSize)
+        );
     }
 }

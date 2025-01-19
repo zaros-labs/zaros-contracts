@@ -49,7 +49,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
         assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
-        (UD60x18 withdrawnMarginUsdX18, bool isMissingMargin) = perpsEngine.exposed_withdrawMarginUsd(
+        (UD60x18 withdrawnMarginUsdX18, bool isMissingMargin,) = perpsEngine.exposed_withdrawMarginUsd(
             tradingAccountId,
             address(wstEth),
             marginCollateralPriceUsdX18,
@@ -94,7 +94,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
         assertEq(MockERC20((usdc)).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
-        (withdrawnMarginUsdX18, isMissingMargin) = perpsEngine.exposed_withdrawMarginUsd(
+        (withdrawnMarginUsdX18, isMissingMargin,) = perpsEngine.exposed_withdrawMarginUsd(
             tradingAccountId, address(usdc), marginCollateralPriceUsdX18, amountToWithdrawUsdX18, users.naruto.account
         );
 
@@ -149,7 +149,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         uint128 tradingAccountId = createAccountAndDeposit(amountToDeposit, address(wstEth));
         assertEq(MockERC20(address(wstEth)).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
-        (UD60x18 withdrawnMarginUsdX18, bool isMissingMargin) = perpsEngine.exposed_withdrawMarginUsd(
+        (UD60x18 withdrawnMarginUsdX18, bool isMissingMargin,) = perpsEngine.exposed_withdrawMarginUsd(
             tradingAccountId,
             address(wstEth),
             marginCollateralPriceUsdX18,
@@ -202,7 +202,7 @@ contract WithdrawMarginUsd_Unit_Test is Base_Test {
         tradingAccountId = createAccountAndDeposit(amountToDeposit, address(usdc));
         assertEq(MockERC20(address(usdc)).balanceOf(users.naruto.account), 0, "balanceOf should be zero");
 
-        (withdrawnMarginUsdX18, isMissingMargin) = perpsEngine.exposed_withdrawMarginUsd(
+        (withdrawnMarginUsdX18, isMissingMargin,) = perpsEngine.exposed_withdrawMarginUsd(
             tradingAccountId, address(usdc), marginCollateralPriceUsdX18, amountToWithdrawUsdX18, users.naruto.account
         );
 

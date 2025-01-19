@@ -160,26 +160,13 @@ contract LiquidationBranch {
                 continue;
             }
 
-            // deduct maintenance margin from the account's collateral
-            // settlementFee = liquidationFee
-            ctx.liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
-                feeRecipients: FeeRecipients.Data({
-                    marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
-                    orderFeeRecipient: address(0),
-                    settlementFeeRecipient: perpsEngineConfiguration.liquidationFeeRecipient
-                }),
-                pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().add(
-                    ctx.requiredMaintenanceMarginUsdX18
-                ),
-                orderFeeUsdX18: UD60x18_ZERO,
-                settlementFeeUsdX18: ctx.liquidationFeeUsdX18
-            });
-
             // clear pending order for account being liquidated
             MarketOrder.load(ctx.tradingAccountId).clear();
 
             // copy active market ids for account being liquidated
             ctx.activeMarketsIds = tradingAccount.activeMarketsIds.values();
+
+            UD60x18[] memory positionsUsdX18 = new UD60x18[](ctx.activeMarketsIds.length);
 
             // iterate over memory copy of active market ids
             // intentionally not caching length as expected size < 3 in most cases
@@ -202,6 +189,8 @@ contract LiquidationBranch {
                 // calculate price impact of open position being closed
                 ctx.markPriceX18 = perpMarket.getMarkPrice(ctx.liquidationSizeX18, perpMarket.getIndexPrice());
 
+                positionsUsdX18[j] = ctx.markPriceX18;
+
                 // get current funding rates
                 ctx.fundingRateX18 = perpMarket.getCurrentFundingRate();
                 ctx.fundingFeePerUnitX18 = perpMarket.getNextFundingFeePerUnit(ctx.fundingRateX18, ctx.markPriceX18);
@@ -214,11 +203,15 @@ contract LiquidationBranch {
 
                 // update account's active markets; this calls EnumerableSet::remove which
                 // is why we are iterating over a memory copy of the trader's active markets
-                tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD59x18_ZERO);
+                tradingAccount.updateActiveMarkets(
+                    TradingAccount.UpdateActiveMarketsParams(ctx.marketId, ctx.oldPositionSizeX18, SD59x18_ZERO)
+                );
 
                 // we don't check skew during liquidations to protect from DoS
                 (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
-                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false
+                    PerpMarket.CheckOpenInterestLimitsParams(
+                        ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false
+                    )
                 );
 
                 // update perp market's open interest and skew; we don't enforce ipen
@@ -228,6 +221,25 @@ contract LiquidationBranch {
                 //    checks would fail
                 perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
             }
+
+            // deduct maintenance margin from the account's collateral
+            // settlementFee = liquidationFee
+            ctx.liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin(
+                TradingAccount.DeductAccountMarginParams({
+                    feeRecipients: FeeRecipients.Data({
+                        marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
+                        orderFeeRecipient: address(0),
+                        settlementFeeRecipient: perpsEngineConfiguration.liquidationFeeRecipient
+                    }),
+                    pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().add(
+                        ctx.requiredMaintenanceMarginUsdX18
+                    ),
+                    orderFeeUsdX18: UD60x18_ZERO,
+                    settlementFeeUsdX18: ctx.liquidationFeeUsdX18,
+                    marketIds: ctx.activeMarketsIds,
+                    positionsUsdX18: positionsUsdX18
+                })
+            );
 
             emit LogLiquidateAccount(
                 msg.sender,

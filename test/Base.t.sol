@@ -333,6 +333,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         );
 
         marketMakingEngine.configureCollateral(
+            address(usdToken),
+            marginCollaterals[USD_TOKEN_MARGIN_COLLATERAL_ID].priceAdapter,
+            1e18,
+            true,
+            marginCollaterals[USD_TOKEN_MARGIN_COLLATERAL_ID].tokenDecimals
+        );
+
+        marketMakingEngine.configureCollateral(
             address(wEth),
             marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter,
             MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO,

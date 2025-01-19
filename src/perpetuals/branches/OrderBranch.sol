@@ -312,7 +312,9 @@ contract OrderBranch {
 
         // enforce open interest and skew limits for target market
         perpMarket.checkOpenInterestLimits(
-            ctx.sizeDeltaX18, ctx.positionSizeX18, ctx.positionSizeX18.add(ctx.sizeDeltaX18), true
+            PerpMarket.CheckOpenInterestLimitsParams(
+                ctx.sizeDeltaX18, ctx.positionSizeX18, ctx.positionSizeX18.add(ctx.sizeDeltaX18), true
+            )
         );
 
         // fetch storage slot for trader's potential pending order
