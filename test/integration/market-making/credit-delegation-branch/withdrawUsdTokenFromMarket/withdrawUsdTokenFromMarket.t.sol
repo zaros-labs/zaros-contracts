@@ -72,9 +72,6 @@ contract CreditDelegationBranch_WithdrawUsdTokenFromMarket_Integration_Test is B
 
         marketMakingEngine.workaround_updateMarketTotalDelegatedCreditUsd(fuzzMarketConfig.marketId, 0);
 
-        changePrank({ msgSender: address(perpsEngine) });
-        usdToken.transferOwnership(address(marketMakingEngine));
-
         // it should revert
         vm.expectRevert(
             abi.encodeWithSelector(Errors.InsufficientCreditCapacity.selector, fuzzMarketConfig.marketId, 0)
@@ -99,9 +96,6 @@ contract CreditDelegationBranch_WithdrawUsdTokenFromMarket_Integration_Test is B
         marketMakingEngine.configureEngine(
             perpMarketsCreditConfig[fuzzMarketConfig.marketId].engine, address(usdToken), true
         );
-
-        changePrank({ msgSender: address(perpsEngine) });
-        usdToken.transferOwnership(address(marketMakingEngine));
 
         // it should emit {LogWithdrawUsdTokenFromMarket} event
         vm.expectEmit();

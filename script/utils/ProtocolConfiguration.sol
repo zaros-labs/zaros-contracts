@@ -63,7 +63,7 @@ abstract contract ProtocolConfiguration is
     uint128 internal constant FINAL_VAULT_ID = 15;
     uint128 internal constant INVALID_VAULT_ID = 0;
     uint128 internal constant INITIAL_PERP_MARKET_CREDIT_CONFIG_ID = 1;
-    uint128 internal constant FINAL_PERP_MARKET_CREDIT_CONFIG_ID = 2;
+    uint128 internal constant FINAL_PERP_MARKET_CREDIT_CONFIG_ID = 10;
 
     /// @notice The maximum delay allowed for the off chain price verification.
     uint256 internal constant MAX_VERIFICATION_DELAY = 60 seconds;

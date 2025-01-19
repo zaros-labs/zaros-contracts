@@ -93,6 +93,7 @@ contract LiquidationBranch {
     }
 
     struct LiquidationContext {
+        UD60x18[] accountPositionsNotionalValueX18;
         UD60x18 liquidationFeeUsdX18;
         uint128 tradingAccountId;
         SD59x18 marginBalanceUsdX18;
@@ -160,26 +161,14 @@ contract LiquidationBranch {
                 continue;
             }
 
-            // deduct maintenance margin from the account's collateral
-            // settlementFee = liquidationFee
-            ctx.liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin({
-                feeRecipients: FeeRecipients.Data({
-                    marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
-                    orderFeeRecipient: address(0),
-                    settlementFeeRecipient: perpsEngineConfiguration.liquidationFeeRecipient
-                }),
-                pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().add(
-                    ctx.requiredMaintenanceMarginUsdX18
-                ),
-                orderFeeUsdX18: UD60x18_ZERO,
-                settlementFeeUsdX18: ctx.liquidationFeeUsdX18
-            });
-
             // clear pending order for account being liquidated
             MarketOrder.load(ctx.tradingAccountId).clear();
 
             // copy active market ids for account being liquidated
             ctx.activeMarketsIds = tradingAccount.activeMarketsIds.values();
+
+            // instatiate the array of positions in usd value
+            ctx.accountPositionsNotionalValueX18 = new UD60x18[](ctx.activeMarketsIds.length);
 
             // iterate over memory copy of active market ids
             // intentionally not caching length as expected size < 3 in most cases
@@ -201,6 +190,10 @@ contract LiquidationBranch {
 
                 // calculate price impact of open position being closed
                 ctx.markPriceX18 = perpMarket.getMarkPrice(ctx.liquidationSizeX18, perpMarket.getIndexPrice());
+
+                // calculate notional value of the position being liquidated and push it to the array
+                ctx.accountPositionsNotionalValueX18[j] =
+                    ctx.oldPositionSizeX18.abs().intoUD60x18().mul(ctx.markPriceX18);
 
                 // get current funding rates
                 ctx.fundingRateX18 = perpMarket.getCurrentFundingRate();
@@ -228,6 +221,25 @@ contract LiquidationBranch {
                 //    checks would fail
                 perpMarket.updateOpenInterest(ctx.newOpenInterestX18, ctx.newSkewX18);
             }
+
+            // deduct maintenance margin from the account's collateral
+            // settlementFee = liquidationFee
+            ctx.liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin(
+                TradingAccount.DeductAccountMarginParams({
+                    feeRecipients: FeeRecipients.Data({
+                        marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
+                        orderFeeRecipient: address(0),
+                        settlementFeeRecipient: perpsEngineConfiguration.liquidationFeeRecipient
+                    }),
+                    pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().add(
+                        ctx.requiredMaintenanceMarginUsdX18
+                    ),
+                    orderFeeUsdX18: UD60x18_ZERO,
+                    settlementFeeUsdX18: ctx.liquidationFeeUsdX18,
+                    marketIds: ctx.activeMarketsIds,
+                    accountPositionsNotionalValueX18: ctx.accountPositionsNotionalValueX18
+                })
+            );
 
             emit LogLiquidateAccount(
                 msg.sender,

@@ -281,8 +281,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vm.label({ account: address(wEth), newLabel: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].symbol });
         vm.label({ account: address(wBtc), newLabel: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].symbol });
 
-        configureContracts();
-
         vm.label({ account: address(tradingAccountToken), newLabel: "Trading Account NFT" });
         vm.label({ account: address(perpsEngine), newLabel: "Perps Engine" });
 
@@ -322,7 +320,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         changePrank({ msgSender: users.owner.account });
 
         bool isTest = true;
-        setupPerpMarketsCreditConfig(isTest, initParams);
+        setupPerpMarketsCreditConfig(isTest, address(perpsEngine), address(usdToken));
 
         marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(users.vaultFeeRecipient.account);
 
@@ -332,6 +330,14 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             1e18,
             true,
             marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals
+        );
+
+        marketMakingEngine.configureCollateral(
+            address(usdToken),
+            marginCollaterals[USD_TOKEN_MARGIN_COLLATERAL_ID].priceAdapter,
+            1e18,
+            true,
+            marginCollaterals[USD_TOKEN_MARGIN_COLLATERAL_ID].tokenDecimals
         );
 
         marketMakingEngine.configureCollateral(
@@ -377,6 +383,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         marketMakingEngine.configureReferralModule(address(referralModule));
 
         // Other Set Up
+        configureContracts();
         approveContracts();
         marketMakingEngine.updateStabilityConfiguration(mockChainlinkVerifier, uint128(MAX_VERIFICATION_DELAY));
         changePrank({ msgSender: users.naruto.account });
@@ -478,8 +485,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         tradingAccountToken.transferOwnership(address(perpsEngine));
 
-        // TODO: Temporary, switch to Market Making engine
-        usdToken.transferOwnership(address(perpsEngine));
+        usdToken.transferOwnership(address(marketMakingEngine));
     }
 
     function configureLiquidationKeepers() internal {

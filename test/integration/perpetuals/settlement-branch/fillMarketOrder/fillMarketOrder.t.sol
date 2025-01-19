@@ -27,6 +27,8 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
+        configureMarkets();
         changePrank({ msgSender: users.naruto.account });
     }
 
@@ -906,11 +908,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         vm.expectEmit({ emitter: address(perpsEngine) });
         expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
-        expectCallToTransfer(
-            usdToken,
-            feeRecipients.marginCollateralRecipient,
-            ctx.secondOrderExpectedPnlX18.abs().intoUD60x18().intoUint256()
-        );
+        assertEq(usdToken.balanceOf(address(marketMakingEngine)), 0);
         emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
@@ -927,6 +925,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         // fill second order and close position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
+
+        assertEq(
+            usdToken.balanceOf(address(marketMakingEngine)),
+            ctx.secondOrderExpectedPnlX18.abs().intoUD60x18().intoUint256()
+        );
 
         // it should update the funding values
         ctx.perpMarketData = perpsEngine.exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);

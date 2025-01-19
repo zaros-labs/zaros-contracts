@@ -19,6 +19,8 @@ contract LiquidateAccounts_Integration_Test is Base_Test {
         changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
+        configureMarkets();
         changePrank({ msgSender: users.naruto.account });
     }
 

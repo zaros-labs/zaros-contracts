@@ -48,6 +48,8 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         changePrank({ msgSender: users.owner.account });
         configureSystemParameters();
         createPerpMarkets();
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
+        configureMarkets();
         changePrank({ msgSender: users.naruto.account });
 
         usdcDepositCap = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
@@ -93,6 +95,12 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             tradingAccountId, address(usdc), ud60x18(marginValueUsd), marginCollateralBalanceX18, users.naruto.account
         );
 
+        uint256[] memory marketIds = new uint256[](1);
+        marketIds[0] = INITIAL_MARKET_ID;
+
+        UD60x18[] memory accountPositionsNotionalValueX18 = new UD60x18[](1);
+        accountPositionsNotionalValueX18[0] = ud60x18(1e18);
+
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
@@ -102,7 +110,9 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+            marketIds: marketIds,
+            accountPositionsNotionalValueX18: accountPositionsNotionalValueX18
         });
     }
 
@@ -139,6 +149,12 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
+        uint256[] memory marketIds = new uint256[](1);
+        marketIds[0] = INITIAL_MARKET_ID;
+
+        UD60x18[] memory accountPositionsNotionalValueX18 = new UD60x18[](1);
+        accountPositionsNotionalValueX18[0] = ud60x18(1e18);
+
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
@@ -148,7 +164,9 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+            marketIds: marketIds,
+            accountPositionsNotionalValueX18: accountPositionsNotionalValueX18
         });
     }
 
@@ -184,6 +202,12 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
+        uint256[] memory marketIds = new uint256[](1);
+        marketIds[0] = INITIAL_MARKET_ID;
+
+        UD60x18[] memory accountPositionsNotionalValueX18 = new UD60x18[](1);
+        accountPositionsNotionalValueX18[0] = ud60x18(1e18);
+
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
@@ -193,7 +217,9 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+            marketIds: marketIds,
+            accountPositionsNotionalValueX18: accountPositionsNotionalValueX18
         });
     }
 
@@ -227,6 +253,12 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
+        uint256[] memory marketIds = new uint256[](1);
+        marketIds[0] = INITIAL_MARKET_ID;
+
+        UD60x18[] memory accountPositionsNotionalValueX18 = new UD60x18[](1);
+        accountPositionsNotionalValueX18[0] = ud60x18(1e18);
+
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
@@ -236,7 +268,9 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+            marketIds: marketIds,
+            accountPositionsNotionalValueX18: accountPositionsNotionalValueX18
         });
     }
 
@@ -272,6 +306,12 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         UD60x18 orderFeeUsdX18 = ud60x18(feeAmount);
 
+        uint256[] memory marketIds = new uint256[](1);
+        marketIds[0] = INITIAL_MARKET_ID;
+
+        UD60x18[] memory accountPositionsNotionalValueX18 = new UD60x18[](1);
+        accountPositionsNotionalValueX18[0] = ud60x18(1e18);
+
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
@@ -281,7 +321,9 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+            marketIds: marketIds,
+            accountPositionsNotionalValueX18: accountPositionsNotionalValueX18
         });
     }
 
@@ -315,6 +357,12 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         UD60x18 orderFeeUsdX18 = ud60x18(feeAmount);
 
+        uint256[] memory marketIds = new uint256[](1);
+        marketIds[0] = INITIAL_MARKET_ID;
+
+        UD60x18[] memory accountPositionsNotionalValueX18 = new UD60x18[](1);
+        accountPositionsNotionalValueX18[0] = ud60x18(1e18);
+
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
@@ -324,7 +372,9 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+            marketIds: marketIds,
+            accountPositionsNotionalValueX18: accountPositionsNotionalValueX18
         });
     }
 
@@ -360,6 +410,12 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
+        uint256[] memory marketIds = new uint256[](1);
+        marketIds[0] = INITIAL_MARKET_ID;
+
+        UD60x18[] memory accountPositionsNotionalValueX18 = new UD60x18[](1);
+        accountPositionsNotionalValueX18[0] = ud60x18(1e18);
+
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
@@ -369,7 +425,9 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+            marketIds: marketIds,
+            accountPositionsNotionalValueX18: accountPositionsNotionalValueX18
         });
     }
 
@@ -396,6 +454,12 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         UD60x18 marginValueUsdX18 = convertTokenAmountToUd60x18(address(usdc), marginValueUsd);
 
+        uint256[] memory marketIds = new uint256[](1);
+        marketIds[0] = INITIAL_MARKET_ID;
+
+        UD60x18[] memory accountPositionsNotionalValueX18 = new UD60x18[](1);
+        accountPositionsNotionalValueX18[0] = ud60x18(1e18);
+
         uint256 marginDeductedUsd = perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: narutoTradingAccountId,
             feeRecipients: FeeRecipients.Data({
@@ -405,7 +469,9 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             }),
             pnlUsdX18: marginValueUsdX18,
             orderFeeUsdX18: marginValueUsdX18,
-            settlementFeeUsdX18: marginValueUsdX18
+            settlementFeeUsdX18: marginValueUsdX18,
+            marketIds: marketIds,
+            accountPositionsNotionalValueX18: accountPositionsNotionalValueX18
         }).intoUint256();
 
         uint256 totalDepositedOfUsdc = perpsEngine.workaround_getTotalDeposited(address(usdc));
@@ -452,6 +518,12 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         UD60x18 orderFeeUsdX18 = ud60x18(randomFeeAmount2);
 
+        uint256[] memory marketIds = new uint256[](1);
+        marketIds[0] = INITIAL_MARKET_ID;
+
+        UD60x18[] memory accountPositionsNotionalValueX18 = new UD60x18[](1);
+        accountPositionsNotionalValueX18[0] = ud60x18(1e18);
+
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
             feeRecipients: FeeRecipients.Data({
@@ -461,7 +533,9 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
             }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
+            settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+            marketIds: marketIds,
+            accountPositionsNotionalValueX18: accountPositionsNotionalValueX18
         });
     }
 }

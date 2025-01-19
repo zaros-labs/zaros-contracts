@@ -15,13 +15,29 @@ import { StdCheats, StdUtils } from "forge-std/Test.sol";
 // Markets
 import { BtcPerpMarketCreditConfig } from "script/perp-markets-credit-config/BtcPerpMarketCreditConfig.sol";
 import { EthPerpMarketCreditConfig } from "script/perp-markets-credit-config/EthPerpMarketCreditConfig.sol";
+import { ArbPerpMarketCreditConfig } from "script/perp-markets-credit-config/ArbPerpMarketCreditConfig.sol";
+import { BnbPerpMarketCreditConfig } from "script/perp-markets-credit-config/BnbPerpMarketCreditConfig.sol";
+import { DogePerpMarketCreditConfig } from "script/perp-markets-credit-config/DogePerpMarketCreditConfig.sol";
+import { FtmPerpMarketCreditConfig } from "script/perp-markets-credit-config/FtmPerpMarketCreditConfig.sol";
+import { LinkPerpMarketCreditConfig } from "script/perp-markets-credit-config/LinkPerpMarketCreditConfig.sol";
+import { LtcPerpMarketCreditConfig } from "script/perp-markets-credit-config/LtcPerpMarketCreditConfig.sol";
+import { MaticPerpMarketCreditConfig } from "script/perp-markets-credit-config/MaticPerpMarketCreditConfig.sol";
+import { SolPerpMarketCreditConfig } from "script/perp-markets-credit-config/SolPerpMarketCreditConfig.sol";
 
 /// @notice PerpMarketsCreditConfig contract
 abstract contract PerpMarketsCreditConfig is
     StdCheats,
     StdUtils,
     BtcPerpMarketCreditConfig,
-    EthPerpMarketCreditConfig
+    EthPerpMarketCreditConfig,
+    ArbPerpMarketCreditConfig,
+    BnbPerpMarketCreditConfig,
+    DogePerpMarketCreditConfig,
+    FtmPerpMarketCreditConfig,
+    LinkPerpMarketCreditConfig,
+    LtcPerpMarketCreditConfig,
+    MaticPerpMarketCreditConfig,
+    SolPerpMarketCreditConfig
 {
     /// @notice Perp Market Credit Config
     /// @param engine Engine address
@@ -54,20 +70,12 @@ abstract contract PerpMarketsCreditConfig is
     /// @notice Setup perp markets credit config
     /// @param isTest When isTest is True a new mock engine will created for a each perp market using the initParams
     /// variable
-    /// @param initParams Only used when isTest is true
-    function setupPerpMarketsCreditConfig(bool isTest, RootProxy.InitParams memory initParams) internal {
+    /// @param engine Only used when isTest is true
+    /// @param usdToken Only used when isTest is true
+    function setupPerpMarketsCreditConfig(bool isTest, address engine, address usdToken) internal {
         perpMarketsCreditConfig[BTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
-            engine: isTest ? address(new MockEngine(initParams)) : BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE,
-            usdToken: isTest
-                ? address(
-                    new MockUsdToken({
-                        owner: address(0x1),
-                        deployerBalance: 100_000_000e18,
-                        _name: "Mock USD Token",
-                        _symbol: "USD"
-                    })
-                )
-                : BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            engine: isTest ? engine : BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : BTC_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
             marketId: BTC_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: BTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
@@ -75,21 +83,84 @@ abstract contract PerpMarketsCreditConfig is
         });
 
         perpMarketsCreditConfig[ETH_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
-            engine: isTest ? address(new MockEngine(initParams)) : ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE,
-            usdToken: isTest
-                ? address(
-                    new MockUsdToken({
-                        owner: address(0x1),
-                        deployerBalance: 100_000_000e18,
-                        _name: "Mock USD Token",
-                        _symbol: "USD"
-                    })
-                )
-                : ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            engine: isTest ? engine : ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : ETH_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
             marketId: ETH_PERP_MARKET_CREDIT_CONFIG_ID,
             autoDeleverageStartThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
             autoDeleverageEndThreshold: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
             autoDeleverageExpoentZ: ETH_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[SOL_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? engine : SOL_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : SOL_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: SOL_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: SOL_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: SOL_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: SOL_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[MATIC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? engine : MATIC_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : MATIC_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: MATIC_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: MATIC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: MATIC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: MATIC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[LTC_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? engine : LTC_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : LTC_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: LTC_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: LTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: LTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: LTC_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[LINK_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? engine : LINK_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : LINK_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: LINK_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: LINK_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: LINK_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: LINK_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[FTM_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? engine : FTM_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : FTM_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: FTM_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: FTM_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: FTM_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: FTM_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[DOGE_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? engine : DOGE_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : DOGE_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: DOGE_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: DOGE_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: DOGE_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: DOGE_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[BNB_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? engine : BNB_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : BNB_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: BNB_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: BNB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: BNB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: BNB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
+        });
+
+        perpMarketsCreditConfig[ARB_PERP_MARKET_CREDIT_CONFIG_ID] = PerpMarketCreditConfig({
+            engine: isTest ? engine : ARB_PERP_MARKET_CREDIT_CONFIG_ENGINE,
+            usdToken: isTest ? usdToken : ARB_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN,
+            marketId: ARB_PERP_MARKET_CREDIT_CONFIG_ID,
+            autoDeleverageStartThreshold: ARB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_START_THRESHOLD,
+            autoDeleverageEndThreshold: ARB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_END_THRESHOLD,
+            autoDeleverageExpoentZ: ARB_PERP_MARKET_CREDIT_CONFIG_AUTO_DELEVERAGE_POWER_SCALE
         });
     }
 

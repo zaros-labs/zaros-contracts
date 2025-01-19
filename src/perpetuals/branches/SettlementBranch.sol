@@ -13,6 +13,7 @@ import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineCo
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
+import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 
 // Open Zeppelin dependencies
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -328,6 +329,7 @@ contract SettlementBranch is EIP712Upgradeable {
     }
 
     struct FillOrderContext {
+        uint256[] marketIds;
         uint128 marketId;
         uint128 tradingAccountId;
         Position.Data newPosition;
@@ -342,7 +344,6 @@ contract SettlementBranch is EIP712Upgradeable {
         SD59x18 fundingFeePerUnitX18;
         SD59x18 fundingRateX18;
         SD59x18 newSkewX18;
-        address usdToken;
         bool shouldUseMaintenanceMargin;
         bool isNotionalValueIncreasing;
     }
@@ -371,9 +372,6 @@ contract SettlementBranch is EIP712Upgradeable {
         // fetch storage slot for perp market's settlement config
         SettlementConfiguration.Data storage settlementConfiguration =
             SettlementConfiguration.load(marketId, settlementConfigurationId);
-
-        // cache settlement token
-        ctx.usdToken = perpsEngineConfiguration.usdToken;
 
         // determine whether position is being increased or not
         ctx.isNotionalValueIncreasing =
@@ -495,28 +493,39 @@ contract SettlementBranch is EIP712Upgradeable {
 
         // if trader's old position had positive pnl then credit that to the trader
         if (ctx.pnlUsdX18.gt(SD59x18_ZERO)) {
-            ctx.marginToAddX18 = ctx.pnlUsdX18.intoUD60x18();
-            tradingAccount.deposit(ctx.usdToken, ctx.marginToAddX18);
+            IMarketMakingEngine marketMakingEngine = IMarketMakingEngine(perpsEngineConfiguration.marketMakingEngine);
+
+            ctx.marginToAddX18 =
+                marketMakingEngine.getAdjustedProfitForMarketId(marketId, ctx.pnlUsdX18.intoUD60x18().intoUint256());
+
+            tradingAccount.deposit(perpsEngineConfiguration.usdToken, ctx.marginToAddX18);
 
             // mint settlement tokens credited to trader; tokens are minted to
-            // address(this) since they have been credited to trader's deposited collateral
-            //
-            // NOTE: testnet only - this call will be updated once the Market Making Engine is finalized
-            LimitedMintingERC20(ctx.usdToken).mint(address(this), ctx.marginToAddX18.intoUint256());
+            // address(this) since they have been credited to the trader's margin
+            marketMakingEngine.withdrawUsdTokenFromMarket(marketId, ctx.marginToAddX18.intoUint256());
         }
+
+        // add the market id to the market ids array
+        ctx.marketIds = new uint256[](1);
+        ctx.marketIds[0] = marketId;
 
         // pay order/settlement fees and deduct collateral
         // if trader's old position had negative pnl
-        tradingAccount.deductAccountMargin({
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
-                orderFeeRecipient: perpsEngineConfiguration.orderFeeRecipient,
-                settlementFeeRecipient: perpsEngineConfiguration.settlementFeeRecipient
-            }),
-            pnlUsdX18: ctx.pnlUsdX18.lt(SD59x18_ZERO) ? ctx.pnlUsdX18.abs().intoUD60x18() : UD60x18_ZERO,
-            orderFeeUsdX18: ctx.orderFeeUsdX18,
-            settlementFeeUsdX18: ctx.settlementFeeUsdX18
-        });
+        tradingAccount.deductAccountMargin(
+            TradingAccount.DeductAccountMarginParams({
+                feeRecipients: FeeRecipients.Data({
+                    marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
+                    orderFeeRecipient: perpsEngineConfiguration.orderFeeRecipient,
+                    settlementFeeRecipient: perpsEngineConfiguration.settlementFeeRecipient
+                }),
+                pnlUsdX18: ctx.pnlUsdX18.lt(SD59x18_ZERO) ? ctx.pnlUsdX18.abs().intoUD60x18() : UD60x18_ZERO,
+                orderFeeUsdX18: ctx.orderFeeUsdX18,
+                settlementFeeUsdX18: ctx.settlementFeeUsdX18,
+                marketIds: ctx.marketIds,
+                accountPositionsNotionalValueX18: new UD60x18[](1) // when we have only one market id, this property
+                    // isn't used, so we can pass an empty array
+             })
+        );
 
         {
             // // get account's required maintenance margin & unrealized PNL
