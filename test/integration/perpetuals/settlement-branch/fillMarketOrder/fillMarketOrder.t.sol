@@ -909,12 +909,6 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
         expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
         assertEq(usdToken.balanceOf(address(marketMakingEngine)), 0);
-        // expectCallToTransferFrom(
-        //     usdToken,
-        //     address(perpsEngine),
-        //     address(marketMakingEngine),
-        //     ctx.secondOrderExpectedPnlX18.abs().intoUD60x18().intoUint256()
-        // );
         emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
@@ -934,8 +928,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         assertEq(
             usdToken.balanceOf(address(marketMakingEngine)),
-            ctx.secondOrderExpectedPnlX18.abs().intoUD60x18().intoUint256(),
-            "here"
+            ctx.secondOrderExpectedPnlX18.abs().intoUD60x18().intoUint256()
         );
 
         // it should update the funding values

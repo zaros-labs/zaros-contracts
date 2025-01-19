@@ -513,6 +513,7 @@ library TradingAccount {
         // fetch storage slot for perps engine configuration
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
+        // fetch storage slot for market making engine
         IMarketMakingEngine marketMakingEngine = IMarketMakingEngine(perpsEngineConfiguration.marketMakingEngine);
 
         // cache collateral liquidation priority length
@@ -581,27 +582,38 @@ library TradingAccount {
                     address(this)
                 );
 
+                // verify if we have the asset to send to the market making engine
                 if (ctx.assetAmount > 0) {
+
+                    // create variable to cache the sum of all position usd
                     UD60x18 sumOfAllPositionsUsdX18;
 
+                    // cache market ids length
                     uint256 cacheMarketIdsLengt = params.marketIds.length;
 
+                    // we need to sum of all positions usd only if cache market ids length will be > 1
                     if (cacheMarketIdsLengt > 1) {
                         for (uint256 j; j < params.positionsUsdX18.length; j++) {
                             sumOfAllPositionsUsdX18 = sumOfAllPositionsUsdX18.add(params.positionsUsdX18[j]);
                         }
                     }
 
+                    // loop into market ids
                     for (uint256 j; j < cacheMarketIdsLengt; j++) {
+                        // collateral native precision -> collateral zaros precision
                         UD60x18 collateralAmountX18 =
                             marginCollateralConfiguration.convertTokenAmountToUd60x18(ctx.assetAmount);
 
+                        // if we have more than one market id, we need to calculate the percentage that will be deposited for this market
                         if (cacheMarketIdsLengt > 1) {
+
+                            // calculate the percentage to deposit to this market
                             UD60x18 percentDeductForThisMarketX18 =
                                 params.positionsUsdX18[j].div(sumOfAllPositionsUsdX18);
                             collateralAmountX18 = collateralAmountX18.mul(percentDeductForThisMarketX18);
                         }
 
+                        // deposit the collateral in the market making engine
                         marketMakingEngine.depositCreditForMarket(
                             uint128(params.marketIds[j]),
                             collateralType,

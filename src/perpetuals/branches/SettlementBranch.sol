@@ -494,6 +494,7 @@ contract SettlementBranch is EIP712Upgradeable {
         // if trader's old position had positive pnl then credit that to the trader
         if (ctx.pnlUsdX18.gt(SD59x18_ZERO)) {
             IMarketMakingEngine marketMakingEngine = IMarketMakingEngine(perpsEngineConfiguration.marketMakingEngine);
+
             ctx.marginToAddX18 =
                 marketMakingEngine.getAdjustedProfitForMarketId(marketId, ctx.pnlUsdX18.intoUD60x18().intoUint256());
 
@@ -504,6 +505,7 @@ contract SettlementBranch is EIP712Upgradeable {
             marketMakingEngine.withdrawUsdTokenFromMarket(marketId, ctx.marginToAddX18.intoUint256());
         }
 
+        // add the market id to the market ids array
         ctx.marketIds = new uint256[](1);
         ctx.marketIds[0] = marketId;
 
@@ -520,7 +522,7 @@ contract SettlementBranch is EIP712Upgradeable {
                 orderFeeUsdX18: ctx.orderFeeUsdX18,
                 settlementFeeUsdX18: ctx.settlementFeeUsdX18,
                 marketIds: ctx.marketIds,
-                positionsUsdX18: new UD60x18[](1)
+                positionsUsdX18: new UD60x18[](1) // when we have only one market id, this property will be not used
             })
         );
 

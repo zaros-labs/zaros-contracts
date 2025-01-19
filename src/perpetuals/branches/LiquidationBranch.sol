@@ -167,6 +167,7 @@ contract LiquidationBranch {
             // copy active market ids for account being liquidated
             ctx.activeMarketsIds = tradingAccount.activeMarketsIds.values();
 
+            // instatiate the array of positions in usd value
             ctx.positionsUsdX18 = new UD60x18[](ctx.activeMarketsIds.length);
 
             // iterate over memory copy of active market ids
@@ -190,6 +191,7 @@ contract LiquidationBranch {
                 // calculate price impact of open position being closed
                 ctx.markPriceX18 = perpMarket.getMarkPrice(ctx.liquidationSizeX18, perpMarket.getIndexPrice());
 
+                // add the markPriceX18 to positions usd array
                 ctx.positionsUsdX18[j] = ctx.markPriceX18;
 
                 // get current funding rates

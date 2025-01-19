@@ -6,9 +6,6 @@ pragma solidity 0.8.25;
 import { UsdToken } from "@zaros/usd/UsdToken.sol";
 
 contract MockUsdToken is UsdToken {
-    /// @notice Mapping of the allowed engines
-    mapping(address engine => bool isAllowed) public allowedEngines;
-
     constructor(
         address owner,
         uint256 deployerBalance,
