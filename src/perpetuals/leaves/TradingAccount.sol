@@ -625,23 +625,23 @@ library TradingAccount {
             ctx.settlementFeeDeductedUsdX18.add(ctx.orderFeeDeductedUsdX18).add(ctx.pnlDeductedUsdX18);
     }
 
+    /// @notice Updates the account's active markets ids based on the position's state transition.
+    /// @param self The trading account storage pointer.
     /// @param marketId The perps market id.
     /// @param oldPositionSize The old position size.
     /// @param newPositionSize The new position size.
-    struct UpdateActiveMarketsParams {
-        uint128 marketId;
-        SD59x18 oldPositionSize;
-        SD59x18 newPositionSize;
-    }
-
-    /// @notice Updates the account's active markets ids based on the position's state transition.
-    /// @param self The trading account storage pointer.
-    /// @param params The update active markets params.
-    function updateActiveMarkets(Data storage self, UpdateActiveMarketsParams memory params) internal {
+    function updateActiveMarkets(
+        Data storage self,
+        uint128 marketId,
+        SD59x18 oldPositionSize,
+        SD59x18 newPositionSize
+    )
+        internal
+    {
         PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // if this is a new position
-        if (params.oldPositionSize.isZero() && !params.newPositionSize.isZero()) {
+        if (oldPositionSize.isZero() && !newPositionSize.isZero()) {
             // if this account has no other active positions
             if (!perpsEngineConfiguration.accountsIdsWithActivePositions.contains(self.id)) {
                 // then record it into perps engine config as an account having active positions
@@ -649,12 +649,12 @@ library TradingAccount {
             }
 
             // add this market id as active for this account
-            self.activeMarketsIds.add(params.marketId);
+            self.activeMarketsIds.add(marketId);
         }
         // if the existing position was closed
-        else if (params.oldPositionSize.neq(SD59x18_ZERO) && params.newPositionSize.eq(SD59x18_ZERO)) {
+        else if (oldPositionSize.neq(SD59x18_ZERO) && newPositionSize.eq(SD59x18_ZERO)) {
             // remove this market as active for this account
-            self.activeMarketsIds.remove(params.marketId);
+            self.activeMarketsIds.remove(marketId);
 
             // if the account has no more active markets
             if (self.activeMarketsIds.length() == 0) {

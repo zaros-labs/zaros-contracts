@@ -252,26 +252,21 @@ library PerpMarket {
         );
     }
 
-    /// @param sizeDelta The size delta of the order.
-    /// @param oldPositionSize The old position size.
-    /// @param newPositionSize The new position size.
-    /// @param shouldCheckNewOpenInterestAndNewSkew Whether to check the new open interest and skew.
-    struct CheckOpenInterestLimitsParams {
-        SD59x18 sizeDelta;
-        SD59x18 oldPositionSize;
-        SD59x18 newPositionSize;
-        bool shouldCheckNewOpenInterestAndNewSkew;
-    }
-
     /// @notice Verifies the market's open interest and skew limits based on the next state.
     /// @dev During liquidation we skip the max skew check, so the engine can always liquidate unhealthy accounts.
     /// @dev If the case outlined above happens and the maxSkew is crossed, the market will only allow orders that
     /// reduce the skew.
     /// @param self The PerpMarket storage pointer.
-    /// @param params The check open interest limits params.
+    /// @param sizeDelta The size delta of the order.
+    /// @param oldPositionSize The old position size.
+    /// @param newPositionSize The new position size.
+    /// @param shouldCheckNewOpenInterestAndNewSkew Whether to check the new open interest and skew.
     function checkOpenInterestLimits(
         Data storage self,
-        CheckOpenInterestLimitsParams memory params
+        SD59x18 sizeDelta,
+        SD59x18 oldPositionSize,
+        SD59x18 newPositionSize,
+        bool shouldCheckNewOpenInterestAndNewSkew
     )
         internal
         view
@@ -284,16 +279,15 @@ library PerpMarket {
         // calculate new open interest which would result from proposed trade
         // by subtracting old position size then adding new position size to
         // current open interest
-        newOpenInterest = currentOpenInterest.sub(params.oldPositionSize.abs().intoUD60x18()).add(
-            params.newPositionSize.abs().intoUD60x18()
-        );
+        newOpenInterest =
+            currentOpenInterest.sub(oldPositionSize.abs().intoUD60x18()).add(newPositionSize.abs().intoUD60x18());
 
         // if new open interest would be greater than this market's max open interest,
         // we still want to allow trades as long as they decrease the open interest. This
         // allows traders to reduce/close their positions in markets where protocol admins
         // have reduced the max open interest to reduce the protocol's exposure to a given
         // perp market
-        if (newOpenInterest.gt(maxOpenInterest) && params.shouldCheckNewOpenInterestAndNewSkew) {
+        if (newOpenInterest.gt(maxOpenInterest) && shouldCheckNewOpenInterestAndNewSkew) {
             // is the proposed trade reducing open interest?
             bool isReducingOpenInterest = currentOpenInterest.gt(newOpenInterest);
 
@@ -311,11 +305,11 @@ library PerpMarket {
         SD59x18 currentSkew = sd59x18(self.skew);
 
         // calculate new skew
-        newSkew = currentSkew.add(params.sizeDelta);
+        newSkew = currentSkew.add(sizeDelta);
 
         // similar logic to the open interest check; if the new skew is greater than
         // the max, we still want to allow trades as long as they decrease the skew
-        if (newSkew.abs().gt(maxSkew) && params.shouldCheckNewOpenInterestAndNewSkew) {
+        if (newSkew.abs().gt(maxSkew) && shouldCheckNewOpenInterestAndNewSkew) {
             bool isReducingSkew = currentSkew.abs().gt(newSkew.abs());
 
             if (!isReducingSkew) {

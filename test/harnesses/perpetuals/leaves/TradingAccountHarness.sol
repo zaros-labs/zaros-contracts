@@ -251,8 +251,6 @@ contract TradingAccountHarness {
     {
         TradingAccount.Data storage self = TradingAccount.load(tradingAccountId);
 
-        TradingAccount.updateActiveMarkets(
-            self, TradingAccount.UpdateActiveMarketsParams(marketId, oldPositionSize, newPositionSize)
-        );
+        TradingAccount.updateActiveMarkets(self, marketId, oldPositionSize, newPositionSize);
     }
 }

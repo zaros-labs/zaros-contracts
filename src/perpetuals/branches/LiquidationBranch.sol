@@ -93,6 +93,7 @@ contract LiquidationBranch {
     }
 
     struct LiquidationContext {
+        UD60x18[] positionsUsdX18;
         UD60x18 liquidationFeeUsdX18;
         uint128 tradingAccountId;
         SD59x18 marginBalanceUsdX18;
@@ -166,7 +167,7 @@ contract LiquidationBranch {
             // copy active market ids for account being liquidated
             ctx.activeMarketsIds = tradingAccount.activeMarketsIds.values();
 
-            UD60x18[] memory positionsUsdX18 = new UD60x18[](ctx.activeMarketsIds.length);
+            ctx.positionsUsdX18 = new UD60x18[](ctx.activeMarketsIds.length);
 
             // iterate over memory copy of active market ids
             // intentionally not caching length as expected size < 3 in most cases
@@ -189,7 +190,7 @@ contract LiquidationBranch {
                 // calculate price impact of open position being closed
                 ctx.markPriceX18 = perpMarket.getMarkPrice(ctx.liquidationSizeX18, perpMarket.getIndexPrice());
 
-                positionsUsdX18[j] = ctx.markPriceX18;
+                ctx.positionsUsdX18[j] = ctx.markPriceX18;
 
                 // get current funding rates
                 ctx.fundingRateX18 = perpMarket.getCurrentFundingRate();
@@ -203,15 +204,11 @@ contract LiquidationBranch {
 
                 // update account's active markets; this calls EnumerableSet::remove which
                 // is why we are iterating over a memory copy of the trader's active markets
-                tradingAccount.updateActiveMarkets(
-                    TradingAccount.UpdateActiveMarketsParams(ctx.marketId, ctx.oldPositionSizeX18, SD59x18_ZERO)
-                );
+                tradingAccount.updateActiveMarkets(ctx.marketId, ctx.oldPositionSizeX18, SD59x18_ZERO);
 
                 // we don't check skew during liquidations to protect from DoS
                 (ctx.newOpenInterestX18, ctx.newSkewX18) = perpMarket.checkOpenInterestLimits(
-                    PerpMarket.CheckOpenInterestLimitsParams(
-                        ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false
-                    )
+                    ctx.liquidationSizeX18, ctx.oldPositionSizeX18, SD59x18_ZERO, false
                 );
 
                 // update perp market's open interest and skew; we don't enforce ipen
@@ -237,7 +234,7 @@ contract LiquidationBranch {
                     orderFeeUsdX18: UD60x18_ZERO,
                     settlementFeeUsdX18: ctx.liquidationFeeUsdX18,
                     marketIds: ctx.activeMarketsIds,
-                    positionsUsdX18: positionsUsdX18
+                    positionsUsdX18: ctx.positionsUsdX18
                 })
             );
 

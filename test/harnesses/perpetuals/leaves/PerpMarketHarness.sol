@@ -98,10 +98,7 @@ contract PerpMarketHarness {
     {
         PerpMarket.Data storage self = PerpMarket.load(marketId);
         return PerpMarket.checkOpenInterestLimits(
-            self,
-            PerpMarket.CheckOpenInterestLimitsParams(
-                sizeDelta, oldPositionSize, newPositionSize, shouldCheckNewOpenInterestAndNewSkew
-            )
+            self, sizeDelta, oldPositionSize, newPositionSize, shouldCheckNewOpenInterestAndNewSkew
         );
     }
 
