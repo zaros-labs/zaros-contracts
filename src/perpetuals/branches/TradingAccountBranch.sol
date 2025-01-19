@@ -10,7 +10,6 @@ import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
-import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { Whitelist } from "@zaros/utils/Whitelist.sol";
@@ -38,7 +37,6 @@ contract TradingAccountBranch {
     using SafeERC20 for IERC20;
     using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
     using MarginCollateralConfiguration for MarginCollateralConfiguration.Data;
-    using Referral for Referral.Data;
     using MarketOrder for MarketOrder.Data;
 
     /// @notice Emitted when a new trading account is created.

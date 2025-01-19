@@ -6,9 +6,7 @@ pragma solidity 0.8.25;
 import { ITradingAccountNFT } from "@zaros/trading-account-nft/interfaces/ITradingAccountNFT.sol";
 import { TradingAccountBranch } from "@zaros/perpetuals/branches/TradingAccountBranch.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
-import { Referral } from "@zaros/perpetuals/leaves/Referral.sol";
 import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
-import { CustomReferralConfiguration } from "@zaros/utils/leaves/CustomReferralConfiguration.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
 
@@ -21,7 +19,6 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
 contract TradingAccountBranchTestnet is TradingAccountBranch, Initializable, OwnableUpgradeable {
     using TradingAccount for TradingAccount.Data;
-    using Referral for Referral.Data;
     using PerpsEngineConfiguration for PerpsEngineConfiguration.Data;
 
     mapping(address user => bool accountCreated) internal isAccountCreated;
