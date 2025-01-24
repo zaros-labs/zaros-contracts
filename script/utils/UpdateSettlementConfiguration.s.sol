@@ -37,7 +37,10 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
 
         // create the matic usd market order configuration data
         SettlementConfiguration.DataStreamsStrategy memory maticUsdMarketOrderConfigurationData =
-            SettlementConfiguration.DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: maticUsdStreamId });
+        SettlementConfiguration.DataStreamsStrategy({
+            chainlinkVerifier: chainlinkVerifier,
+            streamId: maticUsdStreamId
+        });
 
         // create the matic usd market order configuration
         SettlementConfiguration.Data memory maticUsdMarketOrderConfiguration = SettlementConfiguration.Data({
@@ -50,7 +53,9 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
 
         // update the matic usd market order configuration
         perpsEngine.updateSettlementConfiguration(
-            MATIC_USD_MARKET_ID, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID, maticUsdMarketOrderConfiguration
+            MATIC_USD_MARKET_ID,
+            SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID,
+            maticUsdMarketOrderConfiguration
         );
     }
 }

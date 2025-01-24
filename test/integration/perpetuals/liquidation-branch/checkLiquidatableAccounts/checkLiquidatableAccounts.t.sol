@@ -102,7 +102,8 @@ contract CheckLiquidatableAccounts_Integration_Test is Base_Test {
         }
 
         // check to prevent panic array out of bounds
-        liquidatableAccountIds = perpsEngine.checkLiquidatableAccounts(amountOfTradingAccounts + 1, amountOfTradingAccounts * 2);
+        liquidatableAccountIds =
+            perpsEngine.checkLiquidatableAccounts(amountOfTradingAccounts + 1, amountOfTradingAccounts * 2);
 
         for (uint256 i; i < liquidatableAccountIds.length; i++) {
             assertEq(liquidatableAccountIds[i], 0);

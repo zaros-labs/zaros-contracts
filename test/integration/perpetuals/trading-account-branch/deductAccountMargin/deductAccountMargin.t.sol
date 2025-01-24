@@ -373,9 +373,7 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
         });
     }
 
-    function test_WhenTheMarginCollateralBalanceIsZeroAfterDeductingOneOfTheFees(
-        uint256 marginValueUsd
-    )
+    function test_WhenTheMarginCollateralBalanceIsZeroAfterDeductingOneOfTheFees(uint256 marginValueUsd)
         external
         whenThereIsCollateralLiquidationPriority
         givenTheAccountHasAMarginBalanceDifferentFromZero

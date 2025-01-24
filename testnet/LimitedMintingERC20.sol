@@ -14,6 +14,8 @@ import { IERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensio
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
+import { console } from "forge-std/console.sol";
+
 /// @notice LimitedMintingERC20 is an ERC20 token with limited minting capabilities used in testnet.
 contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, OwnableUpgradeable {
     /*//////////////////////////////////////////////////////////////////////////
@@ -168,6 +170,22 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     function burn(address from, uint256 amount) external {
         _requireAmountNotZero(amount);
         _burn(from, amount);
+    }
+
+    function getUserRawData(address account, uint256 tokenIndex) public view returns (uint256 userLastMintedTimestamp, uint256 userBalanceOf, uint128 tradingAccountId, int256 marginBalanceX18, bool userIsEnableToMint) {
+        userIsEnableToMint = verifyIfUserIsEnableToMint(tokenIndex, false);
+        userLastMintedTimestamp = userLastMintedTime[account];
+        userBalanceOf = balanceOf(account);
+
+        address tradingAccountToken = IPerpsEngine(PERPS_ENGINE).getTradingAccountToken();
+        bool userHasTradingAccount = IERC721Enumerable(tradingAccountToken).balanceOf(account) > 0;
+
+        if (userHasTradingAccount) {
+            tradingAccountId = uint128(IERC721Enumerable(tradingAccountToken).tokenOfOwnerByIndex(account, tokenIndex));
+            (SD59x18 marginBalanceUsdX18,,,) = IPerpsEngine(PERPS_ENGINE).getAccountMarginBreakdown(tradingAccountId);
+
+            marginBalanceX18 = marginBalanceUsdX18.intoInt256();
+        }
     }
 
     /*//////////////////////////////////////////////////////////////////////////

@@ -265,9 +265,7 @@ contract PriceAdapter_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_SequencerUptimeFeedIsNotStarted(
-        bool useEthPriceFeed
-    )
+    function testFuzz_RevertWhen_SequencerUptimeFeedIsNotStarted(bool useEthPriceFeed)
         external
         whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
@@ -321,9 +319,7 @@ contract PriceAdapter_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_GracePeriodNotOver(
-        bool useEthPriceFeed
-    )
+    function testFuzz_RevertWhen_GracePeriodNotOver(bool useEthPriceFeed)
         external
         whenPriceAdapterIsNotZero
         whenPriceFeedDecimalsIsLessThanOrEqualToTheSystemDecimals
