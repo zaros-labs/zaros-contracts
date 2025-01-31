@@ -2,13 +2,11 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { Errors } from "@zaros/utils/Errors.sol";
 import { OffchainOrder } from "@zaros/perpetuals/leaves/OffchainOrder.sol";
 import { MarketOrder } from "@zaros/perpetuals/leaves/MarketOrder.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
-import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
@@ -513,11 +511,6 @@ contract SettlementBranch is EIP712Upgradeable {
         // if trader's old position had negative pnl
         tradingAccount.deductAccountMargin(
             TradingAccount.DeductAccountMarginParams({
-                feeRecipients: FeeRecipients.Data({
-                    marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
-                    orderFeeRecipient: perpsEngineConfiguration.orderFeeRecipient,
-                    settlementFeeRecipient: perpsEngineConfiguration.settlementFeeRecipient
-                }),
                 pnlUsdX18: ctx.pnlUsdX18.lt(SD59x18_ZERO) ? ctx.pnlUsdX18.abs().intoUD60x18() : UD60x18_ZERO,
                 orderFeeUsdX18: ctx.orderFeeUsdX18,
                 settlementFeeUsdX18: ctx.settlementFeeUsdX18,

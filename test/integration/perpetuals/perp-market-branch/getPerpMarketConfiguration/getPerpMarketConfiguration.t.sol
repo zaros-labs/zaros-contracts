@@ -8,10 +8,6 @@ import { Base_Test } from "test/Base.t.sol";
 contract GetPerpMarketConfiguration_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_GivenTheresAMarketCreated(uint256 marketId) external {

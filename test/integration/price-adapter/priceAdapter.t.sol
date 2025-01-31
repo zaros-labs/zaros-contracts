@@ -27,10 +27,6 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 contract PriceAdapter_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenTheUserTryToUpdateTheContract() {

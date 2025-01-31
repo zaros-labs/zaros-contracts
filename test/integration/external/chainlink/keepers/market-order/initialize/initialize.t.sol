@@ -13,12 +13,6 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 contract MarketOrderKeeper_Initialize_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-
-        createPerpMarkets();
-
-        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContractWithSomeWrongInformation() {

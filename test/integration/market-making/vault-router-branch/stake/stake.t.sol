@@ -12,10 +12,6 @@ import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 contract Stake_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-        configureMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_RevertWhen_QualityOfSharesIsLessThanMinAmount(uint128 vaultId, uint128 assetsToDeposit) external {

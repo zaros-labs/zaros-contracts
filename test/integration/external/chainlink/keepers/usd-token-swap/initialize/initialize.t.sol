@@ -12,9 +12,6 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 contract UsdTokenSwapKeeper_Initialize_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_AddressOfMarketMakingEngineIsZero(uint256 vaultId) external {

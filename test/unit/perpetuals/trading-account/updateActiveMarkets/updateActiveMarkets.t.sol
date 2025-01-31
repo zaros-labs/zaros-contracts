@@ -10,14 +10,6 @@ import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 contract UpdateActiveMarkets_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-
-        changePrank({ msgSender: users.owner.account });
-
-        configureSystemParameters();
-
-        createPerpMarkets();
-
-        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier whenThisIsANewPosition() {

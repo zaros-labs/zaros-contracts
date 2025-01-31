@@ -13,10 +13,6 @@ import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
 contract getAccountMarginBreakdown_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_GetAccountMarginOneCollateral(uint256 amountToDeposit) external {

@@ -8,9 +8,6 @@ import { FeeConversionKeeper } from "@zaros/external/chainlink/keepers/fee-conve
 contract FeeConversionKeeper_CheckUpkeep_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        changePrank({ msgSender: address(users.owner.account) });
-        configureMarkets();
-        changePrank({ msgSender: address(users.naruto.account) });
     }
 
     modifier givenCheckUpkeepIsCalled() {

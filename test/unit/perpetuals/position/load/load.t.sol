@@ -9,8 +9,6 @@ contract Position_Load_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
     }
 
     function testFuzz_GivenDontHaveAFilledMarketOrder(uint256 marketId) external {

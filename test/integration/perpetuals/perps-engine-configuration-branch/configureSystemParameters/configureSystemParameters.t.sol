@@ -9,12 +9,6 @@ import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/Perps
 contract ConfigureSystemParameters_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-
-        createPerpMarkets();
-
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_MaxPositionsPerAccountIsZero(
@@ -31,10 +25,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             0,
             marketOrderMinLifetime,
             liquidationFeeUsdX18,
-            feeRecipients.marginCollateralRecipient,
-            feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
             address(whitelist),
@@ -65,10 +55,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             maxPositionsPerAccount,
             marketOrderMinLifetime,
             0,
-            feeRecipients.marginCollateralRecipient,
-            feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
             address(whitelist),
@@ -81,160 +67,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         _;
     }
 
-    function testFuzz_RevertWhen_MarginCollateralRecipientIsZero(
-        uint128 maxPositionsPerAccount,
-        uint128 marketOrderMinLifetime,
-        uint128 liquidationFeeUsdX18
-    )
-        external
-        whenMaxPositionsPerAccountIsNotZero
-        whenLiquidationFeeIsNotZero
-    {
-        vm.assume(maxPositionsPerAccount > 0);
-        vm.assume(marketOrderMinLifetime > 0);
-        vm.assume(liquidationFeeUsdX18 > 0);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "marginCollateralRecipient") });
-
-        changePrank({ msgSender: users.owner.account });
-        perpsEngine.configureSystemParameters(
-            maxPositionsPerAccount,
-            marketOrderMinLifetime,
-            liquidationFeeUsdX18,
-            address(0),
-            feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account,
-            address(marketMakingEngine),
-            address(referralModule),
-            address(whitelist),
-            MAX_VERIFICATION_DELAY,
-            true
-        );
-    }
-
-    modifier whenMarginCollateralRecipientIsNotZero() {
-        _;
-    }
-
-    function testFuzz_RevertWhen_OrderFeeRecipientIsZero(
-        uint128 maxPositionsPerAccount,
-        uint128 marketOrderMinLifetime,
-        uint128 liquidationFeeUsdX18
-    )
-        external
-        whenMaxPositionsPerAccountIsNotZero
-        whenLiquidationFeeIsNotZero
-        whenMarginCollateralRecipientIsNotZero
-    {
-        vm.assume(maxPositionsPerAccount > 0);
-        vm.assume(marketOrderMinLifetime > 0);
-        vm.assume(liquidationFeeUsdX18 > 0);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "orderFeeRecipient") });
-
-        changePrank({ msgSender: users.owner.account });
-        perpsEngine.configureSystemParameters(
-            maxPositionsPerAccount,
-            marketOrderMinLifetime,
-            liquidationFeeUsdX18,
-            feeRecipients.marginCollateralRecipient,
-            address(0),
-            feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account,
-            address(marketMakingEngine),
-            address(referralModule),
-            address(whitelist),
-            MAX_VERIFICATION_DELAY,
-            true
-        );
-    }
-
-    modifier whenOrderFeeRecipientIsNotZero() {
-        _;
-    }
-
-    function testFuzz_RevertWhen_SettlementFeeRecipientIsZero(
-        uint128 maxPositionsPerAccount,
-        uint128 marketOrderMinLifetime,
-        uint128 liquidationFeeUsdX18
-    )
-        external
-        whenMaxPositionsPerAccountIsNotZero
-        whenLiquidationFeeIsNotZero
-        whenMarginCollateralRecipientIsNotZero
-        whenOrderFeeRecipientIsNotZero
-    {
-        vm.assume(maxPositionsPerAccount > 0);
-        vm.assume(marketOrderMinLifetime > 0);
-        vm.assume(liquidationFeeUsdX18 > 0);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "settlementFeeRecipient") });
-
-        changePrank({ msgSender: users.owner.account });
-        perpsEngine.configureSystemParameters(
-            maxPositionsPerAccount,
-            marketOrderMinLifetime,
-            liquidationFeeUsdX18,
-            feeRecipients.marginCollateralRecipient,
-            feeRecipients.orderFeeRecipient,
-            address(0),
-            users.liquidationFeeRecipient.account,
-            address(marketMakingEngine),
-            address(referralModule),
-            address(whitelist),
-            MAX_VERIFICATION_DELAY,
-            true
-        );
-    }
-
-    modifier whenSettlementFeeRecipientIsNotZero() {
-        _;
-    }
-
-    function testFuzz_RevertWhen_LiquidationFeeRecipientIsZero(
-        uint128 maxPositionsPerAccount,
-        uint128 marketOrderMinLifetime,
-        uint128 liquidationFeeUsdX18
-    )
-        external
-        whenMaxPositionsPerAccountIsNotZero
-        whenLiquidationFeeIsNotZero
-        whenMarginCollateralRecipientIsNotZero
-        whenOrderFeeRecipientIsNotZero
-        whenSettlementFeeRecipientIsNotZero
-    {
-        vm.assume(maxPositionsPerAccount > 0);
-        vm.assume(marketOrderMinLifetime > 0);
-        vm.assume(liquidationFeeUsdX18 > 0);
-
-        // it should revert
-        vm.expectRevert({ revertData: abi.encodeWithSelector(Errors.ZeroInput.selector, "liquidationFeeRecipient") });
-
-        changePrank({ msgSender: users.owner.account });
-        perpsEngine.configureSystemParameters(
-            maxPositionsPerAccount,
-            marketOrderMinLifetime,
-            liquidationFeeUsdX18,
-            feeRecipients.marginCollateralRecipient,
-            feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient,
-            address(0),
-            address(marketMakingEngine),
-            address(referralModule),
-            address(whitelist),
-            MAX_VERIFICATION_DELAY,
-            true
-        );
-    }
-
-    modifier whenLiquidationFeeRecipientIsNotZero() {
-        _;
-    }
-
     function testFuzz_RevertWhen_ReferralModuleIsZero(
         uint128 maxPositionsPerAccount,
         uint128 marketOrderMinLifetime,
@@ -243,10 +75,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         external
         whenMaxPositionsPerAccountIsNotZero
         whenLiquidationFeeIsNotZero
-        whenMarginCollateralRecipientIsNotZero
-        whenOrderFeeRecipientIsNotZero
-        whenSettlementFeeRecipientIsNotZero
-        whenLiquidationFeeRecipientIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
         vm.assume(marketOrderMinLifetime > 0);
@@ -260,10 +88,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             maxPositionsPerAccount,
             marketOrderMinLifetime,
             liquidationFeeUsdX18,
-            feeRecipients.marginCollateralRecipient,
-            feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(0),
             address(whitelist),
@@ -284,10 +108,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         external
         whenMaxPositionsPerAccountIsNotZero
         whenLiquidationFeeIsNotZero
-        whenMarginCollateralRecipientIsNotZero
-        whenOrderFeeRecipientIsNotZero
-        whenSettlementFeeRecipientIsNotZero
-        whenLiquidationFeeRecipientIsNotZero
         whenReferralModuleIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
@@ -302,10 +122,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             maxPositionsPerAccount,
             marketOrderMinLifetime,
             liquidationFeeUsdX18,
-            feeRecipients.marginCollateralRecipient,
-            feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
             address(whitelist),
@@ -322,10 +138,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
         external
         whenMaxPositionsPerAccountIsNotZero
         whenLiquidationFeeIsNotZero
-        whenMarginCollateralRecipientIsNotZero
-        whenOrderFeeRecipientIsNotZero
-        whenSettlementFeeRecipientIsNotZero
-        whenLiquidationFeeRecipientIsNotZero
         whenReferralModuleIsNotZero
     {
         vm.assume(maxPositionsPerAccount > 0);
@@ -343,10 +155,6 @@ contract ConfigureSystemParameters_Integration_Test is Base_Test {
             maxPositionsPerAccount,
             marketOrderMinLifetime,
             liquidationFeeUsdX18,
-            feeRecipients.marginCollateralRecipient,
-            feeRecipients.orderFeeRecipient,
-            feeRecipients.settlementFeeRecipient,
-            users.liquidationFeeRecipient.account,
             address(marketMakingEngine),
             address(referralModule),
             address(whitelist),

@@ -10,9 +10,6 @@ import { Base_Test } from "test/Base.t.sol";
 contract MarketMakingEngineConfigurationBranch_GetCollateralData_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_WhenGetCollateralDataIsCalled(uint256 vaultId) external {

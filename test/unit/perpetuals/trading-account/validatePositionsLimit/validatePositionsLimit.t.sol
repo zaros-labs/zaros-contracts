@@ -8,10 +8,6 @@ import { Errors } from "@zaros/utils/Errors.sol";
 contract ValidatePositionsLimit_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_UserActivePositionsIsGreaterThanOrEqualTheMaxPositionsPerAccount(

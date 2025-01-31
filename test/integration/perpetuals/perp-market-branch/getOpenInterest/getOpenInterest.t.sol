@@ -13,12 +13,6 @@ import { sd59x18 } from "@prb-math/SD59x18.sol";
 contract GetOpenInterest_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-        configureMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_GivenTheresAPositionCreated(

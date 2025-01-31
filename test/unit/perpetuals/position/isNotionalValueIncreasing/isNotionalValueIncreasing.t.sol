@@ -12,10 +12,6 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 contract Position_IsNotionalValueIncreasing_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_WhenANewPositionIsBeingCreated(

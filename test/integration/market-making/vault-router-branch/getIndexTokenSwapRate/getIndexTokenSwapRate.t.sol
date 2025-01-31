@@ -16,9 +16,6 @@ contract GetIndexTokenSwapRate_Integration_Test is Base_Test {
 
     function setUp() public virtual override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_WhenGetIndexTokenSwapRateIsCalled(uint128 vaultId, uint256 amountToSwap) external {

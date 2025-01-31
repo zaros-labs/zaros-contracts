@@ -3,8 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Base_Test } from "test/Base.t.sol";
-
-import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 
 // PRB Math dependencies
@@ -44,14 +42,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
     function setUp() public override {
         Base_Test.setUp();
-
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-        configureMarkets();
-        changePrank({ msgSender: users.naruto.account });
-
         usdcDepositCap = convertUd60x18ToTokenAmount(address(usdc), USDC_DEPOSIT_CAP_X18);
     }
 
@@ -103,11 +93,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: MSIG_ADDRESS,
-                orderFeeRecipient: MSIG_ADDRESS,
-                settlementFeeRecipient: MSIG_ADDRESS
-            }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18,
@@ -157,11 +142,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: MSIG_ADDRESS,
-                orderFeeRecipient: MSIG_ADDRESS,
-                settlementFeeRecipient: MSIG_ADDRESS
-            }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18,
@@ -210,11 +190,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: MSIG_ADDRESS,
-                orderFeeRecipient: MSIG_ADDRESS,
-                settlementFeeRecipient: MSIG_ADDRESS
-            }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18,
@@ -261,11 +236,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: MSIG_ADDRESS,
-                orderFeeRecipient: MSIG_ADDRESS,
-                settlementFeeRecipient: MSIG_ADDRESS
-            }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18,
@@ -314,11 +284,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: MSIG_ADDRESS,
-                orderFeeRecipient: MSIG_ADDRESS,
-                settlementFeeRecipient: MSIG_ADDRESS
-            }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18,
@@ -365,11 +330,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: MSIG_ADDRESS,
-                orderFeeRecipient: MSIG_ADDRESS,
-                settlementFeeRecipient: MSIG_ADDRESS
-            }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18,
@@ -418,11 +378,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: MSIG_ADDRESS,
-                orderFeeRecipient: MSIG_ADDRESS,
-                settlementFeeRecipient: MSIG_ADDRESS
-            }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18,
@@ -462,11 +417,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         uint256 marginDeductedUsd = perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: narutoTradingAccountId,
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: MSIG_ADDRESS,
-                orderFeeRecipient: MSIG_ADDRESS,
-                settlementFeeRecipient: MSIG_ADDRESS
-            }),
             pnlUsdX18: marginValueUsdX18,
             orderFeeUsdX18: marginValueUsdX18,
             settlementFeeUsdX18: marginValueUsdX18,
@@ -526,11 +476,6 @@ contract DeductAccountMargin_Unit_Test is Base_Test {
 
         perpsEngine.exposed_deductAccountMargin({
             tradingAccountId: tradingAccountId,
-            feeRecipients: FeeRecipients.Data({
-                marginCollateralRecipient: MSIG_ADDRESS,
-                orderFeeRecipient: MSIG_ADDRESS,
-                settlementFeeRecipient: MSIG_ADDRESS
-            }),
             pnlUsdX18: pnlUsdX18,
             orderFeeUsdX18: orderFeeUsdX18,
             settlementFeeUsdX18: ctx.settlementFeeUsdX18,

@@ -15,8 +15,6 @@ contract MarketMakingEngineConfigurationBranch_PauseMarket_Integration_Test is B
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotTheOwner(uint256 marketId) external {
@@ -37,15 +35,29 @@ contract MarketMakingEngineConfigurationBranch_PauseMarket_Integration_Test is B
 
         uint128[] memory activeMarketIds = marketMakingEngine.getLiveMarketIds();
 
-        // it should pause the market
-        bool paused;
+        bool marketIsPaused = true;
 
         for (uint256 i; i < activeMarketIds.length; i++) {
             if (activeMarketIds[i] == fuzzMarketConfig.marketId) {
-                paused = true;
+                marketIsPaused = false;
             }
         }
 
-        assertFalse(paused);
+        assertFalse(marketIsPaused);
+
+        // it should pause the market
+        marketMakingEngine.pauseMarket(fuzzMarketConfig.marketId);
+
+        marketIsPaused = false;
+
+        activeMarketIds = marketMakingEngine.getLiveMarketIds();
+
+        for (uint256 i; i < activeMarketIds.length; i++) {
+            if (activeMarketIds[i] == fuzzMarketConfig.marketId) {
+                marketIsPaused = true;
+            }
+        }
+
+        assertFalse(marketIsPaused);
     }
 }

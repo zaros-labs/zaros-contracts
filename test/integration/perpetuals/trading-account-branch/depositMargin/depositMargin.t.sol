@@ -42,11 +42,6 @@ contract DepositMargin_Integration_Test is Base_Test {
         external
         whenTheAmountIsNotZero
     {
-        changePrank({ msgSender: users.owner.account });
-
-        configureSystemParameters();
-        createPerpMarkets();
-
         changePrank({ msgSender: users.naruto.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -98,11 +93,6 @@ contract DepositMargin_Integration_Test is Base_Test {
         external
         whenTheAmountIsNotZero
     {
-        changePrank({ msgSender: users.owner.account });
-
-        configureSystemParameters();
-        createPerpMarkets();
-
         changePrank({ msgSender: users.naruto.account });
 
         MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
@@ -146,10 +136,6 @@ contract DepositMargin_Integration_Test is Base_Test {
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMinLifetime: 0,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
-            marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
-            orderFeeRecipient: feeRecipients.orderFeeRecipient,
-            settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
-            liquidationFeeRecipient: users.liquidationFeeRecipient.account,
             referralModule: address(referralModule),
             whitelist: address(whitelist),
             marketMakingEngine: address(marketMakingEngine),

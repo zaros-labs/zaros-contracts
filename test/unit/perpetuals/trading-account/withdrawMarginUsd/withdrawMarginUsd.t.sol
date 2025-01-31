@@ -11,10 +11,6 @@ import { UD60x18, ud60x18, convert as ud60x18Convert } from "@prb-math/UD60x18.s
 contract WithdrawMarginUsd_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_WhenTheMarginCollateralBalanceUsdIsGreaterThanOrEqualToTheRequiredMarginCollateral(

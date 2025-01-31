@@ -15,7 +15,6 @@ import { PerpsEngineConfigurationBranch } from "@zaros/perpetuals/branches/Perps
 import { Math } from "@zaros/utils/Math.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
-import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { MarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
@@ -137,7 +136,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     address internal mockChainlinkFeeManager;
     address internal mockChainlinkVerifier;
     address internal mockSequencerUptimeFeed;
-    FeeRecipients.Data internal feeRecipients;
     address internal liquidationKeeper;
     address internal feeConversionKeeper;
     uint256 internal constant MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO = 1e18;
@@ -179,10 +177,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     function setUp() public virtual {
         users = Users({
             owner: createUser({ name: "Owner" }),
-            marginCollateralRecipient: createUser({ name: "Margin Collateral Recipient" }),
-            orderFeeRecipient: createUser({ name: "Order Fee Recipient" }),
-            settlementFeeRecipient: createUser({ name: "Settlement Fee Recipient" }),
-            liquidationFeeRecipient: createUser({ name: "Liquidation Fee Recipient" }),
             keepersForwarder: createUser({ name: "Keepers Forwarder" }),
             vaultFeeRecipient: createUser({ name: "Vault Fee Recipient" }),
             naruto: createUser({ name: "Naruto Uzumaki" }),
@@ -286,11 +280,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
         mockChainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
-        feeRecipients = FeeRecipients.Data({
-            marginCollateralRecipient: users.marginCollateralRecipient.account,
-            orderFeeRecipient: users.orderFeeRecipient.account,
-            settlementFeeRecipient: users.settlementFeeRecipient.account
-        });
 
         setupMarketsConfig(mockSequencerUptimeFeed, users.owner.account);
         configureLiquidationKeepers();
@@ -386,6 +375,10 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         configureContracts();
         approveContracts();
         marketMakingEngine.updateStabilityConfiguration(mockChainlinkVerifier, uint128(MAX_VERIFICATION_DELAY));
+        configureSystemParameters();
+        createPerpMarkets();
+        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
+        configureMarkets();
         changePrank({ msgSender: users.naruto.account });
     }
 
@@ -519,10 +512,6 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMinLifetime: MARKET_ORDER_MIN_LIFETIME,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
-            marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
-            orderFeeRecipient: feeRecipients.orderFeeRecipient,
-            settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
-            liquidationFeeRecipient: users.liquidationFeeRecipient.account,
             marketMakingEngine: address(marketMakingEngine),
             referralModule: address(referralModule),
             whitelist: address(whitelist),
