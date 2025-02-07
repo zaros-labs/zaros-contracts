@@ -46,7 +46,7 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         // setup perp markets credit config
         bool isTest = false;
         RootProxy.InitParams memory mmEngineTestInitParams;
-        setupPerpMarketsCreditConfig(isTest, mmEngineTestInitParams);
+        setupPerpMarketsCreditConfig(isTest, address(perpsEngine), perpsEngineUsdToken);
 
         console.log("**************************");
         console.log("Configuring vault deposit and redeem fee recipient...");
