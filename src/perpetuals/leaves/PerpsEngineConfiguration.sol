@@ -23,10 +23,6 @@ library PerpsEngineConfiguration {
     /// @param marketOrderMinLifetime The minimum amount of time an active market order needs to be canceled.
     /// @param liquidationFeeUsdX18 The liquidation fee charged in USD.
     /// @param nextAccountId The next available trading account id.
-    /// @param marginCollateralRecipient The address that receives deducted margin collateral.
-    /// @param orderFeeRecipient The address that receives order fees.
-    /// @param settlementFeeRecipient The address that receives settlement fees.
-    /// @param liquidationFeeRecipient The address that receives liquidation fees.
     /// @param usdToken The address of the USD token (USD Token).
     /// @param tradingAccountToken The address of the trading account NFT.
     /// @param referralModule The address of the referral module.
@@ -43,10 +39,6 @@ library PerpsEngineConfiguration {
         uint96 nextAccountId;
         // TODO: We may need to update the two following recipients
         // to call functions from the MM engine.
-        address marginCollateralRecipient;
-        address orderFeeRecipient;
-        address settlementFeeRecipient;
-        address liquidationFeeRecipient;
         address marketMakingEngine;
         address usdToken;
         address tradingAccountToken;

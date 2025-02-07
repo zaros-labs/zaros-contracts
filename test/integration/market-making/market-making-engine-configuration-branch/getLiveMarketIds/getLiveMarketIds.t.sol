@@ -8,8 +8,6 @@ contract MarketMakingEngineConfigurationBranch_GetLiveMarketIds_Integration_Test
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        configureMarkets();
     }
 
     function test_WhenGetLiveMarketIdsIsCalled() external {

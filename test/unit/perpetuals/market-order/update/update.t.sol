@@ -12,10 +12,6 @@ import { ud60x18 } from "@prb-math/UD60x18.sol";
 contract Update_Unit_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_WhenTheFunctionIsPassedZeroValues(uint128 tradingAccountId) external {

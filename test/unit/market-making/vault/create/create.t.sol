@@ -16,8 +16,6 @@ contract Vault_Create_Unit_Test is Base_Test {
     }
 
     function testFuzz_RevertWhen_CreateIsPassedExistingVaultId(uint256 vaultId) external {
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Collateral.Data memory collateral = Collateral.Data({
@@ -56,7 +54,7 @@ contract Vault_Create_Unit_Test is Base_Test {
         });
 
         Vault.CreateParams memory params = Vault.CreateParams({
-            vaultId: fuzzVaultConfig.vaultId,
+            vaultId: FINAL_VAULT_ID + 1,
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,

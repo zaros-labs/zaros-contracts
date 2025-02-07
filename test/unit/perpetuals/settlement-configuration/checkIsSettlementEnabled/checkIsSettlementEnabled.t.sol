@@ -10,8 +10,6 @@ contract SettlementConfiguration_CheckIsSettlementEnabled_Unit_Test is Base_Test
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
     }
 
     function testFuzz_RevertGiven_TheConfiguredSettlementStrategyIsDisabled(uint256 marketId) external {

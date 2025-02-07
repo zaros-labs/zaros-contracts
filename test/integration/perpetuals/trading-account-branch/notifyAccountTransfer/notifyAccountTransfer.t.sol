@@ -14,10 +14,6 @@ import { ud60x18 } from "@prb-math/UD60x18.sol";
 contract NotifyAccountTransfer_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function test_RevertGiven_TheSenderIsNotTheAccountNftContract() external {
@@ -171,10 +167,6 @@ contract NotifyAccountTransfer_Integration_Test is Base_Test {
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMinLifetime: 0,
             liquidationFeeUsdX18: LIQUIDATION_FEE_USD,
-            marginCollateralRecipient: feeRecipients.marginCollateralRecipient,
-            orderFeeRecipient: feeRecipients.orderFeeRecipient,
-            settlementFeeRecipient: feeRecipients.settlementFeeRecipient,
-            liquidationFeeRecipient: users.liquidationFeeRecipient.account,
             referralModule: address(referralModule),
             whitelist: address(whitelist),
             marketMakingEngine: address(marketMakingEngine),

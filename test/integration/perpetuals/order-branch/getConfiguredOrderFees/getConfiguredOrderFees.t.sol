@@ -8,12 +8,6 @@ import { OrderFees } from "@zaros/perpetuals/leaves/OrderFees.sol";
 contract GetConfiguredOrderFees_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-
-        createPerpMarkets();
-
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_GivenTheresAMarketCreated(uint256 marketId) external {

@@ -4,14 +4,6 @@ pragma solidity 0.8.25;
 struct Users {
     // Default owner for all Zaros contracts.
     User owner;
-    // Address that receives margin collateral from trading accounts.
-    User marginCollateralRecipient;
-    // Address that receives order fee payments.
-    User orderFeeRecipient;
-    // Address that receives settlement fee payments.
-    User settlementFeeRecipient;
-    // Address that receives liquidation fee payments.
-    User liquidationFeeRecipient;
     // Default forwarder for Chainlink Automation-powered keepers
     User keepersForwarder;
     // Address that receives vault deposit/redeem fees

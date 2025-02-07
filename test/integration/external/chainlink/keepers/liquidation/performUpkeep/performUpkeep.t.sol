@@ -9,12 +9,6 @@ import { LiquidationBranch } from "@zaros/perpetuals/branches/LiquidationBranch.
 contract LiquidationKeeper_PerformUpkeep_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-        configureMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContract() {

@@ -443,7 +443,7 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
         perpsEngine.createPerpMarket(params);
     }
 
-    function testFuzz_WhenMaxFundingVelocityIsNotZero(uint128 marketId)
+    function test_WhenMaxFundingVelocityIsNotZero()
         external
         whenMarketIdIsNotZero
         whenLengthOfNameIsNotZero
@@ -458,14 +458,12 @@ contract CreatePerpMarket_Integration_Test is Base_Test {
     {
         changePrank({ msgSender: users.owner.account });
 
-        MarketConfig memory fuzzMarketConfig = getFuzzMarketConfig(marketId);
-
         SettlementConfiguration.Data memory offchainOrdersConfiguration;
         SettlementConfiguration.Data memory marketOrderConfiguration;
 
         PerpsEngineConfigurationBranch.CreatePerpMarketParams memory params = PerpsEngineConfigurationBranch
             .CreatePerpMarketParams({
-            marketId: fuzzMarketConfig.marketId,
+            marketId: uint128(FINAL_MARKET_ID + 1),
             name: "BTC/USD",
             symbol: "BTC",
             priceAdapter: address(0x20),

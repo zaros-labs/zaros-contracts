@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
-import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 
 // Open Zeppelin dependencies
 import { EnumerableSet } from "@openzeppelin/utils/structs/EnumerableSet.sol";
@@ -221,7 +220,6 @@ contract TradingAccountHarness {
 
     function exposed_deductAccountMargin(
         uint128 tradingAccountId,
-        FeeRecipients.Data memory feeRecipients,
         UD60x18 pnlUsdX18,
         UD60x18 settlementFeeUsdX18,
         UD60x18 orderFeeUsdX18,
@@ -236,12 +234,7 @@ contract TradingAccountHarness {
         return TradingAccount.deductAccountMargin(
             self,
             TradingAccount.DeductAccountMarginParams(
-                feeRecipients,
-                pnlUsdX18,
-                settlementFeeUsdX18,
-                orderFeeUsdX18,
-                marketIds,
-                accountPositionsNotionalValueX18
+                pnlUsdX18, settlementFeeUsdX18, orderFeeUsdX18, marketIds, accountPositionsNotionalValueX18
             )
         );
     }

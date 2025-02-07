@@ -13,12 +13,6 @@ import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-orde
 contract MarketOrderKeeper_UpdateConfig_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-
-        createPerpMarkets();
-
-        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContract() {

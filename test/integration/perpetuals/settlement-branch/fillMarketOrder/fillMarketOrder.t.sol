@@ -24,12 +24,6 @@ import { console } from "forge-std/console.sol";
 contract FillMarketOrder_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-        configureMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotTheKeeper(
@@ -775,8 +769,9 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
-        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
+        assertEq(
+            usdToken.balanceOf(address(marketMakingEngine)), 0, "the balance of market makign engine should be zero"
+        );
         emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
@@ -791,6 +786,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         // fill first order and open position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
+
+        // market making engine should receive the settlement and order fee
+        uint256 firstFillMarketOrderFees = DEFAULT_SETTLEMENT_FEE + ctx.firstOrderFeeUsdX18.intoUint256();
+        assertEq(usdToken.balanceOf(address(marketMakingEngine)), firstFillMarketOrderFees);
+
         // it should update the funding values
         ctx.expectedLastFundingTime = block.timestamp;
         ctx.perpMarketData = perpsEngine.exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
@@ -906,9 +906,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
-        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
-        assertEq(usdToken.balanceOf(address(marketMakingEngine)), 0);
+        assertEq(usdToken.balanceOf(address(marketMakingEngine)), firstFillMarketOrderFees);
         emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
@@ -926,9 +924,13 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // fill second order and close position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
 
+        // market making engine should receive the settlement and order fee
+        uint256 secondFillMarketOrderFees =
+            firstFillMarketOrderFees + ctx.secondOrderFeeUsdX18.intoUint256() + DEFAULT_SETTLEMENT_FEE;
+
         assertEq(
             usdToken.balanceOf(address(marketMakingEngine)),
-            ctx.secondOrderExpectedPnlX18.abs().intoUD60x18().intoUint256()
+            secondFillMarketOrderFees + ctx.secondOrderExpectedPnlX18.abs().intoUD60x18().intoUint256()
         );
 
         // it should update the funding values
@@ -1109,8 +1111,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // it should emit a {LogFillOrder} event
         // it should transfer the pnl and fees
         vm.expectEmit({ emitter: address(perpsEngine) });
-        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
+        assertEq(usdToken.balanceOf(address(marketMakingEngine)), 0);
         emit SettlementBranch.LogFillOrder({
             sender: ctx.marketOrderKeeper,
             tradingAccountId: ctx.tradingAccountId,
@@ -1125,6 +1126,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
 
         // fill first order and open position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
+
+        // market making engine should receive the settlement and order fee
+        uint256 firstFillMarketOrderFees = DEFAULT_SETTLEMENT_FEE + ctx.firstOrderFeeUsdX18.intoUint256();
+        assertEq(usdToken.balanceOf(address(marketMakingEngine)), firstFillMarketOrderFees);
+
         console.log("after first fill");
         // it should update the funding values
         ctx.expectedLastFundingTime = block.timestamp;
@@ -1245,6 +1251,11 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // fill second order and close position
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
         console.log("after second fill");
+
+        // market making engine should receive the settlement and order fee
+        uint256 secondFillMarketOrderFees =
+            firstFillMarketOrderFees + DEFAULT_SETTLEMENT_FEE + ctx.secondOrderFeeUsdX18.intoUint256();
+        assertEq(usdToken.balanceOf(address(marketMakingEngine)), secondFillMarketOrderFees);
 
         // it should update the funding values
         ctx.perpMarketData = perpsEngine.exposed_PerpMarket_load(ctx.fuzzMarketConfig.marketId);
@@ -1536,8 +1547,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should transfer the pnl and fees
-        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.firstOrderFeeUsdX18.intoUint256());
+        assertEq(usdToken.balanceOf(address(marketMakingEngine)), 0);
 
         // it should emit a {LogFillOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -1554,6 +1564,10 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         });
 
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.firstMockSignedReport);
+
+        // market making engine should receive the settlement and order fee
+        uint256 firstFillMarketOrderFees = DEFAULT_SETTLEMENT_FEE + ctx.firstOrderFeeUsdX18.intoUint256();
+        assertEq(usdToken.balanceOf(address(marketMakingEngine)), firstFillMarketOrderFees);
 
         // Config second fill order
 
@@ -1613,8 +1627,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         changePrank({ msgSender: ctx.marketOrderKeeper });
 
         // it should transfer the pnl and fees
-        expectCallToTransfer(usdToken, feeRecipients.settlementFeeRecipient, DEFAULT_SETTLEMENT_FEE);
-        expectCallToTransfer(usdToken, feeRecipients.orderFeeRecipient, ctx.secondOrderFeeUsdX18.intoUint256());
+        assertEq(usdToken.balanceOf(address(marketMakingEngine)), firstFillMarketOrderFees);
 
         // it should emit a {LogFillOrder} event
         vm.expectEmit({ emitter: address(perpsEngine) });
@@ -1631,6 +1644,14 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         });
 
         perpsEngine.fillMarketOrder(ctx.tradingAccountId, ctx.fuzzMarketConfig.marketId, ctx.secondMockSignedReport);
+
+        // market making engine should receive the settlement and order fee
+        uint256 secondFillMarketOrderFees =
+            firstFillMarketOrderFees + DEFAULT_SETTLEMENT_FEE + ctx.secondOrderFeeUsdX18.intoUint256();
+        assertEq(
+            usdToken.balanceOf(address(marketMakingEngine)),
+            secondFillMarketOrderFees + ctx.secondOrderExpectedPnlX18.abs().intoUD60x18().intoUint256()
+        );
 
         // it should update the funding values
         ctx.expectedLastFundingTime = block.timestamp;

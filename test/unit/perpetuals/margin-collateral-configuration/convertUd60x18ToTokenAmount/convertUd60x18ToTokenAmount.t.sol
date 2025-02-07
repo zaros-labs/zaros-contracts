@@ -11,10 +11,6 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 contract MarginCollateralConfiguration_ConvertUd60x18ToTokenAmount_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_WhenMarginCollateralDecimalsIsEqualToSystemDecimals(uint256 expectedValue) external {

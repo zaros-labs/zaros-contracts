@@ -195,8 +195,6 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         whenVaultIdIsNotZero
         whenEngineIsNotZero
     {
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
         Collateral.Data memory collateral = Collateral.Data({
@@ -233,6 +231,8 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
 
+        uint128 vaultId = type(uint128).max;
+
         Collateral.Data memory collateral = Collateral.Data({
             creditRatio: fuzzVaultConfig.creditRatio,
             priceAdapter: fuzzVaultConfig.priceAdapter,
@@ -242,7 +242,7 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
         });
 
         Vault.CreateParams memory params = Vault.CreateParams({
-            vaultId: fuzzVaultConfig.vaultId,
+            vaultId: vaultId,
             depositCap: fuzzVaultConfig.depositCap,
             withdrawalDelay: fuzzVaultConfig.withdrawalDelay,
             indexToken: fuzzVaultConfig.indexToken,
@@ -254,12 +254,10 @@ contract MarketMakingEngineConfigurationBranch_CreateVault_Integration_Test is B
 
         // it should emit event
         vm.expectEmit();
-        emit MarketMakingEngineConfigurationBranch.LogCreateVault(users.owner.account, fuzzVaultConfig.vaultId);
+        emit MarketMakingEngineConfigurationBranch.LogCreateVault(users.owner.account, vaultId);
         marketMakingEngine.createVault(params);
 
         // it should create vault
-        assertEq(
-            fuzzVaultConfig.indexToken, marketMakingEngine.workaround_Vault_getIndexToken(fuzzVaultConfig.vaultId)
-        );
+        assertEq(fuzzVaultConfig.indexToken, marketMakingEngine.workaround_Vault_getIndexToken(vaultId));
     }
 }

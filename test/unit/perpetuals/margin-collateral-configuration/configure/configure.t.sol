@@ -8,10 +8,6 @@ import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCo
 contract MarginCollateralConfiguration_Configure_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_WhenConfigureIsCalled(

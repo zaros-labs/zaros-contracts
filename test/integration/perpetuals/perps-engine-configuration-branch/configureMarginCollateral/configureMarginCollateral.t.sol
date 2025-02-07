@@ -13,10 +13,6 @@ import { MockERC20WithZeroDecimals } from "test/mocks/MockERC20WithZeroDecimals.
 contract ConfigureMarginCollateral_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
-        changePrank({ msgSender: users.naruto.account });
     }
 
     function testFuzz_RevertWhen_CollateralThatDoesNotHaveDecimals(

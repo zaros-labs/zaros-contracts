@@ -19,7 +19,6 @@ contract InitiateSwap_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
         marketMakingEngine.configureEngine(address(marketMakingEngine), address(usdToken), true);
         changePrank({ msgSender: users.naruto.account });
     }

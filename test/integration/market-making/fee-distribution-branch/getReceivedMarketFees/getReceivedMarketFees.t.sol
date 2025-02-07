@@ -8,9 +8,6 @@ contract MarketMakingEngineConfigurationBranch_GetReceivedMarketFees_Integration
     function setUp() public override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createVaults(marketMakingEngine, INITIAL_VAULT_ID, FINAL_VAULT_ID, true, address(perpsEngine));
-        configureMarkets();
     }
 
     function test_WhenGetReceivedMarketFeesIsCalled(uint256 marketId, uint256 amount) external {

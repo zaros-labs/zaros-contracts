@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { MarginCollateralConfiguration } from "@zaros/perpetuals/leaves/MarginCollateralConfiguration.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
@@ -472,6 +471,7 @@ library TradingAccount {
 
     struct DeductAccountMarginContext {
         uint256 assetAmount;
+        uint256 sumOfAssetAmountFromSettlementAndOrderFees;
         UD60x18 marginCollateralBalanceX18;
         UD60x18 marginCollateralPriceUsdX18;
         UD60x18 settlementFeeDeductedUsdX18;
@@ -481,14 +481,12 @@ library TradingAccount {
         UD60x18 pnlDeductedUsdX18;
     }
 
-    /// @param feeRecipients The fee recipients.
     /// @param pnlUsdX18 The total unrealized PnL of the account.
     /// @param settlementFeeUsdX18 The total settlement fee to be deducted from the account.
     /// @param orderFeeUsdX18 The total order fee to be deducted from the account.
     /// @param marketIds The account's active market ids.
     /// @param accountPositionsNotionalValueX18 The USD denominated open interest of the account's active positions.
     struct DeductAccountMarginParams {
-        FeeRecipients.Data feeRecipients;
         UD60x18 pnlUsdX18;
         UD60x18 settlementFeeUsdX18;
         UD60x18 orderFeeUsdX18;
@@ -541,6 +539,9 @@ library TradingAccount {
             // get this collateral's USD price
             ctx.marginCollateralPriceUsdX18 = marginCollateralConfiguration.getPrice();
 
+            // reset the sum each each loop
+            ctx.sumOfAssetAmountFromSettlementAndOrderFees = 0;
+
             // if:
             // settlement fee > 0 AND
             // amount of settlement fee paid so far < settlement fee
@@ -550,13 +551,16 @@ library TradingAccount {
             ) {
                 // attempt to deduct from this collateral difference between settlement fee
                 // and amount of settlement fee paid so far
-                (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin,) = withdrawMarginUsd(
+                (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin, ctx.assetAmount) = withdrawMarginUsd(
                     self,
                     collateralType,
                     ctx.marginCollateralPriceUsdX18,
                     params.settlementFeeUsdX18.sub(ctx.settlementFeeDeductedUsdX18),
-                    params.feeRecipients.settlementFeeRecipient
+                    address(this)
                 );
+
+                // sum the asset amount
+                ctx.sumOfAssetAmountFromSettlementAndOrderFees += ctx.assetAmount;
 
                 // update amount of settlement fee paid so far by the amount
                 // that was actually withdraw from this collateral
@@ -565,15 +569,22 @@ library TradingAccount {
 
             // order fee logic same as settlement fee above
             if (params.orderFeeUsdX18.gt(UD60x18_ZERO) && ctx.orderFeeDeductedUsdX18.lt(params.orderFeeUsdX18)) {
-                (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin,) = withdrawMarginUsd(
+                (ctx.withdrawnMarginUsdX18, ctx.isMissingMargin, ctx.assetAmount) = withdrawMarginUsd(
                     self,
                     collateralType,
                     ctx.marginCollateralPriceUsdX18,
                     params.orderFeeUsdX18.sub(ctx.orderFeeDeductedUsdX18),
-                    params.feeRecipients.orderFeeRecipient
+                    address(this)
                 );
+
+                // sum the asset amount
+                ctx.sumOfAssetAmountFromSettlementAndOrderFees += ctx.assetAmount;
+
                 ctx.orderFeeDeductedUsdX18 = ctx.orderFeeDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
             }
+
+            // reset the asset amount after the sum of all fees
+            ctx.assetAmount = 0;
 
             // pnl logic same as settlement & order fee above
             if (params.pnlUsdX18.gt(UD60x18_ZERO) && ctx.pnlDeductedUsdX18.lt(params.pnlUsdX18)) {
@@ -585,37 +596,48 @@ library TradingAccount {
                     address(this)
                 );
 
-                // verify if we have the asset to send to the market making engine
-                if (ctx.assetAmount > 0) {
-                    // create variable to cache the sum of all position usd
-                    UD60x18 sumOfAllPositionsUsdX18;
+                ctx.pnlDeductedUsdX18 = ctx.pnlDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
+            }
 
-                    // cache market ids length
-                    uint256 cachedMarketIdsLength = params.marketIds.length;
+            // verify if we have the asset to send to the market making engine
+            if (ctx.assetAmount > 0 || ctx.sumOfAssetAmountFromSettlementAndOrderFees > 0) {
+                // create variable to cache the sum of all position usd
+                UD60x18 sumOfAllPositionsUsdX18;
 
-                    // we need to sum the notional value of all active positions only if we're handling more than one
-                    // market id
+                // cache market ids length
+                uint256 cachedMarketIdsLength = params.marketIds.length;
+
+                // we need to sum the notional value of all active positions only if we're handling more than one
+                // market id
+                if (cachedMarketIdsLength > 1) {
+                    for (uint256 j; j < params.accountPositionsNotionalValueX18.length; j++) {
+                        sumOfAllPositionsUsdX18 =
+                            sumOfAllPositionsUsdX18.add(params.accountPositionsNotionalValueX18[j]);
+                    }
+                }
+
+                // loop into market ids
+                for (uint256 j; j < cachedMarketIdsLength; j++) {
+                    UD60x18 percentDeductForThisMarketX18;
+
+                    // if we have more than one market id, we need to calculate the percentage that will be
+                    // deposited for this market
                     if (cachedMarketIdsLength > 1) {
-                        for (uint256 j; j < params.accountPositionsNotionalValueX18.length; j++) {
-                            sumOfAllPositionsUsdX18 =
-                                sumOfAllPositionsUsdX18.add(params.accountPositionsNotionalValueX18[j]);
-                        }
+                        // calculate the percentage to deposit to this market
+                        percentDeductForThisMarketX18 =
+                            params.accountPositionsNotionalValueX18[j].div(sumOfAllPositionsUsdX18);
+                    } else {
+                        // if there is only one market the percent of deduct will be 100%
+                        percentDeductForThisMarketX18 = ud60x18(1e18);
                     }
 
-                    // loop into market ids
-                    for (uint256 j; j < cachedMarketIdsLength; j++) {
+                    // check if the asset amount from the negative pnl is more than zero
+                    if (ctx.assetAmount > 0) {
                         // collateral native precision -> collateral zaros precision
                         UD60x18 collateralAmountX18 =
                             marginCollateralConfiguration.convertTokenAmountToUd60x18(ctx.assetAmount);
 
-                        // if we have more than one market id, we need to calculate the percentage that will be
-                        // deposited for this market
-                        if (cachedMarketIdsLength > 1) {
-                            // calculate the percentage to deposit to this market
-                            UD60x18 percentDeductForThisMarketX18 =
-                                params.accountPositionsNotionalValueX18[j].div(sumOfAllPositionsUsdX18);
-                            collateralAmountX18 = collateralAmountX18.mul(percentDeductForThisMarketX18);
-                        }
+                        collateralAmountX18 = collateralAmountX18.mul(percentDeductForThisMarketX18);
 
                         // deposit the collateral in the market making engine
                         marketMakingEngine.depositCreditForMarket(
@@ -624,9 +646,23 @@ library TradingAccount {
                             marginCollateralConfiguration.convertUd60x18ToTokenAmount(collateralAmountX18)
                         );
                     }
-                }
 
-                ctx.pnlDeductedUsdX18 = ctx.pnlDeductedUsdX18.add(ctx.withdrawnMarginUsdX18);
+                    // check if the asset amount from the fees is more than zero
+                    if (ctx.sumOfAssetAmountFromSettlementAndOrderFees > 0) {
+                        // collateral native precision -> collateral zaros precision
+                        UD60x18 collateralAmountX18 = marginCollateralConfiguration.convertTokenAmountToUd60x18(
+                            ctx.sumOfAssetAmountFromSettlementAndOrderFees
+                        );
+
+                        collateralAmountX18 = collateralAmountX18.mul(percentDeductForThisMarketX18);
+
+                        marketMakingEngine.receiveMarketFee(
+                            uint128(params.marketIds[j]),
+                            collateralType,
+                            marginCollateralConfiguration.convertUd60x18ToTokenAmount(collateralAmountX18)
+                        );
+                    }
+                }
             }
 
             // if there is no missing margin then exit the loop

@@ -16,8 +16,6 @@ contract MarketMakingEngineConfigurationBranch_UnpauseMarket_Integration_Test is
     function setUp() public virtual override {
         Base_Test.setUp();
         changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-        createPerpMarkets();
     }
 
     function testFuzz_RevertGiven_TheSenderIsNotTheOwner(uint256 marketId) external {

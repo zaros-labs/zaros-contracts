@@ -3,7 +3,6 @@ pragma solidity 0.8.25;
 
 // Zaros dependencies
 import { Errors } from "@zaros/utils/Errors.sol";
-import { FeeRecipients } from "@zaros/perpetuals/leaves/FeeRecipients.sol";
 import { PerpsEngineConfiguration } from "@zaros/perpetuals/leaves/PerpsEngineConfiguration.sol";
 import { TradingAccount } from "@zaros/perpetuals/leaves/TradingAccount.sol";
 import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
@@ -226,11 +225,6 @@ contract LiquidationBranch {
             // settlementFee = liquidationFee
             ctx.liquidatedCollateralUsdX18 = tradingAccount.deductAccountMargin(
                 TradingAccount.DeductAccountMarginParams({
-                    feeRecipients: FeeRecipients.Data({
-                        marginCollateralRecipient: perpsEngineConfiguration.marginCollateralRecipient,
-                        orderFeeRecipient: address(0),
-                        settlementFeeRecipient: perpsEngineConfiguration.liquidationFeeRecipient
-                    }),
                     pnlUsdX18: ctx.accountTotalUnrealizedPnlUsdX18.abs().intoUD60x18().add(
                         ctx.requiredMaintenanceMarginUsdX18
                     ),

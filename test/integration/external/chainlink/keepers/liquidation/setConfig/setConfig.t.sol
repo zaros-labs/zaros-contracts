@@ -13,12 +13,6 @@ import { Ownable } from "@openzeppelin/access/Ownable.sol";
 contract LiquidationKeeper_SetConfig_Integration_Test is Base_Test {
     function setUp() public override {
         Base_Test.setUp();
-        changePrank({ msgSender: users.owner.account });
-        configureSystemParameters();
-
-        createPerpMarkets();
-
-        changePrank({ msgSender: users.naruto.account });
     }
 
     modifier givenInitializeContract() {
