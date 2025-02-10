@@ -200,5 +200,20 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
 
         console.log("Success! Configured Market Making Engine Stability Configuration");
         console.log("\n");
+
+        console.log("**************************");
+        console.log("Configuring Markets...");
+        console.log("**************************");
+
+        configureMarkets(
+            ConfigureMarketParams({
+                marketMakingEngine: marketMakingEngine,
+                initialMarketId: INITIAL_PERP_MARKET_CREDIT_CONFIG_ID,
+                finalMarketId: FINAL_PERP_MARKET_CREDIT_CONFIG_ID
+            })
+        );
+
+        console.log("Success! Configured Markets");
+        console.log("\n");
     }
 }
