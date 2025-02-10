@@ -3,12 +3,15 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
+import { IVerifierProxy } from "@zaros/external/chainlink/interfaces/IVerifierProxy.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
+import { IFeeManager } from "@zaros/external/chainlink/interfaces/IFeeManager.sol";
+import { MockChainlinkFeeManager } from "test/mocks/MockChainlinkFeeManager.sol";
+import { MockChainlinkVerifier } from "test/mocks/MockChainlinkVerifier.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -20,6 +23,7 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
+    address internal chainlinkVerifier;
     address internal perpsEngineUsdToken;
     address internal wEth;
     address internal usdc;
@@ -30,11 +34,19 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
     IPerpsEngine internal perpsEngine;
     IMarketMakingEngine internal marketMakingEngine;
 
-    function run(uint256 initialMarginCollateralId, uint256 finalMarginCollateralId) public broadcaster {
+    function run(
+        uint256 initialMarginCollateralId,
+        uint256 finalMarginCollateralId,
+        bool useMockChainlinkVerifier
+    )
+        public
+        broadcaster
+    {
         // setup environment variables
         marketMakingEngine = IMarketMakingEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         perpsEngineUsdToken = vm.envAddress("USD_TOKEN");
+        chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
         wEth = vm.envAddress("WETH");
         usdc = vm.envAddress("USDC");
 
@@ -43,6 +55,7 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("Market Making Engine: ", address(marketMakingEngine));
         console.log("Perps Engine: ", address(marketMakingEngine));
         console.log("Perps Engine Usd Token: ", perpsEngineUsdToken);
+        console.log("Chainlink Verifier: ", address(chainlinkVerifier));
         console.log("wEth: ", wEth);
         console.log("USDC: ", usdc);
         console.log("**************************");
@@ -170,6 +183,22 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.setMarketMakingEngineAllowance(marginCollateralsArray, allowances);
 
         console.log("Success! Configured Market Making Engine allowance");
+        console.log("\n");
+
+        console.log("**************************");
+        console.log("Configuring Market Making Engine Stability Configuration...");
+        console.log("**************************");
+
+        if (useMockChainlinkVerifier) {
+            address mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
+            chainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
+
+            console.log("useMockChainlinkVerifier: true");
+        }
+
+        marketMakingEngine.updateStabilityConfiguration(chainlinkVerifier, uint128(MAX_VERIFICATION_DELAY));
+
+        console.log("Success! Configured Market Making Engine Stability Configuration");
         console.log("\n");
     }
 }
