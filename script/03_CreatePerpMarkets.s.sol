@@ -27,7 +27,15 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
 
-    function run(uint256 initialMarketId, uint256 finalMarketId) public broadcaster {
+    function run(
+        uint256 initialMarketId,
+        uint256 finalMarketId,
+        bool shouldUseCustomMarketOrderKeeper,
+        address customMarketOrderKeeper
+    )
+        public
+        broadcaster
+    {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
 
@@ -48,9 +56,15 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
             SettlementConfiguration.DataStreamsStrategy memory orderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: filteredMarketsConfig[i].streamId });
 
-            address marketOrderKeeper = deployMarketOrderKeeper(
-                filteredMarketsConfig[i].marketId, deployer, perpsEngine, marketOrderKeeperImplementation
-            );
+            address marketOrderKeeper;
+
+            if (shouldUseCustomMarketOrderKeeper) {
+                marketOrderKeeper = customMarketOrderKeeper;
+            } else {
+                deployMarketOrderKeeper(
+                    filteredMarketsConfig[i].marketId, deployer, perpsEngine, marketOrderKeeperImplementation
+                );
+            }
 
             console.log(
                 "Market Order Keeper Deployed: Market ID: ",
