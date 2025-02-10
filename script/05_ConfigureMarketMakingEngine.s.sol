@@ -13,6 +13,9 @@ import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
+// Open Zeppelin Upgradeable dependencies
+import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+
 contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
@@ -46,7 +49,6 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
 
         // setup perp markets credit config
         bool isTest = false;
-        RootProxy.InitParams memory mmEngineTestInitParams;
         setupPerpMarketsCreditConfig(isTest, address(perpsEngine), perpsEngineUsdToken);
 
         console.log("**************************");
@@ -143,5 +145,31 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         LimitedMintingERC20(USD_TOKEN_ADDRESS).transferOwnership(address(marketMakingEngine));
 
         console.log("Success! USD Token token ownership transferred to the market making engine.");
+        console.log("\n");
+
+        console.log("**************************");
+        console.log("Configuring Market Making Engine allowance...");
+        console.log("**************************");
+
+        uint256[2] memory marginCollateralIdsRange;
+        marginCollateralIdsRange[0] = initialMarginCollateralId;
+        marginCollateralIdsRange[1] = finalMarginCollateralId;
+
+        configureMarginCollaterals(
+            perpsEngine, marginCollateralIdsRange, false, sequencerUptimeFeedByChainId[block.chainid], deployer
+        );
+
+        uint256 totalOfMarginCollaterals = FINAL_MARGIN_COLLATERAL_ID - INITIAL_MARGIN_COLLATERAL_ID + 1;
+        IERC20[] memory marginCollateralsArray = new IERC20[](totalOfMarginCollaterals);
+        uint256[] memory allowances = new uint256[](totalOfMarginCollaterals);
+        for (uint256 i = INITIAL_MARGIN_COLLATERAL_ID; i <= FINAL_MARGIN_COLLATERAL_ID; i++) {
+            marginCollateralsArray[i - 1] = IERC20(marginCollaterals[i].marginCollateralAddress);
+            allowances[i - 1] = type(uint256).max;
+        }
+
+        perpsEngine.setMarketMakingEngineAllowance(marginCollateralsArray, allowances);
+
+        console.log("Success! Configured Market Making Engine allowance");
+        console.log("\n");
     }
 }
