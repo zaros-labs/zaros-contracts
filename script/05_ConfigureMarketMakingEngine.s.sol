@@ -58,6 +58,14 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("Chainlink Verifier: ", address(chainlinkVerifier));
         console.log("wEth: ", wEth);
         console.log("USDC: ", usdc);
+        console.log("CONSTANTS:");
+        console.log("MSIG_ADDRESS: ", MSIG_ADDRESS);
+        console.log("MSIG_SHARES_FEE_RECIPIENT: ", MSIG_SHARES_FEE_RECIPIENT);
+        console.log("MAX_VERIFICATION_DELAY: ", MAX_VERIFICATION_DELAY);
+        console.log("INITIAL_MARKET_MAKING_ENGINE_COLLATERAL_ID: ", INITIAL_MARKET_MAKING_ENGINE_COLLATERAL_ID);
+        console.log("FINAL_MARKET_MAKING_ENGINE_COLLATERAL_ID: ", FINAL_MARKET_MAKING_ENGINE_COLLATERAL_ID);
+        console.log("INITIAL_PERP_MARKET_CREDIT_CONFIG_ID: ", INITIAL_PERP_MARKET_CREDIT_CONFIG_ID);
+        console.log("FINAL_PERP_MARKET_CREDIT_CONFIG_ID: ", FINAL_PERP_MARKET_CREDIT_CONFIG_ID);
         console.log("**************************");
 
         // setup perp markets credit config
@@ -172,10 +180,10 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
             perpsEngine, marginCollateralIdsRange, false, sequencerUptimeFeedByChainId[block.chainid], deployer
         );
 
-        uint256 totalOfMarginCollaterals = FINAL_MARGIN_COLLATERAL_ID - INITIAL_MARGIN_COLLATERAL_ID + 1;
+        uint256 totalOfMarginCollaterals = finalMarginCollateralId - initialMarginCollateralId + 1;
         IERC20[] memory marginCollateralsArray = new IERC20[](totalOfMarginCollaterals);
         uint256[] memory allowances = new uint256[](totalOfMarginCollaterals);
-        for (uint256 i = INITIAL_MARGIN_COLLATERAL_ID; i <= FINAL_MARGIN_COLLATERAL_ID; i++) {
+        for (uint256 i = initialMarginCollateralId; i <= finalMarginCollateralId; i++) {
             marginCollateralsArray[i - 1] = IERC20(marginCollaterals[i].marginCollateralAddress);
             allowances[i - 1] = type(uint256).max;
         }

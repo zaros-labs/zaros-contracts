@@ -23,6 +23,9 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("**************************");
         console.log("Environment variables:");
         console.log("Market Making Engine: ", address(marketMakingEngine));
+        console.log("CONSTANTS:");
+        console.log("INITIAL_PERP_MARKET_CREDIT_CONFIG_ID: ", INITIAL_PERP_MARKET_CREDIT_CONFIG_ID);
+        console.log("FINAL_PERP_MARKET_CREDIT_CONFIG_ID: ", FINAL_PERP_MARKET_CREDIT_CONFIG_ID);
         console.log("**************************");
 
         // Vault and markets setup

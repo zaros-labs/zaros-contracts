@@ -36,6 +36,16 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         liquidationKeeper = vm.envAddress("LIQUIDATION_KEEPER");
         referralModule = IReferral(vm.envAddress("REFERRAL_MODULE"));
 
+        console.log("**************************");
+        console.log("Environment variables:");
+        console.log("Trading Account Token: ", address(tradingAccountToken));
+        console.log("Perps Engine: ", address(perpsEngine));
+        console.log("Market Making Engine: ", address(marketMakingEngine));
+        console.log("Usd Token: ", usdToken);
+        console.log("Liquidation Keeper: ", liquidationKeeper);
+        console.log("Referral Module: ", address(referralModule));
+        console.log("**************************");
+
         configureContracts(initialMarginCollateralId, finalMarginCollateralId);
     }
 

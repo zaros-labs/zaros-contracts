@@ -56,6 +56,8 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
         console.log("uniswapV3SwapStrategyRouter: ", uniswapV3SwapStrategyRouter);
         console.log("uniswapV2SwapStrategyRouter: ", uniswapV2SwapStrategyRouter);
         console.log("curveSwapStrategyRouter: ", curveSwapStrategyRouter);
+        console.log("CONSTANTS:");
+        console.log("SLIPPAGE_TOLERANCE_BPS: ", SLIPPAGE_TOLERANCE_BPS);
         console.log("**************************");
 
         address[] memory collaterals = new address[](4);

@@ -28,7 +28,7 @@ abstract contract ProtocolConfiguration is
     /// @notice Admin addresses.
 
     // TODO: Update to actual multisig address
-    address internal constant MSIG_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
+    address internal constant MSIG_ADDRESS = 0xE2658E63c85D8a469324afA377Bf5694cd55bD7B;
 
     /// @notice The maximum value that can be represented in a UD60x18.
     uint256 internal constant uMAX_UD60x18 = LIB_uMAX_UD60x18;
@@ -76,7 +76,7 @@ abstract contract ProtocolConfiguration is
     uint24 internal constant UNI_V3_FEE = 3000;
 
     /// @notice General market making engine system configuration parameters.
-    uint256 internal constant MSIG_SHARES_FEE_RECIPIENT = 0.1e18;
+    uint256 internal constant MSIG_SHARES_FEE_RECIPIENT = 0.3e18;
     uint256 internal constant INITIAL_MARKET_MAKING_ENGINE_COLLATERAL_ID = 1;
     uint256 internal constant FINAL_MARKET_MAKING_ENGINE_COLLATERAL_ID = 4;
 }
