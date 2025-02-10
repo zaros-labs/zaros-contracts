@@ -8,6 +8,7 @@ import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
+import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -133,5 +134,14 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("Success! Configured USDC:");
         console.log("\n");
         console.log(usdc);
+
+        console.log("**************************");
+        console.log("Transferring USD Token ownership to the market making engine...");
+        console.log("**************************");
+
+        // NOTE: Once the MM engine v1 is deployed, USD Token ownership must be transferred to the MM engine.
+        LimitedMintingERC20(USD_TOKEN_ADDRESS).transferOwnership(address(marketMakingEngine));
+
+        console.log("Success! USD Token token ownership transferred to the market making engine.");
     }
 }
