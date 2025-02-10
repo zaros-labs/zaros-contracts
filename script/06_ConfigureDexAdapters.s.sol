@@ -3,8 +3,6 @@
 pragma solidity 0.8.25;
 
 // Zaros dependencies
-import { RootProxy } from "@zaros/tree-proxy/RootProxy.sol";
-import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";

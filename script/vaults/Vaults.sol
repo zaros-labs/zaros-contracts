@@ -12,6 +12,7 @@ import { UsdTokenSwapKeeper } from "@zaros/external/chainlink/keepers/usd-token-
 
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 
 // Vaults
 import { UsdcCoreVault } from "./UsdcCoreVault.sol";
@@ -519,5 +520,12 @@ abstract contract Vaults is
 
         changePrank({ msgSender: deployer });
         IMarketMakingEngine(marketMakingEngine).configureSystemKeeper(usdTokenSwapKeeper, true);
+
+        console.log(
+            "Usd Token Swap Keeper deployed at: %s, asset: %s, streamIdString: %s",
+            usdTokenSwapKeeper,
+            asset,
+            streamIdString
+        );
     }
 }
