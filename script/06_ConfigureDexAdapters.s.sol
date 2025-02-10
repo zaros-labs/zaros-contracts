@@ -36,7 +36,7 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
     //////////////////////////////////////////////////////////////////////////*/
     IMarketMakingEngine internal marketMakingEngine;
 
-    function run(bool isTestnet) public broadcaster {
+    function run(bool shouldDeployMock) public broadcaster {
         marketMakingEngine = IMarketMakingEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
         wEth = vm.envAddress("WETH");
         usdc = vm.envAddress("USDC");
@@ -86,7 +86,7 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
             priceAdapter: address(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter)
         });
 
-        if (isTestnet) {
+        if (shouldDeployMock) {
             uniswapV3SwapStrategyRouter = address(new MockUniswapV3SwapStrategyRouter());
             uniswapV2SwapStrategyRouter = address(new MockUniswapV2SwapStrategyRouter());
             curveSwapStrategyRouter = address(new MockCurveStrategyRouter());
@@ -136,7 +136,7 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
         console.log("Success! Curve Adapter configured.");
         console.log("\n");
 
-        if (isTestnet) {
+        if (shouldDeployMock) {
             for (uint256 i; i < collaterals.length; i++) {
                 LimitedMintingERC20(collaterals[i]).mint(uniswapV3Adapter, type(uint256).max);
                 LimitedMintingERC20(collaterals[i]).mint(uniswapV2Adapter, type(uint256).max);
