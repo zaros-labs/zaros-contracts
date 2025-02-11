@@ -60,6 +60,8 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
         console.log("SLIPPAGE_TOLERANCE_BPS: ", SLIPPAGE_TOLERANCE_BPS);
         console.log("**************************");
 
+        uint256 blockChainId = block.chainid;
+
         address[] memory collaterals = new address[](4);
         collaterals[0] = address(usdc);
         collaterals[1] = address(wEth);
@@ -69,23 +71,31 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
         SwapAssetConfigData[] memory collateralData = new SwapAssetConfigData[](5);
 
         collateralData[0] = SwapAssetConfigData({
-            decimals: marginCollaterals[USDC_MARGIN_COLLATERAL_ID].tokenDecimals,
-            priceAdapter: address(marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter)
+            decimals: USDC_MARKET_MAKING_ENGINE_DECIMALS,
+            priceAdapter: blockChainId == 421_614
+                ? USDC_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
+                : blockChainId == 10_143 ? USDC_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER : address(0)
         });
 
         collateralData[1] = SwapAssetConfigData({
-            decimals: marginCollaterals[WETH_MARGIN_COLLATERAL_ID].tokenDecimals,
-            priceAdapter: address(marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter)
+            decimals: WETH_MARKET_MAKING_ENGINE_DECIMALS,
+            priceAdapter: blockChainId == 421_614
+                ? WETH_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
+                : blockChainId == 10_143 ? WETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER : address(0)
         });
 
         collateralData[2] = SwapAssetConfigData({
-            decimals: marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].tokenDecimals,
-            priceAdapter: address(marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter)
+            decimals: WBTC_MARKET_MAKING_ENGINE_DECIMALS,
+            priceAdapter: blockChainId == 421_614
+                ? WBTC_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
+                : blockChainId == 10_143 ? WBTC_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER : address(0)
         });
 
         collateralData[3] = SwapAssetConfigData({
-            decimals: marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].tokenDecimals,
-            priceAdapter: address(marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter)
+            decimals: WSTETH_MARKET_MAKING_ENGINE_DECIMALS,
+            priceAdapter: blockChainId == 421_614
+                ? WSTETH_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
+                : blockChainId == 10_143 ? WSTETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER : address(0)
         });
 
         if (shouldDeployMock) {

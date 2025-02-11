@@ -29,7 +29,7 @@ abstract contract MarketMakingEngineCollaterals is Usdc, WBtc, WEth, WstEth {
     function setupMarketMakingEngineCollaterals() internal {
         MarketMakingEngineCollateral memory usdcConfig = MarketMakingEngineCollateral({
             collateral: USDC_MARKET_MAKING_ENGINE_ADDRESS,
-            priceAdapter: USDC_MARKET_MAKING_ENGINE_PRICE_ADAPTER,
+            priceAdapter: USDC_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER,
             creditRatio: USDC_MARKET_MAKING_ENGINE_CREDIT_RATIO,
             isEnabled: USDC_MARKET_MAKING_ENGINE_IS_ENABLED,
             decimals: USDC_MARKET_MAKING_ENGINE_DECIMALS
@@ -38,7 +38,7 @@ abstract contract MarketMakingEngineCollaterals is Usdc, WBtc, WEth, WstEth {
 
         MarketMakingEngineCollateral memory wBtcConfig = MarketMakingEngineCollateral({
             collateral: WBTC_MARKET_MAKING_ENGINE_ADDRESS,
-            priceAdapter: WBTC_MARKET_MAKING_ENGINE_PRICE_ADAPTER,
+            priceAdapter: WBTC_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER,
             creditRatio: WBTC_MARKET_MAKING_ENGINE_CREDIT_RATIO,
             isEnabled: WBTC_MARKET_MAKING_ENGINE_IS_ENABLED,
             decimals: WBTC_MARKET_MAKING_ENGINE_DECIMALS
@@ -47,7 +47,7 @@ abstract contract MarketMakingEngineCollaterals is Usdc, WBtc, WEth, WstEth {
 
         MarketMakingEngineCollateral memory wEthConfig = MarketMakingEngineCollateral({
             collateral: WETH_MARKET_MAKING_ENGINE_ADDRESS,
-            priceAdapter: WETH_MARKET_MAKING_ENGINE_PRICE_ADAPTER,
+            priceAdapter: WETH_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER,
             creditRatio: WETH_MARKET_MAKING_ENGINE_CREDIT_RATIO,
             isEnabled: WETH_MARKET_MAKING_ENGINE_IS_ENABLED,
             decimals: WETH_MARKET_MAKING_ENGINE_DECIMALS
@@ -56,7 +56,7 @@ abstract contract MarketMakingEngineCollaterals is Usdc, WBtc, WEth, WstEth {
 
         MarketMakingEngineCollateral memory wstEthConfig = MarketMakingEngineCollateral({
             collateral: WSTETH_MARKET_MAKING_ENGINE_ADDRESS,
-            priceAdapter: WSTETH_MARKET_MAKING_ENGINE_PRICE_ADAPTER,
+            priceAdapter: WSTETH_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER,
             creditRatio: WSTETH_MARKET_MAKING_ENGINE_CREDIT_RATIO,
             isEnabled: WSTETH_MARKET_MAKING_ENGINE_IS_ENABLED,
             decimals: WSTETH_MARKET_MAKING_ENGINE_DECIMALS

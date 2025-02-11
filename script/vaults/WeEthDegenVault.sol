@@ -11,5 +11,16 @@ abstract contract WeEthDegenVault {
     uint256 internal constant WEETH_DEGEN_VAULT_CREDIT_RATIO = 2e18;
     uint256 internal constant WEETH_DEGEN_VAULT_DEPOSIT_FEE = 0.01e18;
     uint256 internal constant WEETH_DEGEN_VAULT_REDEEM_FEE = 0.05e18;
-    address internal constant WEETH_DEGEN_VAULT_ENGINE = address(0); // the address will be updated in the mainnet
+
+    // Arbitrum Sepolia
+    address internal constant WEETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE = address(0); // the address will be updated in the
+        // mainnet
+    address internal constant WEETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET = address(0);
+    address internal constant WEETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER = address(0);
+
+    // Monad Testnet
+    address internal constant WEETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE = address(0); // the address will be updated in
+        // the mainnet
+    address internal constant WEETH_MONAD_TESTNET_DEGEN_VAULT_ASSET = address(0);
+    address internal constant WEETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER = address(0);
 }

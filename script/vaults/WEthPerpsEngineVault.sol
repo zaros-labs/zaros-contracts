@@ -11,5 +11,16 @@ abstract contract WEthPerpsEngineVault {
     uint256 internal constant WETH_PERPS_ENGINE_VAULT_CREDIT_RATIO = 2e18;
     uint256 internal constant WETH_PERPS_ENGINE_VAULT_DEPOSIT_FEE = 0.01e18;
     uint256 internal constant WETH_PERPS_ENGINE_VAULT_REDEEM_FEE = 0.01e18;
-    address internal constant WETH_PERPS_ENGINE_VAULT_ENGINE = address(0); // the address will be updated in the mainnet
+
+    // Arbitrum Sepolia
+    address internal constant WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ENGINE = address(0); // the address will be updated
+        // in the mainnet
+    address internal constant WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ASSET = address(0);
+    address internal constant WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_PRICE_ADAPTER = address(0);
+
+    // Monad Testnet
+    address internal constant WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_ENGINE = address(0); // the address will be
+        // updated in the mainnet
+    address internal constant WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_ASSET = address(0);
+    address internal constant WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_PRICE_ADAPTER = address(0);
 }

@@ -355,7 +355,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
         vaultsIdsRange[0] = INITIAL_VAULT_ID;
         vaultsIdsRange[1] = FINAL_VAULT_ID;
 
-        setupVaultsConfig();
+        setupVaultsConfig(true);
+
         createZlpVaults(address(marketMakingEngine), users.owner.account, vaultsIdsRange);
 
         connectMarketsAndVaults();

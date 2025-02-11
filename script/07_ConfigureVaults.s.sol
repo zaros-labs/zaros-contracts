@@ -50,7 +50,7 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("Configuring Vaults...");
         console.log("**************************");
 
-        setupVaultsConfig();
+        setupVaultsConfig(false);
 
         createZlpVaults(address(marketMakingEngine), deployer, vaultsIdsRange);
 

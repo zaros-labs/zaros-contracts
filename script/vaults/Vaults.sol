@@ -15,25 +15,27 @@ import { StdCheats, StdUtils } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
 
 // Vaults
-import { UsdcCoreVault } from "./UsdcCoreVault.sol";
-import { UsdcDegenVault } from "./UsdcDegenVault.sol";
-import { UsdcBluechipVault } from "./UsdcBluechipVault.sol";
+import { UsdcCoreVault } from "script/vaults/UsdcCoreVault.sol";
+import { UsdcDegenVault } from "script/vaults/UsdcDegenVault.sol";
+import { UsdcBluechipVault } from "script/vaults/UsdcBluechipVault.sol";
+import { UsdcPerpsEngineVault } from "script/vaults/UsdcPerpsEngineVault.sol";
 
-import { WBtcCoreVault } from "./WBtcCoreVault.sol";
-import { WBtcDegenVault } from "./WBtcDegenVault.sol";
-import { WBtcBluechipVault } from "./WBtcBluechipVault.sol";
+import { WBtcCoreVault } from "script/vaults/WBtcCoreVault.sol";
+import { WBtcDegenVault } from "script/vaults/WBtcDegenVault.sol";
+import { WBtcBluechipVault } from "script/vaults/WBtcBluechipVault.sol";
 
-import { WeEthCoreVault } from "./WeEthCoreVault.sol";
-import { WeEthDegenVault } from "./WeEthDegenVault.sol";
-import { WeEthBluechipVault } from "./WeEthBluechipVault.sol";
+import { WeEthCoreVault } from "script/vaults/WeEthCoreVault.sol";
+import { WeEthDegenVault } from "script/vaults/WeEthDegenVault.sol";
+import { WeEthBluechipVault } from "script/vaults/WeEthBluechipVault.sol";
 
-import { WEthCoreVault } from "./WEthCoreVault.sol";
-import { WEthDegenVault } from "./WEthDegenVault.sol";
-import { WEthBluechipVault } from "./WEthBluechipVault.sol";
+import { WEthCoreVault } from "script/vaults/WEthCoreVault.sol";
+import { WEthDegenVault } from "script/vaults/WEthDegenVault.sol";
+import { WEthBluechipVault } from "script/vaults/WEthBluechipVault.sol";
+import { WEthPerpsEngineVault } from "script/vaults/WEthPerpsEngineVault.sol";
 
-import { WstEthCoreVault } from "./WstEthCoreVault.sol";
-import { WstEthDegenVault } from "./WstEthDegenVault.sol";
-import { WstEthBluechipVault } from "./WstEthBluechipVault.sol";
+import { WstEthCoreVault } from "script/vaults/WstEthCoreVault.sol";
+import { WstEthDegenVault } from "script/vaults/WstEthDegenVault.sol";
+import { WstEthBluechipVault } from "script/vaults/WstEthBluechipVault.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
@@ -55,12 +57,14 @@ abstract contract Vaults is
     UsdcCoreVault,
     UsdcDegenVault,
     UsdcBluechipVault,
+    UsdcPerpsEngineVault,
     WBtcCoreVault,
     WBtcDegenVault,
     WBtcBluechipVault,
     WEthCoreVault,
     WEthDegenVault,
     WEthBluechipVault,
+    WEthPerpsEngineVault,
     WstEthCoreVault,
     WstEthDegenVault,
     WstEthBluechipVault,
@@ -123,318 +127,518 @@ abstract contract Vaults is
         }
     }
 
-    function setupVaultsConfig() internal {
-        // Not using the margin collateral address or price feed constants as it is reset in the marginCollaterals
-        // mapping when MarginCollaterals::configureMarginCollaterals() is called
-        address usdcAddress = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address usdcPriceAdapter = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
+    struct VaultsByChainParams {
+        address asset;
+        address priceAdapter;
+        address engine;
+    }
+
+    mapping(uint256 chainId => VaultsByChainParams) vaultsByChain;
+
+    function setupVaultsConfig(bool isTest) internal {
+        vaultsByChain[421_614].asset = USDC_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = USDC_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = USDC_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = USDC_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = USDC_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = USDC_MONAD_TESTNET_CORE_VAULT_ENGINE;
+
+        vaultsByChain[31_337].asset = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[31_337].priceAdapter = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[31_337].engine = address(0);
+
         VaultConfig memory usdcCore = VaultConfig({
             vaultId: USDC_CORE_VAULT_ID,
             depositCap: USDC_CORE_VAULT_DEPOSIT_CAP,
             withdrawalDelay: USDC_CORE_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: usdcAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: USDC_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: USDC_CORE_VAULT_IS_ENABLED,
             decimals: USDC_DECIMALS,
-            priceAdapter: usdcPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: USDC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: USDC_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: USDC_CORE_VAULT_DEPOSIT_FEE,
             redeemFee: USDC_CORE_VAULT_REDEEM_FEE,
-            engine: USDC_CORE_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[USDC_CORE_VAULT_ID] = usdcCore;
+
+        vaultsByChain[421_614].asset = USDC_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = USDC_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = USDC_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = USDC_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = USDC_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = USDC_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory usdcBluechip = VaultConfig({
             vaultId: USDC_BLUECHIP_VAULT_ID,
             depositCap: USDC_BLUECHIP_VAULT_DEPOSIT_CAP,
             withdrawalDelay: USDC_BLUECHIP_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: usdcAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: USDC_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: USDC_BLUECHIP_VAULT_IS_ENABLED,
             decimals: USDC_DECIMALS,
-            priceAdapter: usdcPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: USDC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: USDC_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: USDC_BLUECHIP_VAULT_DEPOSIT_FEE,
             redeemFee: USDC_BLUECHIP_VAULT_REDEEM_FEE,
-            engine: USDC_BLUECHIP_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[USDC_BLUECHIP_VAULT_ID] = usdcBluechip;
+
+        vaultsByChain[421_614].asset = USDC_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = USDC_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = USDC_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = USDC_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = USDC_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = USDC_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory usdcDegen = VaultConfig({
             vaultId: USDC_DEGEN_VAULT_ID,
             depositCap: USDC_DEGEN_VAULT_DEPOSIT_CAP,
             withdrawalDelay: USDC_DEGEN_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: usdcAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: USDC_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: USDC_DEGEN_VAULT_IS_ENABLED,
             decimals: USDC_DECIMALS,
-            priceAdapter: usdcPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: USDC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: USDC_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: USDC_DEGEN_VAULT_DEPOSIT_FEE,
             redeemFee: USDC_DEGEN_VAULT_REDEEM_FEE,
-            engine: USDC_DEGEN_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[USDC_DEGEN_VAULT_ID] = usdcDegen;
 
-        address wBtcAddress = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address wBtcPriceAdapter = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[421_614].asset = WBTC_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WBTC_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WBTC_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WBTC_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WBTC_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WBTC_MONAD_TESTNET_CORE_VAULT_ENGINE;
+
+        vaultsByChain[31_337].asset = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[31_337].priceAdapter = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[31_337].engine = address(0);
+
         VaultConfig memory wBtcCore = VaultConfig({
             vaultId: WBTC_CORE_VAULT_ID,
             depositCap: WBTC_CORE_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WBTC_CORE_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: wBtcAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WBTC_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WBTC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WBTC_CORE_VAULT_IS_ENABLED,
             decimals: WBTC_DECIMALS,
-            priceAdapter: wBtcPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: WBTC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WBTC_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WBTC_CORE_VAULT_DEPOSIT_FEE,
             redeemFee: WBTC_CORE_VAULT_REDEEM_FEE,
-            engine: WBTC_CORE_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WBTC_CORE_VAULT_ID] = wBtcCore;
+
+        vaultsByChain[421_614].asset = WBTC_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WBTC_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WBTC_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WBTC_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WBTC_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WBTC_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory wBtcBluechip = VaultConfig({
             vaultId: WBTC_BLUECHIP_VAULT_ID,
             depositCap: WBTC_BLUECHIP_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WBTC_BLUECHIP_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: wBtcAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WBTC_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WBTC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WBTC_BLUECHIP_VAULT_IS_ENABLED,
             decimals: WBTC_DECIMALS,
-            priceAdapter: wBtcPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: WBTC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WBTC_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WBTC_BLUECHIP_VAULT_DEPOSIT_FEE,
             redeemFee: WBTC_BLUECHIP_VAULT_REDEEM_FEE,
-            engine: WBTC_BLUECHIP_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WBTC_BLUECHIP_VAULT_ID] = wBtcBluechip;
+
+        vaultsByChain[421_614].asset = WBTC_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WBTC_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WBTC_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WBTC_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WBTC_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WBTC_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory wBtcDegen = VaultConfig({
             vaultId: WBTC_DEGEN_VAULT_ID,
             depositCap: WBTC_DEGEN_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WBTC_DEGEN_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: wBtcAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WBTC_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WBTC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WBTC_DEGEN_VAULT_IS_ENABLED,
             decimals: WBTC_DECIMALS,
-            priceAdapter: wBtcPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: WBTC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WBTC_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WBTC_DEGEN_VAULT_DEPOSIT_FEE,
             redeemFee: WBTC_DEGEN_VAULT_REDEEM_FEE,
-            engine: WBTC_DEGEN_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WBTC_DEGEN_VAULT_ID] = wBtcDegen;
 
-        address weEthAddress = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address weEthPriceAdapter = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[421_614].asset = WEETH_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WEETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WEETH_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WEETH_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WEETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WEETH_MONAD_TESTNET_CORE_VAULT_ENGINE;
+
+        vaultsByChain[31_337].asset = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[31_337].priceAdapter = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[31_337].engine = address(0);
+
         VaultConfig memory weEthCore = VaultConfig({
             vaultId: WEETH_CORE_VAULT_ID,
             depositCap: WEETH_CORE_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WEETH_CORE_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: weEthAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WEETH_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WEETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WEETH_CORE_VAULT_IS_ENABLED,
             decimals: WEETH_DECIMALS,
-            priceAdapter: weEthPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: WEETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WEETH_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WEETH_CORE_VAULT_DEPOSIT_FEE,
             redeemFee: WEETH_CORE_VAULT_REDEEM_FEE,
-            engine: WEETH_CORE_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WEETH_CORE_VAULT_ID] = weEthCore;
+
+        vaultsByChain[421_614].asset = WEETH_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WEETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WEETH_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WEETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WEETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WEETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory weEthBluechip = VaultConfig({
             vaultId: WEETH_BLUECHIP_VAULT_ID,
             depositCap: WEETH_BLUECHIP_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WEETH_BLUECHIP_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: weEthAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WEETH_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WEETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WEETH_BLUECHIP_VAULT_IS_ENABLED,
             decimals: WEETH_DECIMALS,
-            priceAdapter: weEthPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: WEETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WEETH_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WEETH_BLUECHIP_VAULT_DEPOSIT_FEE,
             redeemFee: WEETH_BLUECHIP_VAULT_REDEEM_FEE,
-            engine: WEETH_BLUECHIP_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WEETH_BLUECHIP_VAULT_ID] = weEthBluechip;
+
+        vaultsByChain[421_614].asset = WEETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WEETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WEETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WEETH_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WEETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WEETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory weEthDegen = VaultConfig({
             vaultId: WEETH_DEGEN_VAULT_ID,
             depositCap: WEETH_DEGEN_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WEETH_DEGEN_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: weEthAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WEETH_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WEETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WEETH_DEGEN_VAULT_IS_ENABLED,
             decimals: WEETH_DECIMALS,
-            priceAdapter: weEthPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: WEETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WEETH_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WEETH_DEGEN_VAULT_DEPOSIT_FEE,
             redeemFee: WEETH_DEGEN_VAULT_REDEEM_FEE,
-            engine: WEETH_DEGEN_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WEETH_DEGEN_VAULT_ID] = weEthDegen;
 
-        address wEthAddress = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address wEthPriceAdapter = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[421_614].asset = WETH_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WETH_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WETH_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WETH_MONAD_TESTNET_CORE_VAULT_ENGINE;
+
+        vaultsByChain[31_337].asset = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[31_337].priceAdapter = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[31_337].engine = address(0);
+
         VaultConfig memory wEthCore = VaultConfig({
             vaultId: WETH_CORE_VAULT_ID,
             depositCap: WETH_CORE_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WETH_CORE_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: wEthAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WETH_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WETH_CORE_VAULT_IS_ENABLED,
             decimals: WETH_DECIMALS,
-            priceAdapter: wEthPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: WETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WETH_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WETH_CORE_VAULT_DEPOSIT_FEE,
             redeemFee: WETH_CORE_VAULT_REDEEM_FEE,
-            engine: WETH_CORE_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WETH_CORE_VAULT_ID] = wEthCore;
+
+        vaultsByChain[421_614].asset = WETH_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WETH_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory wEthBluechip = VaultConfig({
             vaultId: WETH_BLUECHIP_VAULT_ID,
             depositCap: WETH_BLUECHIP_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WETH_BLUECHIP_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: wEthAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WETH_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WETH_BLUECHIP_VAULT_IS_ENABLED,
             decimals: WETH_DECIMALS,
-            priceAdapter: wEthPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: WETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WETH_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WETH_BLUECHIP_VAULT_DEPOSIT_FEE,
             redeemFee: WETH_BLUECHIP_VAULT_REDEEM_FEE,
-            engine: WETH_BLUECHIP_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WETH_BLUECHIP_VAULT_ID] = wEthBluechip;
+
+        vaultsByChain[421_614].asset = WETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WETH_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory wEthDegen = VaultConfig({
             vaultId: WETH_DEGEN_VAULT_ID,
             depositCap: WETH_DEGEN_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WETH_DEGEN_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: wEthAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WETH_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WETH_DEGEN_VAULT_IS_ENABLED,
             decimals: WETH_DECIMALS,
-            priceAdapter: wEthPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: WETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WETH_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WETH_DEGEN_VAULT_DEPOSIT_FEE,
             redeemFee: WETH_DEGEN_VAULT_REDEEM_FEE,
-            engine: WETH_DEGEN_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WETH_DEGEN_VAULT_ID] = wEthDegen;
 
-        address wStETHAddress = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        address wStEthPriceAdapter = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[421_614].asset = WSTETH_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WSTETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WSTETH_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WSTETH_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WSTETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WSTETH_MONAD_TESTNET_CORE_VAULT_ENGINE;
+
+        vaultsByChain[31_337].asset = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[31_337].priceAdapter = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[31_337].engine = address(0);
+
         VaultConfig memory wStEthCore = VaultConfig({
             vaultId: WSTETH_CORE_VAULT_ID,
             depositCap: WSTETH_CORE_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WSTETH_CORE_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: wStETHAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WSTETH_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WSTETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WSTETH_CORE_VAULT_IS_ENABLED,
             decimals: WSTETH_DECIMALS,
-            priceAdapter: wStEthPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: WSTETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WSTETH_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WSTETH_CORE_VAULT_DEPOSIT_FEE,
             redeemFee: WSTETH_CORE_VAULT_REDEEM_FEE,
-            engine: WSTETH_CORE_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WSTETH_CORE_VAULT_ID] = wStEthCore;
+
+        vaultsByChain[421_614].asset = WSTETH_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WSTETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WSTETH_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory wStEthBluechip = VaultConfig({
             vaultId: WSTETH_BLUECHIP_VAULT_ID,
             depositCap: WSTETH_BLUECHIP_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WSTETH_BLUECHIP_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: wStETHAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WSTETH_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WSTETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WSTETH_BLUECHIP_VAULT_IS_ENABLED,
             decimals: WSTETH_DECIMALS,
-            priceAdapter: wStEthPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: WSTETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WSTETH_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WSTETH_BLUECHIP_VAULT_DEPOSIT_FEE,
             redeemFee: WSTETH_BLUECHIP_VAULT_REDEEM_FEE,
-            engine: WSTETH_BLUECHIP_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WSTETH_BLUECHIP_VAULT_ID] = wStEthBluechip;
+
+        vaultsByChain[421_614].asset = WSTETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WSTETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WSTETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WSTETH_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WSTETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WSTETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory wStEthDegen = VaultConfig({
             vaultId: WSTETH_DEGEN_VAULT_ID,
             depositCap: WSTETH_DEGEN_VAULT_DEPOSIT_CAP,
             withdrawalDelay: WSTETH_DEGEN_VAULT_WITHDRAWAL_DELAY,
             indexToken: address(0),
-            asset: wStETHAddress,
+            asset: vaultsByChain[block.chainid].asset,
             creditRatio: WSTETH_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WSTETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WSTETH_DEGEN_VAULT_IS_ENABLED,
             decimals: WSTETH_DECIMALS,
-            priceAdapter: wStEthPriceAdapter,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: WSTETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
             streamId: WSTETH_USD_ARB_SEPOLIA_STREAM_ID,
             depositFee: WSTETH_DEGEN_VAULT_DEPOSIT_FEE,
             redeemFee: WSTETH_DEGEN_VAULT_REDEEM_FEE,
-            engine: WSTETH_DEGEN_VAULT_ENGINE
+            engine: vaultsByChain[block.chainid].engine
         });
         vaultsConfig[WSTETH_DEGEN_VAULT_ID] = wStEthDegen;
+
+        vaultsByChain[421_614].asset = USDC_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = USDC_ARB_SEPOLIA_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = USDC_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_ENGINE;
+
+        vaultsByChain[31_337].asset = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[31_337].priceAdapter = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[31_337].engine = address(0);
+
+        VaultConfig memory usdcPerpsEngine = VaultConfig({
+            vaultId: USDC_PERPS_ENGINE_VAULT_ID,
+            depositCap: USDC_PERPS_ENGINE_VAULT_DEPOSIT_CAP,
+            withdrawalDelay: USDC_PERPS_ENGINE_VAULT_WITHDRAWAL_DELAY,
+            indexToken: address(0),
+            asset: vaultsByChain[block.chainid].asset,
+            creditRatio: USDC_PERPS_ENGINE_VAULT_CREDIT_RATIO,
+            priceFeedHeartbeatSeconds: USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
+            isEnabled: USDC_PERPS_ENGINE_VAULT_IS_ENABLED,
+            decimals: USDC_DECIMALS,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
+            vaultType: VaultTypes.Core,
+            streamIdString: USDC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
+            streamId: USDC_USD_ARB_SEPOLIA_STREAM_ID,
+            depositFee: USDC_PERPS_ENGINE_VAULT_DEPOSIT_FEE,
+            redeemFee: USDC_PERPS_ENGINE_VAULT_REDEEM_FEE,
+            engine: vaultsByChain[block.chainid].engine
+        });
+        vaultsConfig[USDC_PERPS_ENGINE_VAULT_ID] = usdcPerpsEngine;
+
+        vaultsByChain[421_614].asset = WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ASSET;
+        vaultsByChain[421_614].priceAdapter = WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[421_614].engine = WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ENGINE;
+
+        vaultsByChain[10_143].asset = WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_ASSET;
+        vaultsByChain[10_143].priceAdapter = WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[10_143].engine = WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_ENGINE;
+
+        vaultsByChain[31_337].asset = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[31_337].priceAdapter = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[31_337].engine = address(0);
+
+        VaultConfig memory wEthPerpsEngine = VaultConfig({
+            vaultId: WETH_PERPS_ENGINE_VAULT_ID,
+            depositCap: WETH_PERPS_ENGINE_VAULT_DEPOSIT_CAP,
+            withdrawalDelay: WETH_PERPS_ENGINE_VAULT_WITHDRAWAL_DELAY,
+            indexToken: address(0),
+            asset: vaultsByChain[block.chainid].asset,
+            creditRatio: WETH_PERPS_ENGINE_VAULT_CREDIT_RATIO,
+            priceFeedHeartbeatSeconds: WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
+            isEnabled: WETH_PERPS_ENGINE_VAULT_IS_ENABLED,
+            decimals: WETH_DECIMALS,
+            priceAdapter: vaultsByChain[block.chainid].priceAdapter,
+            vaultType: VaultTypes.Core,
+            streamIdString: WETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
+            streamId: WETH_USD_ARB_SEPOLIA_STREAM_ID,
+            depositFee: WETH_PERPS_ENGINE_VAULT_DEPOSIT_FEE,
+            redeemFee: WETH_PERPS_ENGINE_VAULT_REDEEM_FEE,
+            engine: vaultsByChain[block.chainid].engine
+        });
+        vaultsConfig[WETH_PERPS_ENGINE_VAULT_ID] = wEthPerpsEngine;
     }
 
     function createVaults(
