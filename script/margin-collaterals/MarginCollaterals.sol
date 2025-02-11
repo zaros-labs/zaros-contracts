@@ -16,6 +16,7 @@ import { MockUsdToken } from "test/mocks/MockUsdToken.sol";
 import { MockPriceFeed } from "test/mocks/MockPriceFeed.sol";
 import { PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 import { PriceAdapterUtils } from "script/utils/PriceAdapterUtils.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 
 abstract contract MarginCollaterals is UsdToken, Usdc, WEth, WBtc, WstEth, WeEth {
     struct MarginCollateral {
@@ -45,24 +46,26 @@ abstract contract MarginCollaterals is UsdToken, Usdc, WEth, WBtc, WstEth, WeEth
             loanToValue: USDC_LOAN_TO_VALUE,
             minDepositMargin: USDC_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_USDC_USD_PRICE,
-            marginCollateralAddress: blockChainId == 421_614
+            marginCollateralAddress: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? USDC_ARB_SEPOLIA_ADDRESS
-                : blockChainId == 10_143 ? USDC_MONAD_TESTNET_ADDRESS : address(0),
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? USDC_MONAD_TESTNET_ADDRESS : address(0),
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.InitializeParams({
                         name: USDC_PRICE_ADAPTER_NAME,
                         symbol: USDC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: blockChainId == 421_614
+                        priceFeed: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                             ? USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
-                            : blockChainId == 10_143 ? USDC_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
+                            : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? USDC_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useEthPriceFeed: false,
-                        priceFeedId: blockChainId == 10_143 ? USDC_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
+                        priceFeedId: blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                            ? USDC_MONAD_TESTNET_PYTH_PRICE_FEED_ID
+                            : bytes32("")
                     })
                 )
             ),
@@ -79,24 +82,28 @@ abstract contract MarginCollaterals is UsdToken, Usdc, WEth, WBtc, WstEth, WeEth
             loanToValue: USD_TOKEN_LOAN_TO_VALUE,
             minDepositMargin: USD_TOKEN_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_USD_TOKEN_USD_PRICE,
-            marginCollateralAddress: blockChainId == 421_614
+            marginCollateralAddress: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? USD_TOKEN_ARB_SEPOLIA_ADDRESS
-                : blockChainId == 10_143 ? USD_TOKEN_MONAD_TESTNET_ADDRESS : address(0),
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? USD_TOKEN_MONAD_TESTNET_ADDRESS : address(0),
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.InitializeParams({
                         name: USD_TOKEN_PRICE_ADAPTER_NAME,
                         symbol: USD_TOKEN_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: blockChainId == 421_614
+                        priceFeed: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                             ? USD_TOKEN_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
-                            : blockChainId == 10_143 ? USD_TOKEN_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
+                            : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                                ? USD_TOKEN_MONAD_TESTNET_PYTH_PRICE_FEED
+                                : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: USD_TOKEN_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useEthPriceFeed: false,
-                        priceFeedId: blockChainId == 10_143 ? USD_TOKEN_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
+                        priceFeedId: blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                            ? USD_TOKEN_MONAD_TESTNET_PYTH_PRICE_FEED_ID
+                            : bytes32("")
                     })
                 )
             ),
@@ -113,24 +120,26 @@ abstract contract MarginCollaterals is UsdToken, Usdc, WEth, WBtc, WstEth, WeEth
             loanToValue: WETH_LOAN_TO_VALUE,
             minDepositMargin: WETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WETH_USD_PRICE,
-            marginCollateralAddress: blockChainId == 421_614
+            marginCollateralAddress: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? WETH_ARB_SEPOLIA_ADDRESS
-                : blockChainId == 10_143 ? WETH_MONAD_TESTNET_ADDRESS : address(0),
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? WETH_MONAD_TESTNET_ADDRESS : address(0),
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.InitializeParams({
                         name: WETH_PRICE_ADAPTER_NAME,
                         symbol: WETH_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: blockChainId == 421_614
+                        priceFeed: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                             ? WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
-                            : blockChainId == 10_143 ? WETH_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
+                            : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? WETH_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useEthPriceFeed: false,
-                        priceFeedId: blockChainId == 10_143 ? WETH_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
+                        priceFeedId: blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                            ? WETH_MONAD_TESTNET_PYTH_PRICE_FEED_ID
+                            : bytes32("")
                     })
                 )
             ),
@@ -147,24 +156,26 @@ abstract contract MarginCollaterals is UsdToken, Usdc, WEth, WBtc, WstEth, WeEth
             loanToValue: WEETH_LOAN_TO_VALUE,
             minDepositMargin: WEETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WEETH_USD_PRICE,
-            marginCollateralAddress: blockChainId == 421_614
+            marginCollateralAddress: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? WEETH_ARB_SEPOLIA_ADDRESS
-                : blockChainId == 10_143 ? WEETH_MONAD_TESTNET_ADDRESS : address(0),
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? WEETH_MONAD_TESTNET_ADDRESS : address(0),
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.InitializeParams({
                         name: WEETH_PRICE_ADAPTER_NAME,
                         symbol: WEETH_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: blockChainId == 421_614
+                        priceFeed: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                             ? WEETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
-                            : blockChainId == 10_143 ? WEETH_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
+                            : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? WEETH_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: WEETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useEthPriceFeed: false,
-                        priceFeedId: blockChainId == 10_143 ? WEETH_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
+                        priceFeedId: blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                            ? WEETH_MONAD_TESTNET_PYTH_PRICE_FEED_ID
+                            : bytes32("")
                     })
                 )
             ),
@@ -181,24 +192,26 @@ abstract contract MarginCollaterals is UsdToken, Usdc, WEth, WBtc, WstEth, WeEth
             loanToValue: WBTC_LOAN_TO_VALUE,
             minDepositMargin: WBTC_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WBTC_USD_PRICE,
-            marginCollateralAddress: blockChainId == 421_614
+            marginCollateralAddress: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? WBTC_ARB_SEPOLIA_ADDRESS
-                : blockChainId == 10_143 ? WBTC_MONAD_TESTNET_ADDRESS : address(0),
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? WBTC_MONAD_TESTNET_ADDRESS : address(0),
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.InitializeParams({
                         name: WBTC_PRICE_ADAPTER_NAME,
                         symbol: WBTC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: blockChainId == 421_614
+                        priceFeed: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                             ? WBTC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
-                            : blockChainId == 10_143 ? WBTC_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
+                            : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? WBTC_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: WBTC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useEthPriceFeed: false,
-                        priceFeedId: blockChainId == 10_143 ? WBTC_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
+                        priceFeedId: blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                            ? WBTC_MONAD_TESTNET_PYTH_PRICE_FEED_ID
+                            : bytes32("")
                     })
                 )
             ),
@@ -215,24 +228,26 @@ abstract contract MarginCollaterals is UsdToken, Usdc, WEth, WBtc, WstEth, WeEth
             loanToValue: WSTETH_LOAN_TO_VALUE,
             minDepositMargin: WSTETH_MIN_DEPOSIT_MARGIN,
             mockUsdPrice: MOCK_WSTETH_USD_PRICE,
-            marginCollateralAddress: blockChainId == 421_614
+            marginCollateralAddress: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? WSTETH_ARB_SEPOLIA_ADDRESS
-                : blockChainId == 10_143 ? WSTETH_MONAD_TESTNET_ADDRESS : address(0),
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? WSTETH_MONAD_TESTNET_ADDRESS : address(0),
             priceAdapter: address(
                 PriceAdapterUtils.deployPriceAdapter(
                     PriceAdapter.InitializeParams({
                         name: WSTETH_PRICE_ADAPTER_NAME,
                         symbol: WSTETH_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: blockChainId == 421_614
+                        priceFeed: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                             ? WSTETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
-                            : blockChainId == 10_143 ? WSTETH_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
+                            : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID ? WSTETH_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
                         priceFeedHeartbeatSeconds: WSTETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
                         useEthPriceFeed: false,
-                        priceFeedId: blockChainId == 10_143 ? WSTETH_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
+                        priceFeedId: blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                            ? WSTETH_MONAD_TESTNET_PYTH_PRICE_FEED_ID
+                            : bytes32("")
                     })
                 )
             ),

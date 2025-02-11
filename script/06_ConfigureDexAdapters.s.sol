@@ -11,6 +11,7 @@ import { MockUniswapV3SwapStrategyRouter } from "test/mocks/MockUniswapV3SwapStr
 import { MockUniswapV2SwapStrategyRouter } from "test/mocks/MockUniswapV2SwapStrategyRouter.sol";
 import { MockCurveStrategyRouter } from "test/mocks/MockCurveStrategyRouter.sol";
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 
 // Forge dependencies
 import { console } from "forge-std/console.sol";
@@ -72,30 +73,38 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
 
         collateralData[0] = SwapAssetConfigData({
             decimals: USDC_MARKET_MAKING_ENGINE_DECIMALS,
-            priceAdapter: blockChainId == 421_614
+            priceAdapter: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? USDC_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
-                : blockChainId == 10_143 ? USDC_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER : address(0)
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                    ? USDC_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER
+                    : address(0)
         });
 
         collateralData[1] = SwapAssetConfigData({
             decimals: WETH_MARKET_MAKING_ENGINE_DECIMALS,
-            priceAdapter: blockChainId == 421_614
+            priceAdapter: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? WETH_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
-                : blockChainId == 10_143 ? WETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER : address(0)
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                    ? WETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER
+                    : address(0)
         });
 
         collateralData[2] = SwapAssetConfigData({
             decimals: WBTC_MARKET_MAKING_ENGINE_DECIMALS,
-            priceAdapter: blockChainId == 421_614
+            priceAdapter: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? WBTC_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
-                : blockChainId == 10_143 ? WBTC_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER : address(0)
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                    ? WBTC_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER
+                    : address(0)
         });
 
         collateralData[3] = SwapAssetConfigData({
             decimals: WSTETH_MARKET_MAKING_ENGINE_DECIMALS,
-            priceAdapter: blockChainId == 421_614
+            priceAdapter: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
                 ? WSTETH_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
-                : blockChainId == 10_143 ? WSTETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER : address(0)
+                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
+                    ? WSTETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER
+                    : address(0)
         });
 
         if (shouldDeployMock) {

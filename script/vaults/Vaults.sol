@@ -9,6 +9,7 @@ import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { UsdTokenSwapKeeper } from "@zaros/external/chainlink/keepers/usd-token-swap-keeper/UsdTokenSwapKeeper.sol";
+import { Constants } from "@zaros/utils/Constants.sol";
 
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
@@ -136,17 +137,19 @@ abstract contract Vaults is
     mapping(uint256 chainId => VaultsByChainParams) vaultsByChain;
 
     function setupVaultsConfig(bool isTest) internal {
-        vaultsByChain[421_614].asset = USDC_ARB_SEPOLIA_CORE_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = USDC_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = USDC_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = USDC_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = USDC_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = USDC_ARB_SEPOLIA_CORE_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = USDC_MONAD_TESTNET_CORE_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = USDC_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = USDC_MONAD_TESTNET_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = USDC_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = USDC_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = USDC_MONAD_TESTNET_CORE_VAULT_ENGINE;
 
-        vaultsByChain[31_337].asset = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        vaultsByChain[31_337].priceAdapter = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
-        vaultsByChain[31_337].engine = address(0);
+        vaultsByChain[Constants.FORGE_CHAIN_ID].asset =
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].priceAdapter =
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].engine = address(0);
 
         VaultConfig memory usdcCore = VaultConfig({
             vaultId: USDC_CORE_VAULT_ID,
@@ -168,13 +171,13 @@ abstract contract Vaults is
         });
         vaultsConfig[USDC_CORE_VAULT_ID] = usdcCore;
 
-        vaultsByChain[421_614].asset = USDC_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = USDC_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = USDC_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = USDC_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = USDC_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = USDC_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = USDC_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = USDC_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = USDC_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = USDC_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = USDC_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = USDC_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory usdcBluechip = VaultConfig({
             vaultId: USDC_BLUECHIP_VAULT_ID,
@@ -196,13 +199,13 @@ abstract contract Vaults is
         });
         vaultsConfig[USDC_BLUECHIP_VAULT_ID] = usdcBluechip;
 
-        vaultsByChain[421_614].asset = USDC_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = USDC_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = USDC_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = USDC_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = USDC_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = USDC_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = USDC_MONAD_TESTNET_DEGEN_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = USDC_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = USDC_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = USDC_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = USDC_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = USDC_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory usdcDegen = VaultConfig({
             vaultId: USDC_DEGEN_VAULT_ID,
@@ -224,17 +227,19 @@ abstract contract Vaults is
         });
         vaultsConfig[USDC_DEGEN_VAULT_ID] = usdcDegen;
 
-        vaultsByChain[421_614].asset = WBTC_ARB_SEPOLIA_CORE_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WBTC_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WBTC_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WBTC_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WBTC_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WBTC_ARB_SEPOLIA_CORE_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WBTC_MONAD_TESTNET_CORE_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WBTC_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WBTC_MONAD_TESTNET_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WBTC_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WBTC_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WBTC_MONAD_TESTNET_CORE_VAULT_ENGINE;
 
-        vaultsByChain[31_337].asset = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        vaultsByChain[31_337].priceAdapter = marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter;
-        vaultsByChain[31_337].engine = address(0);
+        vaultsByChain[Constants.FORGE_CHAIN_ID].asset =
+            marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].priceAdapter =
+            marginCollaterals[WBTC_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].engine = address(0);
 
         VaultConfig memory wBtcCore = VaultConfig({
             vaultId: WBTC_CORE_VAULT_ID,
@@ -256,13 +261,13 @@ abstract contract Vaults is
         });
         vaultsConfig[WBTC_CORE_VAULT_ID] = wBtcCore;
 
-        vaultsByChain[421_614].asset = WBTC_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WBTC_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WBTC_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WBTC_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WBTC_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WBTC_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WBTC_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WBTC_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WBTC_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WBTC_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WBTC_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WBTC_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory wBtcBluechip = VaultConfig({
             vaultId: WBTC_BLUECHIP_VAULT_ID,
@@ -284,13 +289,13 @@ abstract contract Vaults is
         });
         vaultsConfig[WBTC_BLUECHIP_VAULT_ID] = wBtcBluechip;
 
-        vaultsByChain[421_614].asset = WBTC_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WBTC_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WBTC_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WBTC_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WBTC_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WBTC_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WBTC_MONAD_TESTNET_DEGEN_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WBTC_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WBTC_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WBTC_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WBTC_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WBTC_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory wBtcDegen = VaultConfig({
             vaultId: WBTC_DEGEN_VAULT_ID,
@@ -312,17 +317,19 @@ abstract contract Vaults is
         });
         vaultsConfig[WBTC_DEGEN_VAULT_ID] = wBtcDegen;
 
-        vaultsByChain[421_614].asset = WEETH_ARB_SEPOLIA_CORE_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WEETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WEETH_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WEETH_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WEETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WEETH_ARB_SEPOLIA_CORE_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WEETH_MONAD_TESTNET_CORE_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WEETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WEETH_MONAD_TESTNET_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WEETH_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WEETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WEETH_MONAD_TESTNET_CORE_VAULT_ENGINE;
 
-        vaultsByChain[31_337].asset = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        vaultsByChain[31_337].priceAdapter = marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceAdapter;
-        vaultsByChain[31_337].engine = address(0);
+        vaultsByChain[Constants.FORGE_CHAIN_ID].asset =
+            marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].priceAdapter =
+            marginCollaterals[WEETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].engine = address(0);
 
         VaultConfig memory weEthCore = VaultConfig({
             vaultId: WEETH_CORE_VAULT_ID,
@@ -344,13 +351,14 @@ abstract contract Vaults is
         });
         vaultsConfig[WEETH_CORE_VAULT_ID] = weEthCore;
 
-        vaultsByChain[421_614].asset = WEETH_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WEETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WEETH_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WEETH_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WEETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WEETH_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WEETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WEETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WEETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WEETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter =
+            WEETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WEETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory weEthBluechip = VaultConfig({
             vaultId: WEETH_BLUECHIP_VAULT_ID,
@@ -372,13 +380,13 @@ abstract contract Vaults is
         });
         vaultsConfig[WEETH_BLUECHIP_VAULT_ID] = weEthBluechip;
 
-        vaultsByChain[421_614].asset = WEETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WEETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WEETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WEETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WEETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WEETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WEETH_MONAD_TESTNET_DEGEN_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WEETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WEETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WEETH_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WEETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WEETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory weEthDegen = VaultConfig({
             vaultId: WEETH_DEGEN_VAULT_ID,
@@ -400,17 +408,19 @@ abstract contract Vaults is
         });
         vaultsConfig[WEETH_DEGEN_VAULT_ID] = weEthDegen;
 
-        vaultsByChain[421_614].asset = WETH_ARB_SEPOLIA_CORE_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WETH_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WETH_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WETH_ARB_SEPOLIA_CORE_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WETH_MONAD_TESTNET_CORE_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WETH_MONAD_TESTNET_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WETH_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WETH_MONAD_TESTNET_CORE_VAULT_ENGINE;
 
-        vaultsByChain[31_337].asset = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        vaultsByChain[31_337].priceAdapter = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter;
-        vaultsByChain[31_337].engine = address(0);
+        vaultsByChain[Constants.FORGE_CHAIN_ID].asset =
+            marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].priceAdapter =
+            marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].engine = address(0);
 
         VaultConfig memory wEthCore = VaultConfig({
             vaultId: WETH_CORE_VAULT_ID,
@@ -432,13 +442,13 @@ abstract contract Vaults is
         });
         vaultsConfig[WETH_CORE_VAULT_ID] = wEthCore;
 
-        vaultsByChain[421_614].asset = WETH_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WETH_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WETH_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WETH_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory wEthBluechip = VaultConfig({
             vaultId: WETH_BLUECHIP_VAULT_ID,
@@ -460,13 +470,13 @@ abstract contract Vaults is
         });
         vaultsConfig[WETH_BLUECHIP_VAULT_ID] = wEthBluechip;
 
-        vaultsByChain[421_614].asset = WETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WETH_MONAD_TESTNET_DEGEN_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WETH_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory wEthDegen = VaultConfig({
             vaultId: WETH_DEGEN_VAULT_ID,
@@ -488,17 +498,19 @@ abstract contract Vaults is
         });
         vaultsConfig[WETH_DEGEN_VAULT_ID] = wEthDegen;
 
-        vaultsByChain[421_614].asset = WSTETH_ARB_SEPOLIA_CORE_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WSTETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WSTETH_ARB_SEPOLIA_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WSTETH_ARB_SEPOLIA_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WSTETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WSTETH_ARB_SEPOLIA_CORE_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WSTETH_MONAD_TESTNET_CORE_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WSTETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WSTETH_MONAD_TESTNET_CORE_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WSTETH_MONAD_TESTNET_CORE_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WSTETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WSTETH_MONAD_TESTNET_CORE_VAULT_ENGINE;
 
-        vaultsByChain[31_337].asset = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        vaultsByChain[31_337].priceAdapter = marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter;
-        vaultsByChain[31_337].engine = address(0);
+        vaultsByChain[Constants.FORGE_CHAIN_ID].asset =
+            marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].priceAdapter =
+            marginCollaterals[WSTETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].engine = address(0);
 
         VaultConfig memory wStEthCore = VaultConfig({
             vaultId: WSTETH_CORE_VAULT_ID,
@@ -520,13 +532,14 @@ abstract contract Vaults is
         });
         vaultsConfig[WSTETH_CORE_VAULT_ID] = wStEthCore;
 
-        vaultsByChain[421_614].asset = WSTETH_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WSTETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WSTETH_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WSTETH_ARB_SEPOLIA_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WSTETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WSTETH_ARB_SEPOLIA_BLUECHIP_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter =
+            WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE;
 
         VaultConfig memory wStEthBluechip = VaultConfig({
             vaultId: WSTETH_BLUECHIP_VAULT_ID,
@@ -548,13 +561,13 @@ abstract contract Vaults is
         });
         vaultsConfig[WSTETH_BLUECHIP_VAULT_ID] = wStEthBluechip;
 
-        vaultsByChain[421_614].asset = WSTETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WSTETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WSTETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WSTETH_ARB_SEPOLIA_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WSTETH_ARB_SEPOLIA_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WSTETH_ARB_SEPOLIA_DEGEN_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WSTETH_MONAD_TESTNET_DEGEN_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WSTETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WSTETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WSTETH_MONAD_TESTNET_DEGEN_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter = WSTETH_MONAD_TESTNET_DEGEN_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WSTETH_MONAD_TESTNET_DEGEN_VAULT_ENGINE;
 
         VaultConfig memory wStEthDegen = VaultConfig({
             vaultId: WSTETH_DEGEN_VAULT_ID,
@@ -576,17 +589,20 @@ abstract contract Vaults is
         });
         vaultsConfig[WSTETH_DEGEN_VAULT_ID] = wStEthDegen;
 
-        vaultsByChain[421_614].asset = USDC_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = USDC_ARB_SEPOLIA_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = USDC_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = USDC_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = USDC_ARB_SEPOLIA_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = USDC_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter =
+            USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_ENGINE;
 
-        vaultsByChain[31_337].asset = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        vaultsByChain[31_337].priceAdapter = marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
-        vaultsByChain[31_337].engine = address(0);
+        vaultsByChain[Constants.FORGE_CHAIN_ID].asset =
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].priceAdapter =
+            marginCollaterals[USDC_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].engine = address(0);
 
         VaultConfig memory usdcPerpsEngine = VaultConfig({
             vaultId: USDC_PERPS_ENGINE_VAULT_ID,
@@ -608,17 +624,20 @@ abstract contract Vaults is
         });
         vaultsConfig[USDC_PERPS_ENGINE_VAULT_ID] = usdcPerpsEngine;
 
-        vaultsByChain[421_614].asset = WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ASSET;
-        vaultsByChain[421_614].priceAdapter = WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[421_614].engine = WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ENGINE;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].asset = WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ASSET;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter = WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.ARB_SEPOLIA_CHAIN_ID].engine = WETH_ARB_SEPOLIA_PERPS_ENGINE_VAULT_ENGINE;
 
-        vaultsByChain[10_143].asset = WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_ASSET;
-        vaultsByChain[10_143].priceAdapter = WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
-        vaultsByChain[10_143].engine = WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_ENGINE;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].asset = WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_ASSET;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter =
+            WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_PRICE_ADAPTER;
+        vaultsByChain[Constants.MONAD_TESTNET_CHAIN_ID].engine = WETH_MONAD_TESTNET_PERPS_ENGINE_VAULT_ENGINE;
 
-        vaultsByChain[31_337].asset = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
-        vaultsByChain[31_337].priceAdapter = marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter;
-        vaultsByChain[31_337].engine = address(0);
+        vaultsByChain[Constants.FORGE_CHAIN_ID].asset =
+            marginCollaterals[WETH_MARGIN_COLLATERAL_ID].marginCollateralAddress;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].priceAdapter =
+            marginCollaterals[WETH_MARGIN_COLLATERAL_ID].priceAdapter;
+        vaultsByChain[Constants.FORGE_CHAIN_ID].engine = address(0);
 
         VaultConfig memory wEthPerpsEngine = VaultConfig({
             vaultId: WETH_PERPS_ENGINE_VAULT_ID,

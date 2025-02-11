@@ -47,4 +47,13 @@ library Constants {
 
     /// @notice Minimum value for stake shares.
     uint256 internal constant MIN_OF_SHARES_TO_STAKE = 1e5;
+
+    /// @notice Arbitrum Sepolia Chain Id
+    uint256 internal constant ARB_SEPOLIA_CHAIN_ID = 421_614;
+
+    /// @notice Monad Testnet Chain Id
+    uint256 internal constant MONAD_TESTNET_CHAIN_ID = 10_143;
+
+    /// @notice Forge Testnet Chain Id
+    uint256 internal constant FORGE_CHAIN_ID = 31_337;
 }
