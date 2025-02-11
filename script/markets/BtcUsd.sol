@@ -24,16 +24,22 @@ abstract contract BtcUsd {
     OrderFees.Data internal btcUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice Test only mocks
-    string internal constant MOCK_BTC_USD_STREAM_ID = "MOCK_BTC_USD_STREAM_ID";
+    string internal constant MOCK_BTC_USD_ARB_SEPOLIA_STREAM_ID = "MOCK_BTC_USD_ARB_SEPOLIA_STREAM_ID";
     uint256 internal constant MOCK_BTC_USD_PRICE = 100_000e18;
 
-    // TODO: Update address value
-    address internal constant BTC_USD_PRICE_FEED = address(0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69);
-    uint32 internal constant BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS = 3600;
+    // Arbitrum Sepolia
+    address internal constant BTC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED =
+        address(0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69);
+    uint32 internal constant BTC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS = 3600;
     bool internal constant BTC_USD_USE_CUSTOM_PRICE_ADAPTER = false;
-
-    // TODO: Update stream id value
-    bytes32 internal constant BTC_USD_STREAM_ID = 0x00037da06d56d083fe599397a4769a042d63aa73dc4ef57709d31e9971a5b439;
-    string internal constant STRING_BTC_USD_STREAM_ID =
+    bytes32 internal constant BTC_USD_ARB_SEPOLIA_STREAM_ID =
+        0x00037da06d56d083fe599397a4769a042d63aa73dc4ef57709d31e9971a5b439;
+    string internal constant STRING_BTC_USD_ARB_SEPOLIA_STREAM_ID =
         "0x00037da06d56d083fe599397a4769a042d63aa73dc4ef57709d31e9971a5b439";
+
+    // Monad Testnet
+    address internal constant BTC_USD_MONAD_TESTNET_PYTH_PRICE_FEED =
+        address(0x2880aB155794e7179c9eE2e38200202908C17B43);
+    bytes32 internal constant BTC_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID =
+        0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43;
 }

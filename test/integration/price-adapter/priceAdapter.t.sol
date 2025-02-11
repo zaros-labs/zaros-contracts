@@ -67,9 +67,10 @@ contract PriceAdapter_Integration_Test is Base_Test {
                     priceFeed: address(mockPriceFeed),
                     ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
                     sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
-                    priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                    priceFeedHeartbeatSeconds: MOCK_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEAT_SECONDS,
                     ethUsdPriceFeedHeartbeatSeconds: 0,
-                    useEthPriceFeed: useEthPriceFeed
+                    useEthPriceFeed: useEthPriceFeed,
+                    priceFeedId: bytes32("")
                 })
             )
         );
@@ -135,9 +136,10 @@ contract PriceAdapter_Integration_Test is Base_Test {
                         priceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(mockPriceFeedWithIncorrectDecimals),
                         ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeedWithIncorrectDecimals) : address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
-                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        priceFeedHeartbeatSeconds: MOCK_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: useEthPriceFeed
+                        useEthPriceFeed: useEthPriceFeed,
+                        priceFeedId: bytes32("")
                     })
                 )
             )
@@ -185,9 +187,10 @@ contract PriceAdapter_Integration_Test is Base_Test {
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedWithInvalidReturn),
-                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        priceFeedHeartbeatSeconds: MOCK_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: useEthPriceFeed
+                        useEthPriceFeed: useEthPriceFeed,
+                        priceFeedId: bytes32("")
                     })
                 )
             )
@@ -237,9 +240,10 @@ contract PriceAdapter_Integration_Test is Base_Test {
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedDown),
-                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        priceFeedHeartbeatSeconds: MOCK_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: useEthPriceFeed
+                        useEthPriceFeed: useEthPriceFeed,
+                        priceFeedId: bytes32("")
                     })
                 )
             )
@@ -291,9 +295,10 @@ contract PriceAdapter_Integration_Test is Base_Test {
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedNotStarted),
-                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        priceFeedHeartbeatSeconds: MOCK_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: useEthPriceFeed
+                        useEthPriceFeed: useEthPriceFeed,
+                        priceFeedId: bytes32("")
                     })
                 )
             )
@@ -346,9 +351,10 @@ contract PriceAdapter_Integration_Test is Base_Test {
                         priceFeed: address(mockPriceFeed),
                         ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeed) : address(0),
                         sequencerUptimeFeed: address(mockSequencerUptimeFeedGracePeriodNotOver),
-                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        priceFeedHeartbeatSeconds: MOCK_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: useEthPriceFeed
+                        useEthPriceFeed: useEthPriceFeed,
+                        priceFeedId: bytes32("")
                     })
                 )
             )
@@ -389,9 +395,10 @@ contract PriceAdapter_Integration_Test is Base_Test {
                         priceFeed: address(mockPriceFeedWithInvalidReturn),
                         ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeedWithInvalidReturn) : address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
-                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        priceFeedHeartbeatSeconds: MOCK_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: useEthPriceFeed
+                        useEthPriceFeed: useEthPriceFeed,
+                        priceFeedId: bytes32("")
                     })
                 )
             )
@@ -433,9 +440,10 @@ contract PriceAdapter_Integration_Test is Base_Test {
                         priceFeed: address(mockPriceFeedOldUpdatedAt),
                         ethUsdPriceFeed: useEthPriceFeed ? address(mockPriceFeedOldUpdatedAt) : address(0),
                         sequencerUptimeFeed: address(new MockSequencerUptimeFeed(0)),
-                        priceFeedHeartbeatSeconds: MOCK_PRICE_FEED_HEARTBEAT_SECONDS,
+                        priceFeedHeartbeatSeconds: MOCK_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEAT_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: useEthPriceFeed
+                        useEthPriceFeed: useEthPriceFeed,
+                        priceFeedId: bytes32("")
                     })
                 )
             )

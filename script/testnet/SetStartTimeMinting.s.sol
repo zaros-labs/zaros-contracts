@@ -14,7 +14,7 @@ contract SetStartTimeMinting is BaseScript, ProtocolConfiguration {
     function run() public broadcaster {
         uint256 startTimeMinting = 1_725_380_400; // 03st Sep 2024 16:20:00 UTC
 
-        LimitedMintingERC20(USDC_ADDRESS).setStartTimeMinting(startTimeMinting);
+        LimitedMintingERC20(USDC_ARB_SEPOLIA_ADDRESS).setStartTimeMinting(startTimeMinting);
 
         console.log("Start time minting set to: ", startTimeMinting);
     }

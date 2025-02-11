@@ -141,7 +141,7 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
     uint256 internal constant MOCK_PERP_CREDIT_CONFIG_DEBT_CREDIT_RATIO = 1e18;
     uint256 internal constant MOCK_DEPOSIT_FEE = 0.01e18;
     uint256 internal constant MOCK_REDEEM_FEE = 0.01e18;
-    uint32 internal constant MOCK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
+    uint32 internal constant MOCK_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEAT_SECONDS = 86_400;
 
     /*//////////////////////////////////////////////////////////////////////////
                                    TEST CONTRACTS

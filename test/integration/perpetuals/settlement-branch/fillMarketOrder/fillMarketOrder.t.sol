@@ -387,7 +387,7 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         // 1) gets executed afterwards - the keeper is calling this
         // with the parameters of the first opened order, in this case
         // with BTC's market id and price !
-        bytes memory mockSignedReport = getMockedSignedReport(BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE);
+        bytes memory mockSignedReport = getMockedSignedReport(BTC_USD_ARB_SEPOLIA_STREAM_ID, MOCK_BTC_USD_PRICE);
         changePrank({ msgSender: marketOrderKeepers[BTC_USD_MARKET_ID] });
         perpsEngine.fillMarketOrder(tradingAccountId, BTC_USD_MARKET_ID, mockSignedReport);
     }

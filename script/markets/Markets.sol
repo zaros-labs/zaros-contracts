@@ -92,6 +92,8 @@ abstract contract Markets is
 
     // TODO: add heartbeat parameter into a `Markets` object
     function setupMarketsConfig(address sequencerUptimeFeed, address priceAdapterOwner) internal {
+        uint256 blockChainId = block.chainid;
+
         marketsConfig[BTC_USD_MARKET_ID] = MarketConfig({
             marketId: BTC_USD_MARKET_ID,
             marketName: BTC_USD_MARKET_NAME,
@@ -110,17 +112,20 @@ abstract contract Markets is
                         name: BTC_PRICE_ADAPTER_NAME,
                         symbol: BTC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: BTC_USD_PRICE_FEED,
+                        priceFeed: blockChainId == 421_614
+                            ? BTC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
+                            : blockChainId == 10_143 ? BTC_USD_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: BTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: BTC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: blockChainId == 10_143 ? BTC_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
                     })
                 )
             ),
-            streamId: BTC_USD_STREAM_ID,
-            streamIdString: STRING_BTC_USD_STREAM_ID,
+            streamId: BTC_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_BTC_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: btcUsdOrderFees,
             mockUsdPrice: MOCK_BTC_USD_PRICE
         });
@@ -143,17 +148,20 @@ abstract contract Markets is
                         name: ETH_PRICE_ADAPTER_NAME,
                         symbol: ETH_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: ETH_USD_PRICE_FEED,
+                        priceFeed: blockChainId == 421_614
+                            ? ETH_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
+                            : blockChainId == 10_143 ? ETH_USD_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: ETH_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: blockChainId == 10_143 ? ETH_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
                     })
                 )
             ),
-            streamId: ETH_USD_STREAM_ID,
-            streamIdString: STRING_ETH_USD_STREAM_ID,
+            streamId: ETH_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_ETH_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: ethUsdOrderFees,
             mockUsdPrice: MOCK_ETH_USD_PRICE
         });
@@ -176,17 +184,20 @@ abstract contract Markets is
                         name: LINK_PRICE_ADAPTER_NAME,
                         symbol: LINK_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: LINK_USD_PRICE_FEED,
+                        priceFeed: blockChainId == 421_614
+                            ? LINK_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
+                            : blockChainId == 10_143 ? LINK_USD_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: LINK_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: LINK_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: blockChainId == 10_143 ? LINK_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
                     })
                 )
             ),
-            streamId: LINK_USD_STREAM_ID,
-            streamIdString: STRING_LINK_USD_STREAM_ID,
+            streamId: LINK_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_LINK_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: linkUsdOrderFees,
             mockUsdPrice: MOCK_LINK_USD_PRICE
         });
@@ -209,17 +220,20 @@ abstract contract Markets is
                         name: ARB_PRICE_ADAPTER_NAME,
                         symbol: ARB_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: ARB_USD_PRICE_FEED,
+                        priceFeed: blockChainId == 421_614
+                            ? ARB_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
+                            : blockChainId == 10_143 ? ARB_USD_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: ARB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: ARB_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: blockChainId == 10_143 ? ARB_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
                     })
                 )
             ),
-            streamId: ARB_USD_STREAM_ID,
-            streamIdString: STRING_ARB_USD_STREAM_ID,
+            streamId: ARB_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_ARB_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: arbUsdOrderFees,
             mockUsdPrice: MOCK_ARB_USD_PRICE
         });
@@ -242,17 +256,20 @@ abstract contract Markets is
                         name: BNB_PRICE_ADAPTER_NAME,
                         symbol: BNB_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: BNB_USD_PRICE_FEED,
+                        priceFeed: blockChainId == 421_614
+                            ? BNB_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
+                            : blockChainId == 10_143 ? BNB_USD_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: BNB_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: blockChainId == 10_143 ? BNB_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
                     })
                 )
             ),
-            streamId: BNB_USD_STREAM_ID,
-            streamIdString: STRING_BNB_USD_STREAM_ID,
+            streamId: BNB_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_BNB_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: bnbUsdOrderFees,
             mockUsdPrice: MOCK_BNB_USD_PRICE
         });
@@ -275,17 +292,20 @@ abstract contract Markets is
                         name: DOGE_PRICE_ADAPTER_NAME,
                         symbol: DOGE_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: DOGE_USD_PRICE_FEED,
+                        priceFeed: blockChainId == 421_614
+                            ? DOGE_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
+                            : blockChainId == 10_143 ? DOGE_USD_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: DOGE_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: DOGE_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: blockChainId == 10_143 ? DOGE_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
                     })
                 )
             ),
-            streamId: DOGE_USD_STREAM_ID,
-            streamIdString: STRING_DOGE_USD_STREAM_ID,
+            streamId: DOGE_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_DOGE_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: dogeUsdOrderFees,
             mockUsdPrice: MOCK_DOGE_USD_PRICE
         });
@@ -308,17 +328,20 @@ abstract contract Markets is
                         name: SOL_PRICE_ADAPTER_NAME,
                         symbol: SOL_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: SOL_USD_PRICE_FEED,
+                        priceFeed: blockChainId == 421_614
+                            ? SOL_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
+                            : blockChainId == 10_143 ? SOL_USD_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: SOL_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: blockChainId == 10_143 ? SOL_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
                     })
                 )
             ),
-            streamId: SOL_USD_STREAM_ID,
-            streamIdString: STRING_SOL_USD_STREAM_ID,
+            streamId: SOL_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_SOL_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: solUsdOrderFees,
             mockUsdPrice: MOCK_SOL_USD_PRICE
         });
@@ -341,17 +364,20 @@ abstract contract Markets is
                         name: MATIC_PRICE_ADAPTER_NAME,
                         symbol: MATIC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: MATIC_USD_PRICE_FEED,
+                        priceFeed: blockChainId == 421_614
+                            ? MATIC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
+                            : blockChainId == 10_143 ? MATIC_USD_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: MATIC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: MATIC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: blockChainId == 10_143 ? MATIC_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
                     })
                 )
             ),
-            streamId: MATIC_USD_STREAM_ID,
-            streamIdString: STRING_MATIC_USD_STREAM_ID,
+            streamId: MATIC_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_MATIC_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: maticUsdOrderFees,
             mockUsdPrice: MOCK_MATIC_USD_PRICE
         });
@@ -374,17 +400,20 @@ abstract contract Markets is
                         name: LTC_PRICE_ADAPTER_NAME,
                         symbol: LTC_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: LTC_USD_PRICE_FEED,
+                        priceFeed: blockChainId == 421_614
+                            ? LTC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED
+                            : blockChainId == 10_143 ? LTC_USD_MONAD_TESTNET_PYTH_PRICE_FEED : address(0),
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: LTC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: blockChainId == 10_143 ? LTC_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID : bytes32("")
                     })
                 )
             ),
-            streamId: LTC_USD_STREAM_ID,
-            streamIdString: STRING_LTC_USD_STREAM_ID,
+            streamId: LTC_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_LTC_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: ltcUsdOrderFees,
             mockUsdPrice: MOCK_LTC_USD_PRICE
         });
@@ -407,17 +436,18 @@ abstract contract Markets is
                         name: FTM_PRICE_ADAPTER_NAME,
                         symbol: FTM_PRICE_ADAPTER_SYMBOL,
                         owner: priceAdapterOwner,
-                        priceFeed: FTM_USD_PRICE_FEED,
+                        priceFeed: FTM_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED,
                         ethUsdPriceFeed: address(0),
                         sequencerUptimeFeed: sequencerUptimeFeed,
-                        priceFeedHeartbeatSeconds: FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS,
+                        priceFeedHeartbeatSeconds: FTM_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
                         ethUsdPriceFeedHeartbeatSeconds: 0,
-                        useEthPriceFeed: false
+                        useEthPriceFeed: false,
+                        priceFeedId: bytes32("")
                     })
                 )
             ),
-            streamId: FTM_USD_STREAM_ID,
-            streamIdString: STRING_FTM_USD_STREAM_ID,
+            streamId: FTM_USD_ARB_SEPOLIA_STREAM_ID,
+            streamIdString: STRING_FTM_USD_ARB_SEPOLIA_STREAM_ID,
             orderFees: ftmUsdOrderFees,
             mockUsdPrice: MOCK_FTM_USD_PRICE
         });
@@ -488,8 +518,9 @@ abstract contract Markets is
                                 ),
                                 sequencerUptimeFeed: params.sequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
-                                ethUsdPriceFeedHeartbeatSeconds: ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS,
-                                useEthPriceFeed: true
+                                ethUsdPriceFeedHeartbeatSeconds: ETH_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS,
+                                useEthPriceFeed: true,
+                                priceFeedId: bytes32("")
                             })
                         )
                     );
@@ -505,7 +536,8 @@ abstract contract Markets is
                                 sequencerUptimeFeed: params.sequencerUptimeFeed,
                                 priceFeedHeartbeatSeconds: 86_400,
                                 ethUsdPriceFeedHeartbeatSeconds: 0,
-                                useEthPriceFeed: false
+                                useEthPriceFeed: false,
+                                priceFeedId: bytes32("")
                             })
                         )
                     );

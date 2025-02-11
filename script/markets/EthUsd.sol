@@ -24,16 +24,22 @@ abstract contract EthUsd {
     OrderFees.Data internal ethUsdOrderFees = OrderFees.Data({ makerFee: 0.0004e18, takerFee: 0.0008e18 });
 
     /// @notice Test only mocks
-    string internal constant MOCK_ETH_USD_STREAM_ID = "MOCK_ETH_USD_STREAM_ID";
+    string internal constant MOCK_ETH_USD_ARB_SEPOLIA_STREAM_ID = "MOCK_ETH_USD_ARB_SEPOLIA_STREAM_ID";
     uint256 internal constant MOCK_ETH_USD_PRICE = 1000e18;
 
-    // TODO: Update address value
-    address internal constant ETH_USD_PRICE_FEED = address(0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165);
-    uint32 internal constant ETH_USD_PRICE_FEED_HEARTBEATS_SECONDS = 120;
+    // Arbitrum Sepolia
+    address internal constant ETH_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED =
+        address(0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165);
+    uint32 internal constant ETH_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS = 120;
     bool internal constant ETH_USD_USE_CUSTOM_PRICE_ADAPTER = false;
-
-    // TODO: Update stream id value
-    bytes32 internal constant ETH_USD_STREAM_ID = 0x000359843a543ee2fe414dc14c7e7920ef10f4372990b79d6361cdc0dd1ba782;
-    string internal constant STRING_ETH_USD_STREAM_ID =
+    bytes32 internal constant ETH_USD_ARB_SEPOLIA_STREAM_ID =
+        0x000359843a543ee2fe414dc14c7e7920ef10f4372990b79d6361cdc0dd1ba782;
+    string internal constant STRING_ETH_USD_ARB_SEPOLIA_STREAM_ID =
         "0x000359843a543ee2fe414dc14c7e7920ef10f4372990b79d6361cdc0dd1ba782";
+
+    // Monad Testnet
+    address internal constant ETH_USD_MONAD_TESTNET_PYTH_PRICE_FEED =
+        address(0x2880aB155794e7179c9eE2e38200202908C17B43);
+    bytes32 internal constant ETH_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID =
+        0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace;
 }

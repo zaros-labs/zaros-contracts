@@ -11,6 +11,10 @@ import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import { console } from "forge-std/console.sol";
 
 library PriceAdapterUtils {
+    function setupPriceFeedByChain() internal {
+        // priceFeedByChain[421614] = "CHAINLINK";
+    }
+
     function deployPriceAdapter(PriceAdapter.InitializeParams memory params)
         internal
         returns (address priceAdapter)

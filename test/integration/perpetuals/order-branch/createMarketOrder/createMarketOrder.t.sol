@@ -189,12 +189,19 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
         uint128 tradingAccountId = createAccountAndDeposit(marginValueUsdc, address(usdc));
         // naruto opens first position in BTC market
         openManualPosition(
-            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, userPositionSizeDelta
+            BTC_USD_MARKET_ID,
+            BTC_USD_ARB_SEPOLIA_STREAM_ID,
+            MOCK_BTC_USD_PRICE,
+            tradingAccountId,
+            userPositionSizeDelta
         );
         // protocol operator disables settlement for the BTC market
         changePrank({ msgSender: users.owner.account });
         SettlementConfiguration.DataStreamsStrategy memory marketOrderConfigurationData = SettlementConfiguration
-            .DataStreamsStrategy({ chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier), streamId: BTC_USD_STREAM_ID });
+            .DataStreamsStrategy({
+            chainlinkVerifier: IVerifierProxy(mockChainlinkVerifier),
+            streamId: BTC_USD_ARB_SEPOLIA_STREAM_ID
+        });
 
         SettlementConfiguration.Data memory marketOrderConfiguration = SettlementConfiguration.Data({
             strategy: SettlementConfiguration.Strategy.DATA_STREAMS_DEFAULT,
@@ -211,7 +218,11 @@ contract CreateMarketOrder_Integration_Test is Base_Test {
 
         // naruto closes their opened leverage BTC position
         openManualPosition(
-            BTC_USD_MARKET_ID, BTC_USD_STREAM_ID, MOCK_BTC_USD_PRICE, tradingAccountId, -userPositionSizeDelta
+            BTC_USD_MARKET_ID,
+            BTC_USD_ARB_SEPOLIA_STREAM_ID,
+            MOCK_BTC_USD_PRICE,
+            tradingAccountId,
+            -userPositionSizeDelta
         );
     }
 
