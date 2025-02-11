@@ -63,7 +63,7 @@ abstract contract ProtocolConfiguration is
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
     uint128 internal constant INITIAL_VAULT_ID = 1;
-    uint128 internal constant FINAL_VAULT_ID = 15;
+    uint128 internal constant FINAL_VAULT_ID = 17;
     uint128 internal constant INVALID_VAULT_ID = 0;
     uint128 internal constant INITIAL_PERP_MARKET_CREDIT_CONFIG_ID = 1;
     uint128 internal constant FINAL_PERP_MARKET_CREDIT_CONFIG_ID = 10;
