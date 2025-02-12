@@ -18,5 +18,5 @@ abstract contract WstEth {
     // Monad Testnet
     address internal constant WSTETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_ADDRESS = address(0x4);
     address internal constant WSTETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER =
-        address(0x8Cbc9A29f2Ae01F420DaAb8DcbF21131337a38E4);
+        address(0xE8f84e46ae7Cc30B7a23611Ef29C2FC1ed7618d1);
 }

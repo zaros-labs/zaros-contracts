@@ -9,7 +9,7 @@ abstract contract Usdc {
     uint256 internal constant USDC_MARKET_MAKING_ENGINE_COLLATERAL_ID = 1;
     uint120 internal constant USDC_MARKET_MAKING_ENGINE_CREDIT_RATIO = 1e18;
     bool internal constant USDC_MARKET_MAKING_ENGINE_IS_ENABLED = true;
-    uint8 internal constant USDC_MARKET_MAKING_ENGINE_DECIMALS = 6;
+    uint8 internal constant USDC_MARKET_MAKING_ENGINE_DECIMALS = 18;
 
     // Arbitrum Sepolia
     address internal constant USDC_ARB_SEPOLIA_MARKET_MAKING_ENGINE_ADDRESS = address(0x1);
@@ -17,7 +17,7 @@ abstract contract Usdc {
 
     // Monad Testnet
     address internal constant USDC_MONAD_TESTNET_MARKET_MAKING_ENGINE_ADDRESS =
-        address(0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083);
+        address(0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83);
     address internal constant USDC_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER =
-        address(0x24c04E6Aa405EDB4e3847049dE459f8304145038);
+        address(0xD6AD9610075C4cC09f3048490E2aF40B9C43938d);
 }

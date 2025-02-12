@@ -14,23 +14,23 @@ forge script script/01_DeployPerpsEngine.s.sol --rpc-url $RPC_URL --private-key 
   **************************
   Deploying Trading Account Token...
   **************************
-  Trading Account NFT Implementation:  0xAB56042276a1F94524d7693fDA35ab40CCA53BA7
-  Trading Account NFT Proxy:  0x1835F3b383DAb01f7dA9bFEc1A8448186CC21DF4
+  Trading Account NFT Implementation:  0x67e91ec1639eF166057195a6Bc8Ed3d13C105f8A
+  Trading Account NFT Proxy:  0x2CA7899519034d7039fFc8aee2de6A02662a7E5D
   Success! Deployed Trading Account Token.
 
 
-  UpgradeBranch:  0x9e1a52E77aa70eBf90c08Ad58172367a836F6f94
-  LookupBranch:  0xeD22E3f8F30f8699773717d53997B16074838505
-  LiquidationBranch:  0x008F81Db74818296298560B09e49e842BE15C611
-  OrderBranch:  0x923B3A497E1B49B1bF28CC0BEE72e1695852f970
-  PerpMarketBranch:  0x1e02b61886887d2326E93Ae809EF230c0dDb3cb5
-  SettlementBranch:  0xa7f52E24D56074FC3c23157C96Ad8a9624523BF0
-  PerpsEngineConfigurationBranch:  0xCbbeb257D3711Ad5CaDE3798E9EaCfbC9d9F0768
-  TradingAccountBranch:  0x8546dD49C00675A9a9c6d6058190C5b9F864bC69
+  UpgradeBranch:  0xfC34D3dB6737AAd74d8366e6BFF6396c2D3ab0d4
+  LookupBranch:  0x79D1c89f308c03e00Cd13fe7f9D697173882c964
+  LiquidationBranch:  0xb7456F3dA7e701EaC5528093C3Fa1A027e555662
+  OrderBranch:  0xf589f40e919668990f421632E55ACc1dAE6187EF
+  PerpMarketBranch:  0x02e8aB09Acd8e3614981d9289140fa837Bfccd13
+  SettlementBranch:  0x3444c8305b26317560C03b340D12Eb7b991B692F
+  PerpsEngineConfigurationBranch:  0x8eF4713b306206df45c6Eff4C92ca7a25bEd4E10
+  TradingAccountBranch:  0xa9373bFa1D14716489D5bbE77048023dBeB601ce
   **************************
   Deploying Perps Engine...
   **************************
-  Perps Engine:  0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08
+  Perps Engine:  0x6D90B34da7e2AdCB07FDf096242875ff7941eC74
   Success! Deployed Perps Engine.
 ```
 
@@ -39,6 +39,7 @@ forge script script/01_DeployPerpsEngine.s.sol --rpc-url $RPC_URL --private-key 
 - Update `PERPS_ENGINE` variable in the `LimitedMintingERC20.sol`
 - Update `PERPS_ENGINE` variable in the `LimitedMintingWETH.sol`
 - Update `engine` params in the `script/vaults`
+- Update `engine` params in the `script/perp-markets-credit-config`
 
 ————————————————————————————————————————————————————
 
@@ -47,10 +48,10 @@ forge script script/testnet/DeployTestnetTokens.s.sol --rpc-url $RPC_URL --priva
 ```
 
 ```bash
-  Limited Minting ERC20 Implementation:  0x316357370943B3e6312810d4c64Cc4F1276aD535
-  USDC Proxy:  0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083
-  USD Token Proxy:  0x1Edcf2dce6657E509817AFC5d9842550E252af02
-  wEth:  0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2
+  Limited Minting ERC20 Implementation:  0x70e290C56c2d117d2a782201F04F629BDd65FD1F
+  USDC Proxy:  0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83
+  USD Token Proxy:  0xbaDF69305038a4E009f79416340B7f4Bc5ea7a6b
+  wEth:  0x03bEad4f3D886f0632b92F6f913358Feb765978E
 ```
 
 - Update `USDC_MONAD_TESTNET_ADDRESS` in the `Usdc.sol`
@@ -62,11 +63,12 @@ forge script script/testnet/DeployTestnetTokens.s.sol --rpc-url $RPC_URL --priva
 - Update `WETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_ADDRESS` in the `WEth.sol`
 - Update all `USDC` address in the `script/vaults`
 - Update all `wEth` address in the `script/vaults`
+- Update `USD_TOKEN` params in the `script/perp-markets-credit-config`
 
 ————————————————————————————————————————————————————
 
 ```bash
-forge script script/testnet/SetStartTimeMinting.s.sol --sig "run(address)" 0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083 --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
+forge script script/testnet/SetStartTimeMinting.s.sol --sig "run(address)" 0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83 --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
 ```
 
 ```bash
@@ -74,7 +76,7 @@ forge script script/testnet/SetStartTimeMinting.s.sol --sig "run(address)" 0x447
 ```
 
 ```bash
-forge script script/testnet/SetStartTimeMinting.s.sol --sig "run(address)" 0x1Edcf2dce6657E509817AFC5d9842550E252af02 --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
+forge script script/testnet/SetStartTimeMinting.s.sol --sig "run(address)" 0xbaDF69305038a4E009f79416340B7f4Bc5ea7a6b --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
 ```
 
 ```bash
@@ -82,7 +84,7 @@ forge script script/testnet/SetStartTimeMinting.s.sol --sig "run(address)" 0x1Ed
 ```
 
 ```bash
-forge script script/testnet/SetStartTimeMinting.s.sol --sig "run(address)" 0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2 --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
+forge script script/testnet/SetStartTimeMinting.s.sol --sig "run(address)" 0x03bEad4f3D886f0632b92F6f913358Feb765978E --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
 ```
 
 ```bash
@@ -96,17 +98,17 @@ forge script script/02_DeployMarketMakingEngine.s.sol --rpc-url $RPC_URL --priva
 ```
 
 ```bash
-  UpgradeBranch:  0x4799D15224226eB4343e345d35A6eFf1Afacf2de
-  CreditDelegationBranch:  0x0aB542F291084F7f4D6840F69a7eD85c3Fa46931
-  MarketMakingEnginConfigBranch:  0x633Dfa90d27e0F278a7577Bd626E18Fa503F57bf
-  VaultRouterBranch:  0xB12F99E4F9186c1d1761B98915Af0034E522E293
-  FeeDistributionBranch:  0xC09b60C428b3C39075aFda31d638377cd63E4a04
-  StabilityBranch:  0x0CF467684832143b31BE39cA0a68b9cBa6fDFbAD
+  UpgradeBranch:  0x2006842C83b814878a4E2745b51AF386992B7151
+  CreditDelegationBranch:  0x1eC4BA61B28B82935d774a7b4bc32Fd7655f19C8
+  MarketMakingEnginConfigBranch:  0xaE6c9Dd6DCF829e7A7D4ab0B5A0220560ED91912
+  VaultRouterBranch:  0x41C6C3E7b5522aaf4e6dd4466CD534Da593E3611
+  FeeDistributionBranch:  0xA5149CF20833eD276Bb2A9d19a76694d8a981014
+  StabilityBranch:  0x0CF1B406557eb1A2753fA326D1C9DE65fa78Cdf8
   **************************
   Deploying Market Making Engine...
   **************************
   Success! Market Making Engine:
-  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
+  0xE8d7e85E5a27B1C9C098Ba8D0F1a153813172eCf
 ```
 
 - Update `MARKET_MAKING_ENGINE` in the .env
@@ -120,13 +122,13 @@ forge script script/03_DeployAndConfigureReferralModule.s.sol --rpc-url $RPC_URL
 ```bash
   **************************
   Environment variables:
-  Market Making Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
-  Perps Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
+  Market Making Engine:  0xE8d7e85E5a27B1C9C098Ba8D0F1a153813172eCf
+  Perps Engine:  0xE8d7e85E5a27B1C9C098Ba8D0F1a153813172eCf
   **************************
   **************************
   Deploy and configuring referral modules...
   **************************
-  Referral Module deployed at: 0xE4490b6E959dd45Fa78191ed973a9DcB8efE22d6
+  Referral Module deployed at: 0x92421bAaabf45805aDcb273CD5B95Bac4e3dD916
   Success! Deployed and configured Referral Module
 ```
 
@@ -141,19 +143,19 @@ forge script script/04_ConfigurePerpsEngine.s.sol --sig "run(uint256,uint256)" 1
 ```bash
   **************************
   Environment variables:
-  Trading Account Token:  0x1835F3b383DAb01f7dA9bFEc1A8448186CC21DF4
-  Perps Engine:  0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08
-  Market Making Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
-  Usd Token:  0x1Edcf2dce6657E509817AFC5d9842550E252af02
+  Trading Account Token:  0x2CA7899519034d7039fFc8aee2de6A02662a7E5D
+  Perps Engine:  0x6D90B34da7e2AdCB07FDf096242875ff7941eC74
+  Market Making Engine:  0xE8d7e85E5a27B1C9C098Ba8D0F1a153813172eCf
+  Usd Token:  0xbaDF69305038a4E009f79416340B7f4Bc5ea7a6b
   Liquidation Keeper:  0xB5F9c677AE9E92B52F27c096A506d6d3725C65b3
-  Referral Module:  0xE4490b6E959dd45Fa78191ed973a9DcB8efE22d6
+  Referral Module:  0x92421bAaabf45805aDcb273CD5B95Bac4e3dD916
   **************************
-  USDC/USD Zaros Price Adapter - PriceAdapter deployed at: 0x24c04E6Aa405EDB4e3847049dE459f8304145038
-  USDz/USD Zaros Price Adapter - PriceAdapter deployed at: 0x12D8f9731bBba559f76A952f47b374A16263Ec63
-  WETH/USD Zaros Price Adapter - PriceAdapter deployed at: 0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5
-  WEETH/USD Zaros Price Adapter - PriceAdapter deployed at: 0xa6a34AD9fe29902C53Ca3862667a1EA7E6ff6e13
-  WBTC/USD Zaros Price Adapter - PriceAdapter deployed at: 0xC8e84af129FF5c5CB0bcE9a1972311feB4e392F9
-  WSTETH/USD Zaros Price Adapter - PriceAdapter deployed at: 0x8Cbc9A29f2Ae01F420DaAb8DcbF21131337a38E4
+  USDC/USD Zaros Price Adapter - PriceAdapter deployed at: 0xD6AD9610075C4cC09f3048490E2aF40B9C43938d
+  USDz/USD Zaros Price Adapter - PriceAdapter deployed at: 0xAC3624363e36d73526B06D33382cbFA9637318C3
+  WETH/USD Zaros Price Adapter - PriceAdapter deployed at: 0x63BbF16F9813470ED12A8C2Bf1565235b7262D43
+  WEETH/USD Zaros Price Adapter - PriceAdapter deployed at: 0x44499049411D54D3D853E4ea44283237c336CC4A
+  WBTC/USD Zaros Price Adapter - PriceAdapter deployed at: 0x33724F7A64fFC7393cC5472a4515F0057c878A0c
+  WSTETH/USD Zaros Price Adapter - PriceAdapter deployed at: 0xE8f84e46ae7Cc30B7a23611Ef29C2FC1ed7618d1
   **************************
   Configuring liquidators...
   **************************
@@ -163,12 +165,12 @@ forge script script/04_ConfigurePerpsEngine.s.sol --sig "run(uint256,uint256)" 1
   Configuring USD Token token...
   **************************
   Success! USD Token token address:
-  0x1Edcf2dce6657E509817AFC5d9842550E252af02
+  0xbaDF69305038a4E009f79416340B7f4Bc5ea7a6b
   **************************
   Configuring trading account token...
   **************************
   Success! Trading account token address:
-  0x1835F3b383DAb01f7dA9bFEc1A8448186CC21DF4
+  0x2CA7899519034d7039fFc8aee2de6A02662a7E5D
   **************************
   Transferring Trading Account Token ownership to the perps engine...
   **************************
@@ -191,21 +193,21 @@ forge script script/05_CreatePerpMarkets.s.sol --sig "run(uint256,uint256,bool,a
 ```bash
   **************************
   Environment variables:
-  Perps Engine:  0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08
+  Perps Engine:  0x6D90B34da7e2AdCB07FDf096242875ff7941eC74
   Chainlink Verifier:  0x2ff010DEbC1297f19579B4246cad07bd24F2488A
   CONSTANS:
   OFFCHAIN_ORDERS_KEEPER_ADDRESS:  0x3a8fD90D680D9649DE85922CF6D6A4f57Bb8d1D5
   **************************
-  BTC/USD Zaros Price Adapter - PriceAdapter deployed at: 0x58405B3872067ddf78e3157664DAD02ad0337c11
-  ETH/USD Zaros Price Adapter - PriceAdapter deployed at: 0x94855D8CE505a0C600a3Aac2C544489A8B85559b
-  LINK/USD Zaros Price Adapter - PriceAdapter deployed at: 0x464edaF81b40576bBab4768aD76c81d3cf629c35
-  ARB/USD Zaros Price Adapter - PriceAdapter deployed at: 0xEf6f11C8035e7aDaA53E90747E582d696C41ad92
-  BNB/USD Zaros Price Adapter - PriceAdapter deployed at: 0xBA4eEB7116E7779056f4bc19Da624f50c75dFA4C
-  DOGE/USD Zaros Price Adapter - PriceAdapter deployed at: 0x81Bd5B84639C12bd2D78C7CdAF57b7CC0333B355
-  SOL/USD Zaros Price Adapter - PriceAdapter deployed at: 0xa289031Cc94717b5991604f490830Cc9FA4C78b1
-  MATIC/USD Zaros Price Adapter - PriceAdapter deployed at: 0xA3A1FFd14d844AE063721178cC3Da14B1c0d7A57
-  LTC/USD Zaros Price Adapter - PriceAdapter deployed at: 0xD2be448419F3A71563a928c13039655aB0cd1dEd
-  FTM/USD Zaros Price Adapter - PriceAdapter deployed at: 0x6f27Ce1Ce4F36389F248CD1ceC08A0d3a1c2aA4E
+  BTC/USD Zaros Price Adapter - PriceAdapter deployed at: 0x793bda0e8C1d0982D2f8fCfE267F401A7DF5258d
+  ETH/USD Zaros Price Adapter - PriceAdapter deployed at: 0x83411736C107cfFDB6042a2c22BE93350C5Bc3F4
+  LINK/USD Zaros Price Adapter - PriceAdapter deployed at: 0x8D7dc4a536069f8c05F9ECeaFde047583245c90E
+  ARB/USD Zaros Price Adapter - PriceAdapter deployed at: 0xdD74abCcFcDa0518c2a64E181F3C90b16F25276D
+  BNB/USD Zaros Price Adapter - PriceAdapter deployed at: 0x6D0349EADeBAD56A789E338DEb31AA3eb3F93De1
+  DOGE/USD Zaros Price Adapter - PriceAdapter deployed at: 0x3C1Ca7092D697dB9c597412dd73057320d24735d
+  SOL/USD Zaros Price Adapter - PriceAdapter deployed at: 0xFAc9BdC1D89e7C8b952d9b2A3360B3BB27635974
+  MATIC/USD Zaros Price Adapter - PriceAdapter deployed at: 0xCB1889681B0C48998A662B86d660815E3ecdeD1F
+  LTC/USD Zaros Price Adapter - PriceAdapter deployed at: 0x831548eFC746E7273E9D8794FCAb0AaC0a0F37E4
+  FTM/USD Zaros Price Adapter - PriceAdapter deployed at: 0x5459BabCd23317943D125aB02ce9d327CB63c7Ee
   **************************
   Creating Perp Markets...
   **************************
@@ -232,12 +234,12 @@ forge script script/06_ConfigureMarketMakingEngine.s.sol --sig "run(uint256,uint
   useMockChainlinkVerifier: true
   **************************
   Environment variables:
-  Market Making Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
-  Perps Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
-  Perps Engine Usd Token:  0x1Edcf2dce6657E509817AFC5d9842550E252af02
-  Chainlink Verifier:  0x410Cac11875B7962Deb9bEF0543330157B4DC789
-  wEth:  0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2
-  USDC:  0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083
+  Market Making Engine:  0xE8d7e85E5a27B1C9C098Ba8D0F1a153813172eCf
+  Perps Engine:  0xE8d7e85E5a27B1C9C098Ba8D0F1a153813172eCf
+  Perps Engine Usd Token:  0xbaDF69305038a4E009f79416340B7f4Bc5ea7a6b
+  Chainlink Verifier:  0x498463F50Edab30c7B1c828031D1Bdcf12607DD2
+  wEth:  0x03bEad4f3D886f0632b92F6f913358Feb765978E
+  USDC:  0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83
   CONSTANTS:
   MSIG_ADDRESS:  0xE2658E63c85D8a469324afA377Bf5694cd55bD7B
   MSIG_SHARES_FEE_RECIPIENT:  300000000000000000
@@ -256,16 +258,16 @@ forge script script/06_ConfigureMarketMakingEngine.s.sol --sig "run(uint256,uint
   Success! Configured collateral:
 
 
-  Collateral:  0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083
-  Price Adapter:  0x24c04E6Aa405EDB4e3847049dE459f8304145038
+  Collateral:  0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83
+  Price Adapter:  0xD6AD9610075C4cC09f3048490E2aF40B9C43938d
   Credit ratio:  1000000000000000000
   Is enabled:  true
-  Decimals:  6
+  Decimals:  18
   Success! Configured collateral:
 
 
-  Collateral:  0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2
-  Price Adapter:  0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5
+  Collateral:  0x03bEad4f3D886f0632b92F6f913358Feb765978E
+  Price Adapter:  0x63BbF16F9813470ED12A8C2Bf1565235b7262D43
   Credit ratio:  1000000000000000000
   Is enabled:  true
   Decimals:  18
@@ -273,15 +275,15 @@ forge script script/06_ConfigureMarketMakingEngine.s.sol --sig "run(uint256,uint
   Configuring system keepers...
   **************************
   Success! Configured system keeper:
-  0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08
+  0x6D90B34da7e2AdCB07FDf096242875ff7941eC74
   Success! Configured system keeper:
   0xE2658E63c85D8a469324afA377Bf5694cd55bD7B
   **************************
   Configuring engines...
   **************************
   Success! Configured engine:
-  Engine:  0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08
-  Usd Token:  0x1Edcf2dce6657E509817AFC5d9842550E252af02
+  Engine:  0x6D90B34da7e2AdCB07FDf096242875ff7941eC74
+  Usd Token:  0xbaDF69305038a4E009f79416340B7f4Bc5ea7a6b
   **************************
   Configuring fee recipients...
   **************************
@@ -292,12 +294,12 @@ forge script script/06_ConfigureMarketMakingEngine.s.sol --sig "run(uint256,uint
   Configuring wEth...
   **************************
   Success! Configured wEth:
-  0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2
+  0x03bEad4f3D886f0632b92F6f913358Feb765978E
   **************************
   Configuring USDC...
   **************************
   Success! Configured USDC:
-  0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083
+  0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83
   **************************
   Transferring USD Token ownership to the market making engine...
   **************************
@@ -325,43 +327,43 @@ forge script script/07_ConfigureDexAdapters.s.sol --sig "run(bool)" true --rpc-u
 ```bash
   **************************
   Environment variables:
-  Market Making Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
-  wEth:  0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2
-  USDC:  0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083
+  Market Making Engine:  0xE8d7e85E5a27B1C9C098Ba8D0F1a153813172eCf
+  wEth:  0x03bEad4f3D886f0632b92F6f913358Feb765978E
+  USDC:  0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83
   shouldDeployMock:  true
-  uniswapV3SwapStrategyRouter:  0xb2E1Fd207aD50b48223AB586553615Af1fBC3702
-  uniswapV2SwapStrategyRouter:  0xee18C7f171293b474b7033f58236cd8926cA9E13
-  curveSwapStrategyRouter:  0x37f250b25E521B6B7b2bC027229B5C827C336183
+  uniswapV3SwapStrategyRouter:  0x361F3efcDae4B8A3613D4924F6D934A64187Aa7F
+  uniswapV2SwapStrategyRouter:  0xECd27558CfC5e013b2CD3f4D7c8F153E48Bc5Fac
+  curveSwapStrategyRouter:  0x7D9817e7CE7BDc66fB6509F3bcE0F54f6D38889F
   CONSTANTS:
   SLIPPAGE_TOLERANCE_BPS:  100
   **************************
   **************************
   Configuring Uniswap V3 Adapter...
   **************************
-  UniswapV3Adapter deployed at: 0x99D234489C47864db177E0e0318171CDE63BAA15
-  Asset swap config data set in UniswapV3Adapter: asset: 0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083, decimals: 6, priceAdapter: 0x24c04E6Aa405EDB4e3847049dE459f8304145038
-  Asset swap config data set in UniswapV3Adapter: asset: 0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2, decimals: 18, priceAdapter: 0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5
-  Uniswap V3 Swap Strategy configured in MarketMakingEngine: strategyId: 1, strategyAddress: 0x99D234489C47864db177E0e0318171CDE63BAA15
+  UniswapV3Adapter deployed at: 0x10809d1c5EeE0b0C16aE91C16b55855cF5c8bc39
+  Asset swap config data set in UniswapV3Adapter: asset: 0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83, decimals: 18, priceAdapter: 0xD6AD9610075C4cC09f3048490E2aF40B9C43938d
+  Asset swap config data set in UniswapV3Adapter: asset: 0x03bEad4f3D886f0632b92F6f913358Feb765978E, decimals: 18, priceAdapter: 0x63BbF16F9813470ED12A8C2Bf1565235b7262D43
+  Uniswap V3 Swap Strategy configured in MarketMakingEngine: strategyId: 1, strategyAddress: 0x10809d1c5EeE0b0C16aE91C16b55855cF5c8bc39
   Success! Uniswap V3 Adapter configured.
 
 
   **************************
   Configuring Uniswap V2 Adapter...
   **************************
-  UniswapV2Adapter deployed at: 0x852a1A34BB70711250D44603678Da5DD07333Fb3
-  Asset swap config data set in UniswapV2Adapter: asset: 0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083, decimals: 6, priceAdapter: 0x24c04E6Aa405EDB4e3847049dE459f8304145038
-  Asset swap config data set in UniswapV2Adapter: asset: 0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2, decimals: 18, priceAdapter: 0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5
-  Uniswap V2 Swap Strategy configured in MarketMakingEngine: strategyId: 2, strategyAddress: 0x852a1A34BB70711250D44603678Da5DD07333Fb3
+  UniswapV2Adapter deployed at: 0x1638d716c77903DE9c9cF02eee8A5154535022e5
+  Asset swap config data set in UniswapV2Adapter: asset: 0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83, decimals: 18, priceAdapter: 0xD6AD9610075C4cC09f3048490E2aF40B9C43938d
+  Asset swap config data set in UniswapV2Adapter: asset: 0x03bEad4f3D886f0632b92F6f913358Feb765978E, decimals: 18, priceAdapter: 0x63BbF16F9813470ED12A8C2Bf1565235b7262D43
+  Uniswap V2 Swap Strategy configured in MarketMakingEngine: strategyId: 2, strategyAddress: 0x1638d716c77903DE9c9cF02eee8A5154535022e5
   Success! Uniswap V2 Adapter configured.
 
 
   **************************
   Configuring Curve Adapter...
   **************************
-  CurveAdapter deployed at: 0x4527758DDcd442F3ED72e1ADf53148A4Fd3dbc9a
-  Asset swap config data set in CurveAdapter: asset: 0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083, decimals: 6, priceAdapter: 0x24c04E6Aa405EDB4e3847049dE459f8304145038
-  Asset swap config data set in CurveAdapter: asset: 0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2, decimals: 18, priceAdapter: 0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5
-  Curve Swap Strategy configured in MarketMakingEngine: strategyId: 3, strategyAddress: 0x37f250b25E521B6B7b2bC027229B5C827C336183
+  CurveAdapter deployed at: 0x53f37fC989e663563Dc5798d09e7A2929afe373F
+  Asset swap config data set in CurveAdapter: asset: 0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83, decimals: 18, priceAdapter: 0xD6AD9610075C4cC09f3048490E2aF40B9C43938d
+  Asset swap config data set in CurveAdapter: asset: 0x03bEad4f3D886f0632b92F6f913358Feb765978E, decimals: 18, priceAdapter: 0x63BbF16F9813470ED12A8C2Bf1565235b7262D43
+  Curve Swap Strategy configured in MarketMakingEngine: strategyId: 3, strategyAddress: 0x7D9817e7CE7BDc66fB6509F3bcE0F54f6D38889F
   Success! Curve Adapter configured.
 ```
 
@@ -375,14 +377,22 @@ forge script script/08_CreateVaults.s.sol --sig "run(uint256,uint256)" 16 17 --r
 == Logs ==
   **************************
   Environment variables:
-  Market Making Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
+  Market Making Engine:  0xE8d7e85E5a27B1C9C098Ba8D0F1a153813172eCf
   **************************
   **************************
   Configuring Vaults...
   **************************
-  Usd Token Swap Keeper deployed at: 0x364F8635d203C6375DbCd4B4bC4AEFE98fB1069D, asset: 0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083, streamIdString: 0x00038f83323b6b08116d1614cf33a9bd71ab5e0abf0c9f1b783a74a43e7bd992
-  Usd Token Swap Keeper deployed at: 0xfBAD2740d20dC32C9288Ddfdd1df756D1D9aFB5D, asset: 0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2, streamIdString: 0x000362205e10b3a147d02792eccee483dca6c7b44ecce7012cb8c6e0b68b3ae9
+  Vault id 16 index token 0x93AaB91F25Ea6bdCb4dA389540d7eDbb0768A88b decimals 18
+  Usd Token Swap Keeper deployed at: 0xC10De51EAC5e796541d742b881AaC72509cd3335, asset: 0x3Bb8a17d8EDCAAbC0E064500367Efc89f90A6D83, streamIdString: 0x00038f83323b6b08116d1614cf33a9bd71ab5e0abf0c9f1b783a74a43e7bd992
+  Vault id 17 index token 0xa351986a232ce3f35698f823f5404E339a67680A decimals 18
+  Usd Token Swap Keeper deployed at: 0x999b1B1a095d824A1fBdFB04E4F7BB292B65cAe2, asset: 0x03bEad4f3D886f0632b92F6f913358Feb765978E, streamIdString: 0x000362205e10b3a147d02792eccee483dca6c7b44ecce7012cb8c6e0b68b3ae9
   Success! Vaults configured.
 ```
 
 ————————————————————————————————————————————————————
+
+forge script script/TestMonadTestnet.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
+
+forge script script/testnet/UpgradeBranches.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
+
+forge script script/testnet/UpgradeUUPS.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv

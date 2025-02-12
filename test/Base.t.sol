@@ -357,6 +357,8 @@ abstract contract Base_Test is PRBTest, StdCheats, StdUtils, ProtocolConfigurati
 
         setupVaultsConfig(true);
 
+        changePrank({ msgSender: users.owner.account });
+
         createZlpVaults(address(marketMakingEngine), users.owner.account, vaultsIdsRange);
 
         connectMarketsAndVaults();

@@ -30,9 +30,10 @@ contract CreateVaults is BaseScript, ProtocolConfiguration {
         vaultsIdsRange[0] = initialVaultId;
         vaultsIdsRange[1] = finalVaultId;
 
-        uint256[] memory perpMarketsCreditConfigIds = new uint256[](finalVaultId - initialVaultId + 1);
+        uint256[] memory perpMarketsCreditConfigIds =
+            new uint256[](FINAL_PERP_MARKET_CREDIT_CONFIG_ID - INITIAL_PERP_MARKET_CREDIT_CONFIG_ID + 1);
         uint256 arrayIndex = 0;
-        for (uint256 i = initialVaultId; i <= finalVaultId; i++) {
+        for (uint256 i = INITIAL_PERP_MARKET_CREDIT_CONFIG_ID; i <= FINAL_PERP_MARKET_CREDIT_CONFIG_ID; i++) {
             perpMarketsCreditConfigIds[arrayIndex++] = i;
         }
 

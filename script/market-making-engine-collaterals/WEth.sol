@@ -17,7 +17,7 @@ abstract contract WEth {
 
     // Monad Testnet
     address internal constant WETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_ADDRESS =
-        address(0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2);
+        address(0x03bEad4f3D886f0632b92F6f913358Feb765978E);
     address internal constant WETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER =
-        address(0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5);
+        address(0x63BbF16F9813470ED12A8C2Bf1565235b7262D43);
 }

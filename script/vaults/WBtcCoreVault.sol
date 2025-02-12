@@ -5,10 +5,10 @@ abstract contract WBtcCoreVault {
     uint128 internal constant WBTC_CORE_VAULT_ID = 11;
     string internal constant WBTC_CORE_VAULT_NAME = "WBtc Core ZLP Vault";
     string internal constant WBTC_CORE_VAULT_SYMBOL = "WBtc-ZLP Core";
-    uint128 internal constant WBTC_CORE_VAULT_DEPOSIT_CAP = 2e18;
+    uint128 internal constant WBTC_CORE_VAULT_DEPOSIT_CAP = 1_000_000_000e18;
     uint128 internal constant WBTC_CORE_VAULT_WITHDRAWAL_DELAY = 1 days;
     bool internal constant WBTC_CORE_VAULT_IS_ENABLED = true;
-    uint256 internal constant WBTC_CORE_VAULT_CREDIT_RATIO = 2e18;
+    uint256 internal constant WBTC_CORE_VAULT_CREDIT_RATIO = 1e18;
     uint256 internal constant WBTC_CORE_VAULT_DEPOSIT_FEE = 0.01e18;
     uint256 internal constant WBTC_CORE_VAULT_REDEEM_FEE = 0.05e18;
 
@@ -20,9 +20,9 @@ abstract contract WBtcCoreVault {
 
     // Monad Testnet
     address internal constant WBTC_MONAD_TESTNET_CORE_VAULT_ENGINE =
-        address(0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08); // the address will be updated in the
+        address(0x6D90B34da7e2AdCB07FDf096242875ff7941eC74); // the address will be updated in the
         // mainnet
     address internal constant WBTC_MONAD_TESTNET_CORE_VAULT_ASSET = address(0);
     address internal constant WBTC_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER =
-        address(0xC8e84af129FF5c5CB0bcE9a1972311feB4e392F9);
+        address(0x33724F7A64fFC7393cC5472a4515F0057c878A0c);
 }

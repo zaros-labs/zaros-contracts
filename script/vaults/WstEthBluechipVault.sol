@@ -5,10 +5,10 @@ abstract contract WstEthBluechipVault {
     uint128 internal constant WSTETH_BLUECHIP_VAULT_ID = 4;
     string internal constant WSTETH_BLUECHIP_VAULT_NAME = "WstEth Bluechip ZLP Vault";
     string internal constant WSTETH_BLUECHIP_VAULT_SYMBOL = "WstEth-ZLP Bluechip";
-    uint128 internal constant WSTETH_BLUECHIP_VAULT_DEPOSIT_CAP = 2e18;
+    uint128 internal constant WSTETH_BLUECHIP_VAULT_DEPOSIT_CAP = 1_000_000_000e18;
     uint128 internal constant WSTETH_BLUECHIP_VAULT_WITHDRAWAL_DELAY = 1 days;
     bool internal constant WSTETH_BLUECHIP_VAULT_IS_ENABLED = true;
-    uint256 internal constant WSTETH_BLUECHIP_VAULT_CREDIT_RATIO = 2e18;
+    uint256 internal constant WSTETH_BLUECHIP_VAULT_CREDIT_RATIO = 1e18;
     uint256 internal constant WSTETH_BLUECHIP_VAULT_DEPOSIT_FEE = 0.01e18;
     uint256 internal constant WSTETH_BLUECHIP_VAULT_REDEEM_FEE = 0.05e18;
 
@@ -20,9 +20,9 @@ abstract contract WstEthBluechipVault {
 
     // Monad Testnet
     address internal constant WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE =
-        address(0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08); // the address will be updated
+        address(0x6D90B34da7e2AdCB07FDf096242875ff7941eC74); // the address will be updated
         // in the mainnet
     address internal constant WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET = address(0);
     address internal constant WSTETH_MONAD_TESTNET_BLUECHIP_VAULT_PRICE_ADAPTER =
-        address(0x8Cbc9A29f2Ae01F420DaAb8DcbF21131337a38E4);
+        address(0xE8f84e46ae7Cc30B7a23611Ef29C2FC1ed7618d1);
 }

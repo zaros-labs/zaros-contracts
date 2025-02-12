@@ -6,6 +6,7 @@ pragma solidity 0.8.25;
 import { MarketOrderKeeper } from "@zaros/external/chainlink/keepers/market-order/MarketOrderKeeper.sol";
 import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "../Base.s.sol";
+import { LimitedMintingWETH } from "testnet/LimitedMintingWETH.sol";
 
 // Open Zeppelin dependencies
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
@@ -19,22 +20,23 @@ contract UpgradeUUPS is BaseScript {
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
     LimitedMintingERC20 internal usdc;
+    LimitedMintingWETH internal wEth;
     LimitedMintingERC20 internal usdToken;
 
     address internal forwarder;
     MarketOrderKeeper internal btcUsdMarketOrderKeeper;
 
     function run() public broadcaster {
-        // usdc = LimitedMintingERC20(vm.envAddress("USDC"));
+        usdc = LimitedMintingERC20(vm.envAddress("USDC"));
+        wEth = LimitedMintingWETH(vm.envAddress("WETH"));
 
-        btcUsdMarketOrderKeeper = MarketOrderKeeper(vm.envAddress("BTC_USD_MARKET_ORDER_KEEPER"));
-        // forwarder = vm.envAddress("KEEPER_FORWARDER");
-        // address newImplementation = address(new LimitedMintingERC20());
-        address btcUsdMarketOrderKeeperNewImplementation = address(new MarketOrderKeeper());
+        address usdcNewImplementation = address(new LimitedMintingERC20());
 
-        UUPSUpgradeable(address(btcUsdMarketOrderKeeper)).upgradeToAndCall(
-            btcUsdMarketOrderKeeperNewImplementation, bytes("")
-        );
+        address wEthNewImplementation = address(new LimitedMintingWETH());
+
+        UUPSUpgradeable(address(usdc)).upgradeToAndCall(usdcNewImplementation, bytes(""));
+
+        UUPSUpgradeable(address(wEth)).upgradeToAndCall(wEthNewImplementation, bytes(""));
 
         // btcUsdMarketOrderKeeper.setForwarder(forwarder);
     }

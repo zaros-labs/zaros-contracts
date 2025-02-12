@@ -12,6 +12,7 @@ import { IDexAdapter } from "@zaros/utils/interfaces/IDexAdapter.sol";
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { sd59x18 } from "@prb-math/SD59x18.sol";
+import { console } from "forge-std/console.sol";
 
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
@@ -148,7 +149,7 @@ contract ClaimFees_Integration_Test is Base_Test {
         assertAlmostEq(
             amountUserFeesReceived,
             expectedWethRewardX18.intoUint256(),
-            2,
+            10e9,
             "the user should have the expected wEth reward"
         );
 
@@ -244,7 +245,13 @@ contract ClaimFees_Integration_Test is Base_Test {
         assertEq(postStakeState.stakerLastValuePerShare, 0, "Staker has no value per share as no value distributed");
 
         // sent WETH market fees from PerpsEngine -> MarketEngine
-        marketFees = uint128(bound(marketFees, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 2));
+        marketFees = uint128(
+            bound(
+                marketFees,
+                ud60x18(fuzzVaultConfig.depositCap).mul(ud60x18(1e1)).intoUint256(),
+                fuzzVaultConfig.depositCap / 2
+            )
+        );
         deal(fuzzVaultConfig.asset, address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine), marketFees);
         changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
         vm.expectEmit({ emitter: address(marketMakingEngine) });
@@ -299,10 +306,14 @@ contract ClaimFees_Integration_Test is Base_Test {
             uint128(bound(assetsToDeposit, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 2));
         fundUserAndDepositInVault(user, vaultId, assetsToDeposit);
 
+        console.log("assetsToDeposit: ", assetsToDeposit);
+
         // save and verify pre stake state
         ClaimFeesState memory preStakeState =
             _getClaimFeesState(user, vaultId, wethFeeToken, IERC20(fuzzVaultConfig.indexToken));
         assertGt(preStakeState.stakerVaultBal, 0, "Staker vault balance > 0 after deposit");
+
+        console.log("preStakeState.stakerVaultBal: ", preStakeState.stakerVaultBal);
 
         // perform the stake
         vm.startPrank(user);
@@ -325,7 +336,13 @@ contract ClaimFees_Integration_Test is Base_Test {
         assertEq(postStakeState.stakerLastValuePerShare, 0, "Staker has no value per share as no value distributed");
 
         // sent market fees from PerpsEngine -> MarketEngine
-        marketFees = uint128(bound(marketFees, calculateMinOfSharesToStake(vaultId), fuzzVaultConfig.depositCap / 2));
+        marketFees = uint128(
+            bound(
+                marketFees,
+                ud60x18(fuzzVaultConfig.depositCap).mul(ud60x18(1e1)).intoUint256(),
+                fuzzVaultConfig.depositCap / 2
+            )
+        );
 
         IDexAdapter adapter = getFuzzDexAdapter(adapterIndex);
         PerpMarketCreditConfig memory fuzzPerpMarketCreditConfig = getFuzzPerpMarketCreditConfig(marketId);

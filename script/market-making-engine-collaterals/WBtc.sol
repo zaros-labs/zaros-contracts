@@ -18,5 +18,5 @@ abstract contract WBtc {
     // Monad Testnet
     address internal constant WBTC_MONAD_TESTNET_MARKET_MAKING_ENGINE_ADDRESS = address(0x2);
     address internal constant WBTC_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER =
-        address(0xC8e84af129FF5c5CB0bcE9a1972311feB4e392F9);
+        address(0x33724F7A64fFC7393cC5472a4515F0057c878A0c);
 }

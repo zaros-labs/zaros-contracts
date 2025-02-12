@@ -13,6 +13,9 @@ import { OrderBranch } from "@zaros/perpetuals/branches/OrderBranch.sol";
 import { PerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { BaseScript } from "script/Base.s.sol";
+import { VaultRouterBranch } from "@zaros/market-making/branches/VaultRouterBranch.sol";
+import { MarketMakingEngineConfigurationBranch } from
+    "@zaros/market-making/branches/MarketMakingEngineConfigurationBranch.sol";
 
 contract UpgradeBranches is BaseScript {
     /*//////////////////////////////////////////////////////////////////////////
@@ -23,15 +26,20 @@ contract UpgradeBranches is BaseScript {
     function run() public broadcaster {
         // TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
-        PerpsEngineConfigurationBranch perpsEngineConfigurationBranch = new PerpsEngineConfigurationBranch();
+        // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
         // SettlementBranch settlementBranch = new SettlementBranch();
         // OrderBranch orderBranch = new OrderBranch();
+        VaultRouterBranch vaultRouterBranch = new VaultRouterBranch();
+        // MarketMakingEngineConfigurationBranch marketMakingEngineConfigurationBranch = new
+        // MarketMakingEngineConfigurationBranch();
 
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](3);
-        bytes4[] memory perpsEngineConfigurationBranchSelectorsAdded = new bytes4[](1);
+        bytes4[] memory vaultRouterBranchSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory marketMakingEngineConfigurationBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory perpMarketBranchSelectorsAdded = new bytes4[](1);
 
         // RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](4);
 
@@ -65,8 +73,7 @@ contract UpgradeBranches is BaseScript {
         // perpsEngineConfigurationBranchTestnetSelectorsAdded[1] =
         //     PerpsEngineConfigurationBranchTestnet.createCustomReferralCode.selector;
 
-        perpsEngineConfigurationBranchSelectorsAdded[0] =
-            PerpsEngineConfigurationBranch.setMarketMakingEngineAllowance.selector;
+        vaultRouterBranchSelectorsUpdated[0] = VaultRouterBranch.getVaultAssetSwapRate.selector;
 
         // perpsEngineConfigurationBranchTestnetSelectorsAdded[0] =
         //     PerpsEngineConfigurationBranch.updateSettlementConfiguration.selector;
@@ -77,9 +84,9 @@ contract UpgradeBranches is BaseScript {
 
         branchUpgrades[0] = (
             RootProxy.BranchUpgrade({
-                branch: address(perpsEngineConfigurationBranch),
-                action: RootProxy.BranchUpgradeAction.Add,
-                selectors: perpsEngineConfigurationBranchSelectorsAdded
+                branch: address(vaultRouterBranch),
+                action: RootProxy.BranchUpgradeAction.Replace,
+                selectors: vaultRouterBranchSelectorsUpdated
             })
         );
 
@@ -107,7 +114,7 @@ contract UpgradeBranches is BaseScript {
         //     })
         // );
 
-        perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
+        perpsEngine = IPerpsEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
 
         perpsEngine.upgrade(branchUpgrades, initializables, initializePayloads);
     }

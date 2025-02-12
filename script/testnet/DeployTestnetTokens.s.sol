@@ -20,7 +20,7 @@ contract DeployTestnetTokens is BaseScript {
         address limitedMintingWethImplementation = address(new LimitedMintingWETH());
 
         bytes memory usdcInitializeData =
-            abi.encodeWithSelector(LimitedMintingERC20.initialize.selector, deployer, "USD Coin", "USDC");
+            abi.encodeWithSelector(LimitedMintingERC20.initialize.selector, deployer, "USD Coin", "USDC-Zaros");
         bytes memory usdTokenInitializeData = abi.encodeWithSelector(
             LimitedMintingERC20.initialize.selector, deployer, "Zaros Perpetuals AMM USD", "USDz"
         );

@@ -21,7 +21,7 @@ contract LimitedMintingWETH is UUPSUpgradeable, ERC20PermitUpgradeable, OwnableU
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Address of the Perpetuals Engine contract.
-    address public constant PERPS_ENGINE = 0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08;
+    address public constant PERPS_ENGINE = 0x6D90B34da7e2AdCB07FDf096242875ff7941eC74;
 
     /// @notice Amount of tokens minted per address.
     uint256 public constant AMOUNT_TO_MINT_WETH = 1 * 10 ** 18;
@@ -77,17 +77,17 @@ contract LimitedMintingWETH is UUPSUpgradeable, ERC20PermitUpgradeable, OwnableU
     //////////////////////////////////////////////////////////////////////////*/
 
     function transfer(address to, uint256 value) public virtual override returns (bool) {
-        if (msg.sender != PERPS_ENGINE) {
-            revert LimitedMintingERC20_UserIsNotPermitted(msg.sender);
-        }
+        // if (msg.sender != PERPS_ENGINE) {
+        //     revert LimitedMintingERC20_UserIsNotPermitted(msg.sender);
+        // }
 
         return super.transfer(to, value);
     }
 
     function transferFrom(address from, address to, uint256 value) public virtual override returns (bool) {
-        if (msg.sender != PERPS_ENGINE) {
-            revert LimitedMintingERC20_UserIsNotPermitted(msg.sender);
-        }
+        // if (msg.sender != PERPS_ENGINE) {
+        //     revert LimitedMintingERC20_UserIsNotPermitted(msg.sender);
+        // }
 
         return super.transferFrom(from, to, value);
     }

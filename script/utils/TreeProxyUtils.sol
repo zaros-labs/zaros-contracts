@@ -150,7 +150,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     orderBranchSelectors[5] = OrderBranch.cancelAllOffchainOrders.selector;
     orderBranchSelectors[6] = OrderBranch.cancelMarketOrder.selector;
 
-    bytes4[] memory perpMarketBranchSelectors = new bytes4[](11);
+    bytes4[] memory perpMarketBranchSelectors = new bytes4[](12);
 
     perpMarketBranchSelectors[0] = PerpMarketBranch.getName.selector;
     perpMarketBranchSelectors[1] = PerpMarketBranch.getSymbol.selector;
@@ -163,6 +163,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     perpMarketBranchSelectors[8] = PerpMarketBranch.getFundingRate.selector;
     perpMarketBranchSelectors[9] = PerpMarketBranch.getFundingVelocity.selector;
     perpMarketBranchSelectors[10] = PerpMarketBranch.getPerpMarketConfiguration.selector;
+    perpMarketBranchSelectors[11] = PerpMarketBranch.getUnrealizedDebt.selector;
 
     bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 15 : 13);
 

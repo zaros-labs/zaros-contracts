@@ -9,7 +9,6 @@ import { ZlpVault } from "@zaros/zlp/ZlpVault.sol";
 import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.sol";
 import { Constants } from "@zaros/utils/Constants.sol";
 import { UsdTokenSwapKeeper } from "@zaros/external/chainlink/keepers/usd-token-swap-keeper/UsdTokenSwapKeeper.sol";
-import { Constants } from "@zaros/utils/Constants.sol";
 
 // Forge dependencies
 import { StdCheats, StdUtils } from "forge-std/Test.sol";
@@ -41,6 +40,7 @@ import { WstEthBluechipVault } from "script/vaults/WstEthBluechipVault.sol";
 // Open Zeppelin dependencies
 import { IERC20 } from "@openzeppelin/token/ERC20/IERC20.sol";
 import { ERC1967Proxy } from "@openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+import { IERC20Metadata } from "@openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 
 enum VaultTypes {
     Core, // 0
@@ -122,6 +122,13 @@ abstract contract Vaults is
             zlpVaults[vaultAsset][vaultType] = zlpVault;
             vaultsConfig[i].indexToken = address(zlpVault);
 
+            console.log(
+                "Vault id %s index token %s decimals %s",
+                vaultsConfig[i].vaultId,
+                vaultsConfig[i].indexToken,
+                IERC20Metadata(vaultsConfig[i].indexToken).decimals()
+            );
+
             if (usdTokenSwapKeepers[vaultAsset] == address(0)) {
                 deployUsdTokenSwapKeeper(owner, marketMakingEngine, vaultAsset, vaultsConfig[i].streamIdString);
             }
@@ -160,7 +167,9 @@ abstract contract Vaults is
             creditRatio: USDC_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: USDC_CORE_VAULT_IS_ENABLED,
-            decimals: USDC_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : USDC_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: USDC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -188,7 +197,9 @@ abstract contract Vaults is
             creditRatio: USDC_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: USDC_BLUECHIP_VAULT_IS_ENABLED,
-            decimals: USDC_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : USDC_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: USDC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -216,7 +227,9 @@ abstract contract Vaults is
             creditRatio: USDC_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: USDC_DEGEN_VAULT_IS_ENABLED,
-            decimals: USDC_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : USDC_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: USDC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -250,7 +263,9 @@ abstract contract Vaults is
             creditRatio: WBTC_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WBTC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WBTC_CORE_VAULT_IS_ENABLED,
-            decimals: WBTC_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WBTC_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: WBTC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -278,7 +293,9 @@ abstract contract Vaults is
             creditRatio: WBTC_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WBTC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WBTC_BLUECHIP_VAULT_IS_ENABLED,
-            decimals: WBTC_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WBTC_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: WBTC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -306,7 +323,9 @@ abstract contract Vaults is
             creditRatio: WBTC_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WBTC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WBTC_DEGEN_VAULT_IS_ENABLED,
-            decimals: WBTC_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WBTC_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: WBTC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -340,7 +359,9 @@ abstract contract Vaults is
             creditRatio: WEETH_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WEETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WEETH_CORE_VAULT_IS_ENABLED,
-            decimals: WEETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WEETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: WEETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -369,7 +390,9 @@ abstract contract Vaults is
             creditRatio: WEETH_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WEETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WEETH_BLUECHIP_VAULT_IS_ENABLED,
-            decimals: WEETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WEETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: WEETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -397,7 +420,9 @@ abstract contract Vaults is
             creditRatio: WEETH_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WEETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WEETH_DEGEN_VAULT_IS_ENABLED,
-            decimals: WEETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WEETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: WEETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -431,7 +456,9 @@ abstract contract Vaults is
             creditRatio: WETH_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WETH_CORE_VAULT_IS_ENABLED,
-            decimals: WETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: WETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -459,7 +486,9 @@ abstract contract Vaults is
             creditRatio: WETH_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WETH_BLUECHIP_VAULT_IS_ENABLED,
-            decimals: WETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: WETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -487,7 +516,9 @@ abstract contract Vaults is
             creditRatio: WETH_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WETH_DEGEN_VAULT_IS_ENABLED,
-            decimals: WETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: WETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -521,7 +552,9 @@ abstract contract Vaults is
             creditRatio: WSTETH_CORE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WSTETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WSTETH_CORE_VAULT_IS_ENABLED,
-            decimals: WSTETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WSTETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: WSTETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -550,7 +583,9 @@ abstract contract Vaults is
             creditRatio: WSTETH_BLUECHIP_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WSTETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WSTETH_BLUECHIP_VAULT_IS_ENABLED,
-            decimals: WSTETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WSTETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Bluechip,
             streamIdString: WSTETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -578,7 +613,9 @@ abstract contract Vaults is
             creditRatio: WSTETH_DEGEN_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WSTETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WSTETH_DEGEN_VAULT_IS_ENABLED,
-            decimals: WSTETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WSTETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Degen,
             streamIdString: WSTETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -613,7 +650,9 @@ abstract contract Vaults is
             creditRatio: USDC_PERPS_ENGINE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: USDC_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: USDC_PERPS_ENGINE_VAULT_IS_ENABLED,
-            decimals: USDC_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : USDC_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: USDC_USD_ARB_SEPOLIA_STREAM_ID_STRING,
@@ -648,7 +687,9 @@ abstract contract Vaults is
             creditRatio: WETH_PERPS_ENGINE_VAULT_CREDIT_RATIO,
             priceFeedHeartbeatSeconds: WETH_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARBEAT_SECONDS,
             isEnabled: WETH_PERPS_ENGINE_VAULT_IS_ENABLED,
-            decimals: WETH_DECIMALS,
+            decimals: vaultsByChain[block.chainid].asset != address(0)
+                ? IERC20Metadata(vaultsByChain[block.chainid].asset).decimals()
+                : WETH_DECIMALS,
             priceAdapter: vaultsByChain[block.chainid].priceAdapter,
             vaultType: VaultTypes.Core,
             streamIdString: WETH_USD_ARB_SEPOLIA_STREAM_ID_STRING,
