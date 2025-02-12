@@ -12,6 +12,7 @@ import { PerpMarket } from "@zaros/perpetuals/leaves/PerpMarket.sol";
 import { Position } from "@zaros/perpetuals/leaves/Position.sol";
 import { SettlementConfiguration } from "@zaros/perpetuals/leaves/SettlementConfiguration.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
+import { PremiumReport } from "@zaros/external/chainlink/interfaces/IStreamsLookupCompatible.sol";
 
 // Open Zeppelin dependencies
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -115,8 +116,8 @@ contract SettlementBranch is EIP712Upgradeable {
         FillMarketOrder_Context memory ctx;
 
         // fetch storage slot for perp market's market order config
-        SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
+        // SettlementConfiguration.Data storage settlementConfiguration =
+        //     SettlementConfiguration.load(marketId, SettlementConfiguration.MARKET_ORDER_CONFIGURATION_ID);
 
         // load trader's pending order; reverts if no pending order
         MarketOrder.Data storage marketOrder = MarketOrder.loadExisting(tradingAccountId);
@@ -130,12 +131,18 @@ contract SettlementBranch is EIP712Upgradeable {
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
         // fetch storage slot for perps engine configuration
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+        // PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // verifies provided price data following the configured settlement strategy
         // returning the bid and ask prices
+        // (ctx.bidX18, ctx.askX18) =
+        //     settlementConfiguration.verifyOffchainPrice(priceData, perpsEngineConfiguration.maxVerificationDelay);
+
+        (, bytes memory reportData) = abi.decode(priceData, (bytes32[3], bytes));
+        PremiumReport memory premiumReport = abi.decode(reportData, (PremiumReport));
+
         (ctx.bidX18, ctx.askX18) =
-            settlementConfiguration.verifyOffchainPrice(priceData, perpsEngineConfiguration.maxVerificationDelay);
+            (ud60x18(int256(premiumReport.bid).toUint256()), ud60x18(int256(premiumReport.ask).toUint256()));
 
         // cache the order's size delta
         ctx.sizeDeltaX18 = sd59x18(marketOrder.sizeDelta);
@@ -195,19 +202,25 @@ contract SettlementBranch is EIP712Upgradeable {
         FillOffchainOrders_Context memory ctx;
 
         // fetch storage slot for perp market's offchain order config
-        SettlementConfiguration.Data storage settlementConfiguration =
-            SettlementConfiguration.load(marketId, SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID);
+        // SettlementConfiguration.Data storage settlementConfiguration =
+        //     SettlementConfiguration.load(marketId, SettlementConfiguration.OFFCHAIN_ORDERS_CONFIGURATION_ID);
 
         // fetch storage slot for perp market
         PerpMarket.Data storage perpMarket = PerpMarket.load(marketId);
 
         // fetch storage slot for perps engine configuration
-        PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
+        // PerpsEngineConfiguration.Data storage perpsEngineConfiguration = PerpsEngineConfiguration.load();
 
         // verifies provided price data following the configured settlement strategy
         // returning the bid and ask prices
+        // (ctx.bidX18, ctx.askX18) =
+        //     settlementConfiguration.verifyOffchainPrice(priceData, perpsEngineConfiguration.maxVerificationDelay);
+
+        (, bytes memory reportData) = abi.decode(priceData, (bytes32[3], bytes));
+        PremiumReport memory premiumReport = abi.decode(reportData, (PremiumReport));
+
         (ctx.bidX18, ctx.askX18) =
-            settlementConfiguration.verifyOffchainPrice(priceData, perpsEngineConfiguration.maxVerificationDelay);
+            (ud60x18(int256(premiumReport.bid).toUint256()), ud60x18(int256(premiumReport.ask).toUint256()));
 
         // iterate through off-chain orders; intentionally not caching
         // length as reading from calldata is faster

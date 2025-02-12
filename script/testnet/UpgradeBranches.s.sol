@@ -27,17 +27,17 @@ contract UpgradeBranches is BaseScript {
         // TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
-        // SettlementBranch settlementBranch = new SettlementBranch();
+        SettlementBranch settlementBranch = new SettlementBranch();
         // OrderBranch orderBranch = new OrderBranch();
-        VaultRouterBranch vaultRouterBranch = new VaultRouterBranch();
+        // VaultRouterBranch vaultRouterBranch = new VaultRouterBranch();
         // MarketMakingEngineConfigurationBranch marketMakingEngineConfigurationBranch = new
         // MarketMakingEngineConfigurationBranch();
 
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](3);
-        bytes4[] memory vaultRouterBranchSelectorsUpdated = new bytes4[](1);
+        // bytes4[] memory vaultRouterBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory marketMakingEngineConfigurationBranchSelectorsUpdated = new bytes4[](1);
-        // bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
+        bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](2);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory perpMarketBranchSelectorsAdded = new bytes4[](1);
 
@@ -73,7 +73,8 @@ contract UpgradeBranches is BaseScript {
         // perpsEngineConfigurationBranchTestnetSelectorsAdded[1] =
         //     PerpsEngineConfigurationBranchTestnet.createCustomReferralCode.selector;
 
-        vaultRouterBranchSelectorsUpdated[0] = VaultRouterBranch.getVaultAssetSwapRate.selector;
+        settlementBranchSelectorsUpdated[0] = settlementBranch.fillMarketOrder.selector;
+        settlementBranchSelectorsUpdated[1] = settlementBranch.fillOffchainOrders.selector;
 
         // perpsEngineConfigurationBranchTestnetSelectorsAdded[0] =
         //     PerpsEngineConfigurationBranch.updateSettlementConfiguration.selector;
@@ -84,9 +85,9 @@ contract UpgradeBranches is BaseScript {
 
         branchUpgrades[0] = (
             RootProxy.BranchUpgrade({
-                branch: address(vaultRouterBranch),
+                branch: address(settlementBranch),
                 action: RootProxy.BranchUpgradeAction.Replace,
-                selectors: vaultRouterBranchSelectorsUpdated
+                selectors: settlementBranchSelectorsUpdated
             })
         );
 
@@ -114,7 +115,7 @@ contract UpgradeBranches is BaseScript {
         //     })
         // );
 
-        perpsEngine = IPerpsEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
+        perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 
         perpsEngine.upgrade(branchUpgrades, initializables, initializePayloads);
     }

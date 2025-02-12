@@ -1,5 +1,13 @@
 Contracts V1 Monad Testnet
 
+We don't have `Chainlink Data Streams` in the Monad Testnet yet, so we commented on the `verifyOffchainPrice`, it's why we have two integration tests breaking
+
+```bash
+Encountered 2 failing tests in test/integration/perpetuals/settlement-branch/fillMarketOrder/fillMarketOrder.t.sol:FillMarketOrder_Integration_Test
+[FAIL: next call did not revert as expected; counterexample: calldata=0xc6ef79d5000000000000000000000000000000000000000000000000000000000000002a00000000000000000000000000000000000000000000000000012cc5341185a30000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000072e args=[42, 330700470453667 [3.307e14], false, 1838]] testFuzz_RevertGiven_TheDataStreamsReportIsInvalid(uint256,uint256,bool,uint256) (runs: 0, μ: 0, ~: 0)
+[FAIL: next call did not revert as expected; counterexample: calldata=0x4b9ae524000000000000000000000000000000000000000000000000000000000000002a00000000000000000000000000000000000000000000000000012cc5341185a30000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000072e args=[42, 330700470453667 [3.307e14], false, 1838]] testFuzz_RevertGiven_TheReportVerificationFails(uint256,uint256,bool,uint256) (runs: 0, μ: 0, ~: 0)
+```
+
 ————————————————————————————————————————————————————
 
 ```bash
