@@ -19,7 +19,8 @@ abstract contract WEthBluechipVault {
     address internal constant WETH_ARB_SEPOLIA_BLUECHIP_VAULT_PRICE_ADAPTER = address(0);
 
     // Monad Testnet
-    address internal constant WETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE = address(0); // the address will be updated in
+    address internal constant WETH_MONAD_TESTNET_BLUECHIP_VAULT_ENGINE =
+        address(0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08); // the address will be updated in
         // the mainnet
     address internal constant WETH_MONAD_TESTNET_BLUECHIP_VAULT_ASSET =
         address(0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2);

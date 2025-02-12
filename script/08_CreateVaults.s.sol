@@ -10,7 +10,7 @@ import { ProtocolConfiguration } from "script/utils/ProtocolConfiguration.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
+contract CreateVaults is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -23,9 +23,6 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("**************************");
         console.log("Environment variables:");
         console.log("Market Making Engine: ", address(marketMakingEngine));
-        console.log("CONSTANTS:");
-        console.log("INITIAL_PERP_MARKET_CREDIT_CONFIG_ID: ", INITIAL_PERP_MARKET_CREDIT_CONFIG_ID);
-        console.log("FINAL_PERP_MARKET_CREDIT_CONFIG_ID: ", FINAL_PERP_MARKET_CREDIT_CONFIG_ID);
         console.log("**************************");
 
         // Vault and markets setup
@@ -33,14 +30,13 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         vaultsIdsRange[0] = initialVaultId;
         vaultsIdsRange[1] = finalVaultId;
 
-        uint256[] memory perpMarketsCreditConfigIds =
-            new uint256[](FINAL_PERP_MARKET_CREDIT_CONFIG_ID - INITIAL_PERP_MARKET_CREDIT_CONFIG_ID + 1);
+        uint256[] memory perpMarketsCreditConfigIds = new uint256[](finalVaultId - initialVaultId + 1);
         uint256 arrayIndex = 0;
-        for (uint256 i = INITIAL_PERP_MARKET_CREDIT_CONFIG_ID; i <= FINAL_PERP_MARKET_CREDIT_CONFIG_ID; i++) {
+        for (uint256 i = initialVaultId; i <= finalVaultId; i++) {
             perpMarketsCreditConfigIds[arrayIndex++] = i;
         }
 
-        uint256[] memory vaultIds = new uint256[](FINAL_VAULT_ID - INITIAL_VAULT_ID + 1);
+        uint256[] memory vaultIds = new uint256[](finalVaultId - initialVaultId + 1);
         arrayIndex = 0;
         for (uint256 i = initialVaultId; i <= finalVaultId; i++) {
             vaultIds[arrayIndex++] = i;

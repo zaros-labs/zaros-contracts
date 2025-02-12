@@ -23,8 +23,6 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
     address internal perpsEngineUsdToken;
     address internal wEth;
     address internal usdc;
-    address internal wBtc;
-    address internal wstEth;
     address internal uniswapV3SwapStrategyRouter;
     address internal uniswapV2SwapStrategyRouter;
     address internal curveSwapStrategyRouter;
@@ -41,19 +39,23 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
         marketMakingEngine = IMarketMakingEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
         wEth = vm.envAddress("WETH");
         usdc = vm.envAddress("USDC");
-        wBtc = vm.envAddress("WBTC");
-        wstEth = vm.envAddress("WSTETH");
-        uniswapV3SwapStrategyRouter = vm.envAddress("UNISWAP_V3_SWAP_STRATEGY_ROUTER");
-        uniswapV2SwapStrategyRouter = vm.envAddress("UNISWAP_V2_SWAP_STRATEGY_ROUTER");
-        curveSwapStrategyRouter = vm.envAddress("CURVE_SWAP_STRATEGY_ROUTER");
+
+        if (shouldDeployMock) {
+            uniswapV3SwapStrategyRouter = address(new MockUniswapV3SwapStrategyRouter());
+            uniswapV2SwapStrategyRouter = address(new MockUniswapV2SwapStrategyRouter());
+            curveSwapStrategyRouter = address(new MockCurveStrategyRouter());
+        } else {
+            uniswapV3SwapStrategyRouter = vm.envAddress("UNISWAP_V3_SWAP_STRATEGY_ROUTER");
+            uniswapV2SwapStrategyRouter = vm.envAddress("UNISWAP_V2_SWAP_STRATEGY_ROUTER");
+            curveSwapStrategyRouter = vm.envAddress("CURVE_SWAP_STRATEGY_ROUTER");
+        }
 
         console.log("**************************");
         console.log("Environment variables:");
         console.log("Market Making Engine: ", address(marketMakingEngine));
         console.log("wEth: ", wEth);
         console.log("USDC: ", usdc);
-        console.log("wBtc: ", wBtc);
-        console.log("wstEth: ", wstEth);
+        console.log("shouldDeployMock: ", shouldDeployMock);
         console.log("uniswapV3SwapStrategyRouter: ", uniswapV3SwapStrategyRouter);
         console.log("uniswapV2SwapStrategyRouter: ", uniswapV2SwapStrategyRouter);
         console.log("curveSwapStrategyRouter: ", curveSwapStrategyRouter);
@@ -63,13 +65,11 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
 
         uint256 blockChainId = block.chainid;
 
-        address[] memory collaterals = new address[](4);
+        address[] memory collaterals = new address[](2);
         collaterals[0] = address(usdc);
         collaterals[1] = address(wEth);
-        collaterals[2] = address(wBtc);
-        collaterals[3] = address(wstEth);
 
-        SwapAssetConfigData[] memory collateralData = new SwapAssetConfigData[](5);
+        SwapAssetConfigData[] memory collateralData = new SwapAssetConfigData[](2);
 
         collateralData[0] = SwapAssetConfigData({
             decimals: USDC_MARKET_MAKING_ENGINE_DECIMALS,
@@ -89,42 +89,20 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
                     : address(0)
         });
 
-        collateralData[2] = SwapAssetConfigData({
-            decimals: WBTC_MARKET_MAKING_ENGINE_DECIMALS,
-            priceAdapter: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
-                ? WBTC_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
-                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
-                    ? WBTC_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER
-                    : address(0)
-        });
-
-        collateralData[3] = SwapAssetConfigData({
-            decimals: WSTETH_MARKET_MAKING_ENGINE_DECIMALS,
-            priceAdapter: blockChainId == Constants.ARB_SEPOLIA_CHAIN_ID
-                ? WSTETH_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER
-                : blockChainId == Constants.MONAD_TESTNET_CHAIN_ID
-                    ? WSTETH_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER
-                    : address(0)
-        });
-
-        if (shouldDeployMock) {
-            uniswapV3SwapStrategyRouter = address(new MockUniswapV3SwapStrategyRouter());
-            uniswapV2SwapStrategyRouter = address(new MockUniswapV2SwapStrategyRouter());
-            curveSwapStrategyRouter = address(new MockCurveStrategyRouter());
-        }
-
         console.log("**************************");
         console.log("Configuring Uniswap V3 Adapter...");
         console.log("**************************");
 
-        deployUniswapV3Adapter(
-            marketMakingEngine,
-            deployer,
-            uniswapV3SwapStrategyRouter,
-            SLIPPAGE_TOLERANCE_BPS,
-            UNI_V3_FEE,
-            collaterals,
-            collateralData
+        uniswapV3Adapter = address(
+            deployUniswapV3Adapter(
+                marketMakingEngine,
+                deployer,
+                uniswapV3SwapStrategyRouter,
+                SLIPPAGE_TOLERANCE_BPS,
+                UNI_V3_FEE,
+                collaterals,
+                collateralData
+            )
         );
 
         console.log("Success! Uniswap V3 Adapter configured.");
@@ -134,13 +112,15 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
         console.log("Configuring Uniswap V2 Adapter...");
         console.log("**************************");
 
-        deployUniswapV2Adapter(
-            marketMakingEngine,
-            deployer,
-            uniswapV2SwapStrategyRouter,
-            SLIPPAGE_TOLERANCE_BPS,
-            collaterals,
-            collateralData
+        uniswapV2Adapter = address(
+            deployUniswapV2Adapter(
+                marketMakingEngine,
+                deployer,
+                uniswapV2SwapStrategyRouter,
+                SLIPPAGE_TOLERANCE_BPS,
+                collaterals,
+                collateralData
+            )
         );
 
         console.log("Success! Uniswap V2 Adapter configured.");
@@ -150,18 +130,27 @@ contract ConfigureDexAdapters is BaseScript, ProtocolConfiguration {
         console.log("Configuring Curve Adapter...");
         console.log("**************************");
 
-        deployCurveAdapter(
-            marketMakingEngine, deployer, curveSwapStrategyRouter, SLIPPAGE_TOLERANCE_BPS, collaterals, collateralData
+        curveAdapter = address(
+            deployCurveAdapter(
+                marketMakingEngine,
+                deployer,
+                curveSwapStrategyRouter,
+                SLIPPAGE_TOLERANCE_BPS,
+                collaterals,
+                collateralData
+            )
         );
 
         console.log("Success! Curve Adapter configured.");
         console.log("\n");
 
+        uint256 amountToMint = 100_000_000_000_000_000_000_000_000e18;
+
         if (shouldDeployMock) {
             for (uint256 i; i < collaterals.length; i++) {
-                LimitedMintingERC20(collaterals[i]).mint(uniswapV3Adapter, type(uint256).max);
-                LimitedMintingERC20(collaterals[i]).mint(uniswapV2Adapter, type(uint256).max);
-                LimitedMintingERC20(collaterals[i]).mint(curveAdapter, type(uint256).max);
+                LimitedMintingERC20(collaterals[i]).mint(uniswapV3Adapter, amountToMint);
+                LimitedMintingERC20(collaterals[i]).mint(uniswapV2Adapter, amountToMint);
+                LimitedMintingERC20(collaterals[i]).mint(curveAdapter, amountToMint);
             }
         }
     }

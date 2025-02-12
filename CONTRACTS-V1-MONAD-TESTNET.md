@@ -38,6 +38,7 @@ forge script script/01_DeployPerpsEngine.s.sol --rpc-url $RPC_URL --private-key 
 - Update `PERPS_ENGINE` environment variable in the `.env` file
 - Update `PERPS_ENGINE` variable in the `LimitedMintingERC20.sol`
 - Update `PERPS_ENGINE` variable in the `LimitedMintingWETH.sol`
+- Update `engine` params in the `script/vaults`
 
 ————————————————————————————————————————————————————
 
@@ -228,5 +229,160 @@ forge script script/06_ConfigureMarketMakingEngine.s.sol --sig "run(uint256,uint
 ```
 
 ```bash
+  useMockChainlinkVerifier: true
+  **************************
+  Environment variables:
+  Market Making Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
+  Perps Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
+  Perps Engine Usd Token:  0x1Edcf2dce6657E509817AFC5d9842550E252af02
+  Chainlink Verifier:  0x410Cac11875B7962Deb9bEF0543330157B4DC789
+  wEth:  0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2
+  USDC:  0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083
+  CONSTANTS:
+  MSIG_ADDRESS:  0xE2658E63c85D8a469324afA377Bf5694cd55bD7B
+  MSIG_SHARES_FEE_RECIPIENT:  300000000000000000
+  MAX_VERIFICATION_DELAY:  60
+  INITIAL_PERP_MARKET_CREDIT_CONFIG_ID:  1
+  FINAL_PERP_MARKET_CREDIT_CONFIG_ID:  10
+  **************************
+  **************************
+  Configuring vault deposit and redeem fee recipient...
+  **************************
+  Success! Vault deposit and redeem fee recipient:
+  0xE2658E63c85D8a469324afA377Bf5694cd55bD7B
+  **************************
+  Configuring collaterals...
+  **************************
+  Success! Configured collateral:
 
+
+  Collateral:  0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083
+  Price Adapter:  0x24c04E6Aa405EDB4e3847049dE459f8304145038
+  Credit ratio:  1000000000000000000
+  Is enabled:  true
+  Decimals:  6
+  Success! Configured collateral:
+
+
+  Collateral:  0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2
+  Price Adapter:  0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5
+  Credit ratio:  1000000000000000000
+  Is enabled:  true
+  Decimals:  18
+  **************************
+  Configuring system keepers...
+  **************************
+  Success! Configured system keeper:
+  0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08
+  Success! Configured system keeper:
+  0xE2658E63c85D8a469324afA377Bf5694cd55bD7B
+  **************************
+  Configuring engines...
+  **************************
+  Success! Configured engine:
+  Engine:  0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08
+  Usd Token:  0x1Edcf2dce6657E509817AFC5d9842550E252af02
+  **************************
+  Configuring fee recipients...
+  **************************
+  Success! Configured fee recipients:
+  Fee Recipient:  0xE2658E63c85D8a469324afA377Bf5694cd55bD7B
+  Shares:  300000000000000000
+  **************************
+  Configuring wEth...
+  **************************
+  Success! Configured wEth:
+  0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2
+  **************************
+  Configuring USDC...
+  **************************
+  Success! Configured USDC:
+  0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083
+  **************************
+  Transferring USD Token ownership to the market making engine...
+  **************************
+  Success! USD Token token ownership transferred to the market making engine.
+  **************************
+  Configuring Market Making Engine allowance...
+  **************************
+  Success! Configured Market Making Engine allowance
+  **************************
+  Configuring Market Making Engine Stability Configuration...
+  **************************
+  Success! Configured Market Making Engine Stability Configuration
+  **************************
+  Configuring Markets...
+  **************************
+  Success! Configured Markets
 ```
+
+————————————————————————————————————————————————————
+
+```bash
+forge script script/07_ConfigureDexAdapters.s.sol --sig "run(bool)" true --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
+```
+
+```bash
+  **************************
+  Environment variables:
+  Market Making Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
+  wEth:  0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2
+  USDC:  0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083
+  shouldDeployMock:  true
+  uniswapV3SwapStrategyRouter:  0xb2E1Fd207aD50b48223AB586553615Af1fBC3702
+  uniswapV2SwapStrategyRouter:  0xee18C7f171293b474b7033f58236cd8926cA9E13
+  curveSwapStrategyRouter:  0x37f250b25E521B6B7b2bC027229B5C827C336183
+  CONSTANTS:
+  SLIPPAGE_TOLERANCE_BPS:  100
+  **************************
+  **************************
+  Configuring Uniswap V3 Adapter...
+  **************************
+  UniswapV3Adapter deployed at: 0x99D234489C47864db177E0e0318171CDE63BAA15
+  Asset swap config data set in UniswapV3Adapter: asset: 0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083, decimals: 6, priceAdapter: 0x24c04E6Aa405EDB4e3847049dE459f8304145038
+  Asset swap config data set in UniswapV3Adapter: asset: 0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2, decimals: 18, priceAdapter: 0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5
+  Uniswap V3 Swap Strategy configured in MarketMakingEngine: strategyId: 1, strategyAddress: 0x99D234489C47864db177E0e0318171CDE63BAA15
+  Success! Uniswap V3 Adapter configured.
+
+
+  **************************
+  Configuring Uniswap V2 Adapter...
+  **************************
+  UniswapV2Adapter deployed at: 0x852a1A34BB70711250D44603678Da5DD07333Fb3
+  Asset swap config data set in UniswapV2Adapter: asset: 0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083, decimals: 6, priceAdapter: 0x24c04E6Aa405EDB4e3847049dE459f8304145038
+  Asset swap config data set in UniswapV2Adapter: asset: 0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2, decimals: 18, priceAdapter: 0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5
+  Uniswap V2 Swap Strategy configured in MarketMakingEngine: strategyId: 2, strategyAddress: 0x852a1A34BB70711250D44603678Da5DD07333Fb3
+  Success! Uniswap V2 Adapter configured.
+
+
+  **************************
+  Configuring Curve Adapter...
+  **************************
+  CurveAdapter deployed at: 0x4527758DDcd442F3ED72e1ADf53148A4Fd3dbc9a
+  Asset swap config data set in CurveAdapter: asset: 0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083, decimals: 6, priceAdapter: 0x24c04E6Aa405EDB4e3847049dE459f8304145038
+  Asset swap config data set in CurveAdapter: asset: 0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2, decimals: 18, priceAdapter: 0x81a2E5702167afAB2bbdF9c781f74160Ae433fA5
+  Curve Swap Strategy configured in MarketMakingEngine: strategyId: 3, strategyAddress: 0x37f250b25E521B6B7b2bC027229B5C827C336183
+  Success! Curve Adapter configured.
+```
+
+————————————————————————————————————————————————————
+
+```bash
+forge script script/08_CreateVaults.s.sol --sig "run(uint256,uint256)" 16 17 --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
+```
+
+```bash
+== Logs ==
+  **************************
+  Environment variables:
+  Market Making Engine:  0xeEa3aa73705DA5086838Df65a14001a43168E8DA
+  **************************
+  **************************
+  Configuring Vaults...
+  **************************
+  Usd Token Swap Keeper deployed at: 0x364F8635d203C6375DbCd4B4bC4AEFE98fB1069D, asset: 0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083, streamIdString: 0x00038f83323b6b08116d1614cf33a9bd71ab5e0abf0c9f1b783a74a43e7bd992
+  Usd Token Swap Keeper deployed at: 0xfBAD2740d20dC32C9288Ddfdd1df756D1D9aFB5D, asset: 0xBa6187ea9023Ca2EAF8B9D46690f3937EFdDA7c2, streamIdString: 0x000362205e10b3a147d02792eccee483dca6c7b44ecce7012cb8c6e0b68b3ae9
+  Success! Vaults configured.
+```
+
+————————————————————————————————————————————————————

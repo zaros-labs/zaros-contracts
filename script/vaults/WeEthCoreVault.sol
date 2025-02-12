@@ -19,7 +19,8 @@ abstract contract WeEthCoreVault {
     address internal constant WEETH_ARB_SEPOLIA_CORE_VAULT_PRICE_ADAPTER = address(0);
 
     // Monad Testnet
-    address internal constant WEETH_MONAD_TESTNET_CORE_VAULT_ENGINE = address(0); // the address will be updated in
+    address internal constant WEETH_MONAD_TESTNET_CORE_VAULT_ENGINE =
+        address(0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08); // the address will be updated in
         // the mainnet
     address internal constant WEETH_MONAD_TESTNET_CORE_VAULT_ASSET = address(0);
     address internal constant WEETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER =

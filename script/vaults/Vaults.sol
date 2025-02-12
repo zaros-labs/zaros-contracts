@@ -741,7 +741,6 @@ abstract contract Vaults is
 
         usdTokenSwapKeepers[asset] = usdTokenSwapKeeper;
 
-        changePrank({ msgSender: deployer });
         IMarketMakingEngine(marketMakingEngine).configureSystemKeeper(usdTokenSwapKeeper, true);
 
         console.log(
