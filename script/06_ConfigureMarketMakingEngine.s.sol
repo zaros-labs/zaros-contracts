@@ -35,8 +35,8 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
     IMarketMakingEngine internal marketMakingEngine;
 
     function run(
-        uint256 initialMarginCollateralId,
-        uint256 finalMarginCollateralId,
+        uint256 initialMarketMakingEngineCollateralId,
+        uint256 finalMarketMakingEngineCollateralId,
         bool useMockChainlinkVerifier
     )
         public
@@ -46,9 +46,17 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         marketMakingEngine = IMarketMakingEngine(vm.envAddress("MARKET_MAKING_ENGINE"));
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
         perpsEngineUsdToken = vm.envAddress("USD_TOKEN");
-        chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
         wEth = vm.envAddress("WETH");
         usdc = vm.envAddress("USDC");
+
+        if (useMockChainlinkVerifier) {
+            address mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
+            chainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
+
+            console.log("useMockChainlinkVerifier: true");
+        } else {
+            chainlinkVerifier = vm.envAddress("CHAINLINK_VERIFIER");
+        }
 
         console.log("**************************");
         console.log("Environment variables:");
@@ -62,8 +70,6 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("MSIG_ADDRESS: ", MSIG_ADDRESS);
         console.log("MSIG_SHARES_FEE_RECIPIENT: ", MSIG_SHARES_FEE_RECIPIENT);
         console.log("MAX_VERIFICATION_DELAY: ", MAX_VERIFICATION_DELAY);
-        console.log("INITIAL_MARKET_MAKING_ENGINE_COLLATERAL_ID: ", INITIAL_MARKET_MAKING_ENGINE_COLLATERAL_ID);
-        console.log("FINAL_MARKET_MAKING_ENGINE_COLLATERAL_ID: ", FINAL_MARKET_MAKING_ENGINE_COLLATERAL_ID);
         console.log("INITIAL_PERP_MARKET_CREDIT_CONFIG_ID: ", INITIAL_PERP_MARKET_CREDIT_CONFIG_ID);
         console.log("FINAL_PERP_MARKET_CREDIT_CONFIG_ID: ", FINAL_PERP_MARKET_CREDIT_CONFIG_ID);
         console.log("**************************");
@@ -79,7 +85,6 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         marketMakingEngine.configureVaultDepositAndRedeemFeeRecipient(MSIG_ADDRESS);
 
         console.log("Success! Vault deposit and redeem fee recipient:");
-        console.log("\n");
         console.log(MSIG_ADDRESS);
 
         console.log("**************************");
@@ -88,8 +93,8 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
 
         setupMarketMakingEngineCollaterals();
         uint256[2] memory marketMakingEngineCollateralIdsRange;
-        marketMakingEngineCollateralIdsRange[0] = INITIAL_MARKET_MAKING_ENGINE_COLLATERAL_ID;
-        marketMakingEngineCollateralIdsRange[1] = FINAL_MARKET_MAKING_ENGINE_COLLATERAL_ID;
+        marketMakingEngineCollateralIdsRange[0] = initialMarketMakingEngineCollateralId;
+        marketMakingEngineCollateralIdsRange[1] = finalMarketMakingEngineCollateralId;
         configureMarketMakingEngineCollaterals(marketMakingEngine, marketMakingEngineCollateralIdsRange);
 
         console.log("**************************");
@@ -104,7 +109,7 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
             marketMakingEngine.configureSystemKeeper(systemKeepers[i], true);
 
             console.log("Success! Configured system keeper:");
-            console.log("\n");
+
             console.log(systemKeepers[i]);
         }
 
@@ -122,7 +127,7 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
             marketMakingEngine.configureEngine(engines[i], enginesUsdToken[i], true);
 
             console.log("Success! Configured engine:");
-            console.log("\n");
+
             console.log("Engine: ", engines[i]);
             console.log("Usd Token: ", enginesUsdToken[i]);
         }
@@ -134,7 +139,6 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         marketMakingEngine.configureFeeRecipient(MSIG_ADDRESS, MSIG_SHARES_FEE_RECIPIENT);
 
         console.log("Success! Configured fee recipients:");
-        console.log("\n");
         console.log("Fee Recipient: ", MSIG_ADDRESS);
         console.log("Shares: ", MSIG_SHARES_FEE_RECIPIENT);
 
@@ -145,7 +149,6 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         marketMakingEngine.setWeth(wEth);
 
         console.log("Success! Configured wEth:");
-        console.log("\n");
         console.log(wEth);
 
         console.log("**************************");
@@ -155,7 +158,6 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         marketMakingEngine.setUsdc(usdc);
 
         console.log("Success! Configured USDC:");
-        console.log("\n");
         console.log(usdc);
 
         console.log("**************************");
@@ -163,51 +165,40 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("**************************");
 
         // NOTE: Once the MM engine v1 is deployed, USD Token ownership must be transferred to the MM engine.
-        LimitedMintingERC20(USD_TOKEN_ARB_SEPOLIA_ADDRESS).transferOwnership(address(marketMakingEngine));
+        LimitedMintingERC20(perpsEngineUsdToken).transferOwnership(address(marketMakingEngine));
 
         console.log("Success! USD Token token ownership transferred to the market making engine.");
-        console.log("\n");
 
         console.log("**************************");
         console.log("Configuring Market Making Engine allowance...");
         console.log("**************************");
 
         uint256[2] memory marginCollateralIdsRange;
-        marginCollateralIdsRange[0] = initialMarginCollateralId;
-        marginCollateralIdsRange[1] = finalMarginCollateralId;
+        marginCollateralIdsRange[0] = initialMarketMakingEngineCollateralId;
+        marginCollateralIdsRange[1] = finalMarketMakingEngineCollateralId;
 
-        configureMarginCollaterals(
-            perpsEngine, marginCollateralIdsRange, false, sequencerUptimeFeedByChainId[block.chainid], deployer
-        );
-
-        uint256 totalOfMarginCollaterals = finalMarginCollateralId - initialMarginCollateralId + 1;
-        IERC20[] memory marginCollateralsArray = new IERC20[](totalOfMarginCollaterals);
-        uint256[] memory allowances = new uint256[](totalOfMarginCollaterals);
-        for (uint256 i = initialMarginCollateralId; i <= finalMarginCollateralId; i++) {
-            marginCollateralsArray[i - 1] = IERC20(marginCollaterals[i].marginCollateralAddress);
-            allowances[i - 1] = type(uint256).max;
+        uint256 totalOfMarketMakingEngineCollaterals =
+            finalMarketMakingEngineCollateralId - initialMarketMakingEngineCollateralId + 1;
+        IERC20[] memory marketMakingEngineCollateralsArray = new IERC20[](totalOfMarketMakingEngineCollaterals);
+        uint256[] memory allowances = new uint256[](totalOfMarketMakingEngineCollaterals);
+        uint256 index = 0;
+        for (uint256 i = initialMarketMakingEngineCollateralId; i <= finalMarketMakingEngineCollateralId; i++) {
+            marketMakingEngineCollateralsArray[index] = IERC20(marketMakingEngineCollaterals[i].collateral);
+            allowances[index] = type(uint256).max;
+            index++;
         }
 
-        perpsEngine.setMarketMakingEngineAllowance(marginCollateralsArray, allowances);
+        perpsEngine.setMarketMakingEngineAllowance(marketMakingEngineCollateralsArray, allowances);
 
         console.log("Success! Configured Market Making Engine allowance");
-        console.log("\n");
 
         console.log("**************************");
         console.log("Configuring Market Making Engine Stability Configuration...");
         console.log("**************************");
 
-        if (useMockChainlinkVerifier) {
-            address mockChainlinkFeeManager = address(new MockChainlinkFeeManager());
-            chainlinkVerifier = address(new MockChainlinkVerifier(IFeeManager(mockChainlinkFeeManager)));
-
-            console.log("useMockChainlinkVerifier: true");
-        }
-
         marketMakingEngine.updateStabilityConfiguration(chainlinkVerifier, uint128(MAX_VERIFICATION_DELAY));
 
         console.log("Success! Configured Market Making Engine Stability Configuration");
-        console.log("\n");
 
         console.log("**************************");
         console.log("Configuring Markets...");
@@ -222,6 +213,5 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         );
 
         console.log("Success! Configured Markets");
-        console.log("\n");
     }
 }

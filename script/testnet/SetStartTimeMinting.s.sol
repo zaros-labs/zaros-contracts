@@ -11,10 +11,10 @@ import { console } from "forge-std/console.sol";
 
 /// @dev This script is used to set the start time minting for the LimitedMintingERC20 token.
 contract SetStartTimeMinting is BaseScript, ProtocolConfiguration {
-    function run() public broadcaster {
+    function run(address erc20) public broadcaster {
         uint256 startTimeMinting = 1_725_380_400; // 03st Sep 2024 16:20:00 UTC
 
-        LimitedMintingERC20(USDC_ARB_SEPOLIA_ADDRESS).setStartTimeMinting(startTimeMinting);
+        LimitedMintingERC20(erc20).setStartTimeMinting(startTimeMinting);
 
         console.log("Start time minting set to: ", startTimeMinting);
     }

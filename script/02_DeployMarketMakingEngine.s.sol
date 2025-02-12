@@ -48,7 +48,6 @@ contract DeployMarketMakingEngine is BaseScript, ProtocolConfiguration {
         marketMakingEngine = IMarketMakingEngine(address(new MarketMakingEngine(mmEngineInitParams)));
 
         console.log("Success! Market Making Engine:");
-        console.log("\n");
         console.log(address(marketMakingEngine));
     }
 }

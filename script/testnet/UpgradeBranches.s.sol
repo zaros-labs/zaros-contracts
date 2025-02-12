@@ -23,15 +23,14 @@ contract UpgradeBranches is BaseScript {
     function run() public broadcaster {
         // TradingAccountBranchTestnet tradingAccountBranchTestnet = new TradingAccountBranchTestnet();
         // PerpMarketBranch perpMarketBranch = new PerpMarketBranch();
-        // PerpsEngineConfigurationBranchTestnet perpsEngineConfigurationBranchTestnet = new
-        // PerpsEngineConfigurationBranchTestnet();
-        SettlementBranch settlementBranch = new SettlementBranch();
+        PerpsEngineConfigurationBranch perpsEngineConfigurationBranch = new PerpsEngineConfigurationBranch();
+        // SettlementBranch settlementBranch = new SettlementBranch();
         // OrderBranch orderBranch = new OrderBranch();
 
         // bytes4[] memory tradingAccountBranchTestnetSelectorsAdded = new bytes4[](1);
         // bytes4[] memory tradingAccountBranchTestnetSelectorsUpdated = new bytes4[](3);
-        // bytes4[] memory perpsEngineConfigurationBranchTestnetSelectorsAdded = new bytes4[](1);
-        bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
+        bytes4[] memory perpsEngineConfigurationBranchSelectorsAdded = new bytes4[](1);
+        // bytes4[] memory settlementBranchSelectorsUpdated = new bytes4[](1);
         // bytes4[] memory orderBranchTestnetSelectorsUpdated = new bytes4[](1);
 
         // RootProxy.BranchUpgrade[] memory branchUpgrades = new RootProxy.BranchUpgrade[](4);
@@ -66,7 +65,8 @@ contract UpgradeBranches is BaseScript {
         // perpsEngineConfigurationBranchTestnetSelectorsAdded[1] =
         //     PerpsEngineConfigurationBranchTestnet.createCustomReferralCode.selector;
 
-        settlementBranchSelectorsUpdated[0] = SettlementBranch.fillMarketOrder.selector;
+        perpsEngineConfigurationBranchSelectorsAdded[0] =
+            PerpsEngineConfigurationBranch.setMarketMakingEngineAllowance.selector;
 
         // perpsEngineConfigurationBranchTestnetSelectorsAdded[0] =
         //     PerpsEngineConfigurationBranch.updateSettlementConfiguration.selector;
@@ -77,9 +77,9 @@ contract UpgradeBranches is BaseScript {
 
         branchUpgrades[0] = (
             RootProxy.BranchUpgrade({
-                branch: address(settlementBranch),
-                action: RootProxy.BranchUpgradeAction.Replace,
-                selectors: settlementBranchSelectorsUpdated
+                branch: address(perpsEngineConfigurationBranch),
+                action: RootProxy.BranchUpgradeAction.Add,
+                selectors: perpsEngineConfigurationBranchSelectorsAdded
             })
         );
 

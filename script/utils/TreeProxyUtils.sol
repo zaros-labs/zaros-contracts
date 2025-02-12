@@ -108,7 +108,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](16);
+    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](17);
 
     perpsEngineConfigurationBranchSelectors[0] =
         PerpsEngineConfigurationBranch.getAccountsWithActivePositions.selector;
@@ -132,6 +132,8 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
         PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     perpsEngineConfigurationBranchSelectors[14] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
     perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.configureReferralModule.selector;
+    perpsEngineConfigurationBranchSelectors[16] =
+        PerpsEngineConfigurationBranch.setMarketMakingEngineAllowance.selector;
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
 

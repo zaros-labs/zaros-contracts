@@ -85,7 +85,7 @@ abstract contract Markets is
 
     // TODO: Update to actual offchain orders keeper address
     /// @notice The address responsible by filling the offchain created offchain orders.
-    address internal constant OFFCHAIN_ORDERS_KEEPER_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
+    address internal constant OFFCHAIN_ORDERS_KEEPER_ADDRESS = 0x3a8fD90D680D9649DE85922CF6D6A4f57Bb8d1D5;
     /// @notice General perps engine system configuration parameters.
     string internal constant DATA_STREAMS_FEED_PARAM_KEY = "feedIDs";
     string internal constant DATA_STREAMS_TIME_PARAM_KEY = "timestamp";

@@ -21,7 +21,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Address of the Perpetuals Engine contract.
-    address public constant PERPS_ENGINE = 0x6f7b7e54a643E1285004AaCA95f3B2e6F5bcC1f3;
+    address public constant PERPS_ENGINE = 0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08;
 
     /// @notice Amount of tokens minted per address.
     uint256 public constant AMOUNT_TO_MINT_USDC = 100_000 * 10 ** 18;

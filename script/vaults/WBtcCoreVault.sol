@@ -22,5 +22,6 @@ abstract contract WBtcCoreVault {
     address internal constant WBTC_MONAD_TESTNET_CORE_VAULT_ENGINE = address(0); // the address will be updated in the
         // mainnet
     address internal constant WBTC_MONAD_TESTNET_CORE_VAULT_ASSET = address(0);
-    address internal constant WBTC_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER = address(0);
+    address internal constant WBTC_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER =
+        address(0xC8e84af129FF5c5CB0bcE9a1972311feB4e392F9);
 }

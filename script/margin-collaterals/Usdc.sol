@@ -29,7 +29,7 @@ abstract contract Usdc {
         "0x00038f83323b6b08116d1614cf33a9bd71ab5e0abf0c9f1b783a74a43e7bd992";
 
     // Monad Testnet
-    address internal constant USDC_MONAD_TESTNET_ADDRESS = address(0x95011b96c11A4cc96CD8351165645E00F68632a3);
+    address internal constant USDC_MONAD_TESTNET_ADDRESS = address(0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083);
     address internal constant USDC_MONAD_TESTNET_PYTH_PRICE_FEED = address(0x2880aB155794e7179c9eE2e38200202908C17B43);
     bytes32 internal constant USDC_MONAD_TESTNET_PYTH_PRICE_FEED_ID =
         0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a;

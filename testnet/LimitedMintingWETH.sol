@@ -14,14 +14,14 @@ import { IERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensio
 import { UD60x18 } from "@prb-math/UD60x18.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 
-/// @notice LimitedMintingERC20 is an ERC20 token with limited minting capabilities used in testnet.
-contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, OwnableUpgradeable {
+/// @notice LimitedMintingWETH is an ERC20 token with limited minting capabilities used in testnet.
+contract LimitedMintingWETH is UUPSUpgradeable, ERC20PermitUpgradeable, OwnableUpgradeable {
     /*//////////////////////////////////////////////////////////////////////////
                                     VARIABLES FUNCTIONS
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Address of the Perpetuals Engine contract.
-    address public constant PERPS_ENGINE = 0x6f7b7e54a643E1285004AaCA95f3B2e6F5bcC1f3;
+    address public constant PERPS_ENGINE = 0xd837cB495761D5bC5Bfa7d5dE876C0407E04Ae08;
 
     /// @notice Amount of tokens minted per address.
     uint256 public constant AMOUNT_TO_MINT_WETH = 1 * 10 ** 18;

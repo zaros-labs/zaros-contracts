@@ -21,6 +21,8 @@ abstract contract UsdcPerpsEngineVault {
     // Monad Testnet
     address internal constant USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_ENGINE = address(0); // the address will be
         // updated in the mainnet
-    address internal constant USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_ASSET = address(0);
-    address internal constant USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_PRICE_ADAPTER = address(0);
+    address internal constant USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_ASSET =
+        address(0x4470E455Aa0a43BA885B6F91bfC9FcEeDB9Dd083);
+    address internal constant USDC_MONAD_TESTNET_PERPS_ENGINE_VAULT_PRICE_ADAPTER =
+        address(0x24c04E6Aa405EDB4e3847049dE459f8304145038);
 }

@@ -22,5 +22,6 @@ abstract contract WstEthCoreVault {
     address internal constant WSTETH_MONAD_TESTNET_CORE_VAULT_ENGINE = address(0); // the address will be updated in
         // the mainnet
     address internal constant WSTETH_MONAD_TESTNET_CORE_VAULT_ASSET = address(0);
-    address internal constant WSTETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER = address(0);
+    address internal constant WSTETH_MONAD_TESTNET_CORE_VAULT_PRICE_ADAPTER =
+        address(0x8Cbc9A29f2Ae01F420DaAb8DcbF21131337a38E4);
 }

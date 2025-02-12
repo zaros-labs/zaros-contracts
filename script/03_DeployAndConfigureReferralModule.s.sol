@@ -14,7 +14,7 @@ import { ReferralUtils } from "script/utils/ReferralUtils.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-contract ConfigureReferralModule is BaseScript, ProtocolConfiguration {
+contract DeployAndConfigureReferralModule is BaseScript, ProtocolConfiguration {
     /*//////////////////////////////////////////////////////////////////////////
                                     CONTRACTS
     //////////////////////////////////////////////////////////////////////////*/
@@ -34,7 +34,7 @@ contract ConfigureReferralModule is BaseScript, ProtocolConfiguration {
         console.log("**************************");
 
         console.log("**************************");
-        console.log("Configuring fee recipients...");
+        console.log("Deploy and configuring referral modules...");
         console.log("**************************");
 
         referralModule = IReferral(ReferralUtils.deployReferralModule(deployer));
@@ -45,7 +45,7 @@ contract ConfigureReferralModule is BaseScript, ProtocolConfiguration {
         perpsEngine.configureReferralModule(address(referralModule));
         marketMakingEngine.configureReferralModule(address(referralModule));
 
-        console.log("Success! Configured Referral Module");
+        console.log("Success! Deployed and configured Referral Module");
         console.log("\n");
     }
 }

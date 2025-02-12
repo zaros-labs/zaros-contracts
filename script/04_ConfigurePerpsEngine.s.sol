@@ -84,7 +84,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
         console.log("Success! Liquidator address:");
-        console.log("\n");
         console.log(liquidators[0]);
 
         console.log("**************************");
@@ -94,7 +93,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.setUsdToken(usdToken);
 
         console.log("Success! USD Token token address:");
-        console.log("\n");
         console.log(usdToken);
 
         console.log("**************************");
@@ -104,7 +102,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
         console.log("Success! Trading account token address:");
-        console.log("\n");
         console.log(address(tradingAccountToken));
 
         console.log("**************************");
