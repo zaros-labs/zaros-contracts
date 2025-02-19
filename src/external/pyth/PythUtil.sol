@@ -48,7 +48,7 @@ library PythUtil {
         Price memory pythData = params.pyth.getPriceUnsafe(params.priceFeedId);
 
         price = ud60x18(
-            uint256(int256(pythData.price)) * 10 ** (18 - (uint256((sd59x18(pythData.expo).abs().intoInt256())) - 1))
+            uint256(int256(pythData.price)) * 10 ** (18 - (uint256((sd59x18(pythData.expo).abs().intoInt256()))))
         );
     }
 }
