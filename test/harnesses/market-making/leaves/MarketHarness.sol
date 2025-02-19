@@ -130,4 +130,8 @@ contract MarketHarness {
     {
         return Market.load(marketId).getAutoDeleverageFactor(delegatedCreditUsdX18, totalDebtUsdX18);
     }
+
+    function workaround_getRealizedDebtUsd(uint128 marketId) external view returns (SD59x18 realizedDebtUsdX18) {
+        realizedDebtUsdX18 = Market.load(marketId).getRealizedDebtUsd();
+    }
 }

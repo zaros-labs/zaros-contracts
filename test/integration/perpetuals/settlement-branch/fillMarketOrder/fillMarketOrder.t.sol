@@ -17,7 +17,7 @@ import { IPriceAdapter, PriceAdapter } from "@zaros/utils/PriceAdapter.sol";
 
 // PRB Math dependencies
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
-import { SD59x18, sd59x18 } from "@prb-math/SD59x18.sol";
+import { SD59x18, sd59x18, ZERO as SD59x18_ZERO } from "@prb-math/SD59x18.sol";
 
 import { console } from "forge-std/console.sol";
 
@@ -987,6 +987,24 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         assertEq(ctx.marketOrder.marketId, 0);
         assertEq(ctx.marketOrder.sizeDelta, 0);
         assertEq(ctx.marketOrder.timestamp, 0);
+
+        // the market realized debt usd should be less than zero
+        SD59x18 marketRealizedDebtUsd =
+            marketMakingEngine.workaround_getRealizedDebtUsd(ctx.fuzzMarketConfig.marketId);
+        assertEq(
+            marketRealizedDebtUsd.lt(SD59x18_ZERO), true, "the market realized debt usd should be less than zero"
+        );
+
+        // check if after the market usd token issuance is updated to the max, the value of realized debt usd of
+        // market is > 0 (the market is in debt)
+        int128 newMarketUsdTokenIssuance = -int128(uint128(uint256(marketRealizedDebtUsd.intoInt256()))) + 1;
+        marketMakingEngine.workaround_setMarketUsdTokenIssuance(
+            ctx.fuzzMarketConfig.marketId, newMarketUsdTokenIssuance
+        );
+        marketRealizedDebtUsd = marketMakingEngine.workaround_getRealizedDebtUsd(ctx.fuzzMarketConfig.marketId);
+        assertEq(
+            marketRealizedDebtUsd.gt(SD59x18_ZERO), true, "the market realized debt usd should be greater than zero"
+        );
     }
 
     struct TestFuzz_GivenThePnlIsPositive_Context {
@@ -1316,6 +1334,27 @@ contract FillMarketOrder_Integration_Test is Base_Test {
         assertEq(ctx.marketOrder.marketId, 0);
         assertEq(ctx.marketOrder.sizeDelta, 0);
         assertEq(ctx.marketOrder.timestamp, 0);
+
+        // the market realized debt usd should be greater than zero
+        SD59x18 marketRealizedDebtUsd =
+            marketMakingEngine.workaround_getRealizedDebtUsd(ctx.fuzzMarketConfig.marketId);
+        assertEq(
+            marketRealizedDebtUsd.gt(SD59x18_ZERO), true, "the market realized debt usd should be greater than zero"
+        );
+
+        // check if after the deposit credit for market, the value of realized debt usd of market is < 0 (the market
+        // is in credit)
+        changePrank({ msgSender: users.owner.account });
+        uint256 amountDepositCreditForMarket = uint256(int256(type(int128).max));
+        deal({ token: address(wEth), to: address(perpsEngine), give: amountDepositCreditForMarket });
+        changePrank({ msgSender: address(perpsEngine) });
+        marketMakingEngine.depositCreditForMarket(
+            ctx.fuzzMarketConfig.marketId, address(wEth), amountDepositCreditForMarket
+        );
+        marketRealizedDebtUsd = marketMakingEngine.workaround_getRealizedDebtUsd(ctx.fuzzMarketConfig.marketId);
+        assertEq(
+            marketRealizedDebtUsd.lt(SD59x18_ZERO), true, "the market realized debt usd should be less than zero"
+        );
     }
 
     struct Test_RevertGiven_TheUserAccountWillBeLiquidatedAfterCreatingMarketOrder_Context {
