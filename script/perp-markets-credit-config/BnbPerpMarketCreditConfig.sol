@@ -19,5 +19,5 @@ abstract contract BnbPerpMarketCreditConfig {
     address internal constant BNB_MONAD_TESTNET_PERP_MARKET_CREDIT_CONFIG_ENGINE =
         address(0x6D90B34da7e2AdCB07FDf096242875ff7941eC74);
     address internal constant BNB_MONAD_TESTNET_PERP_MARKET_CREDIT_CONFIG_ENGINE_USD_TOKEN =
-        address(0xAC3624363e36d73526B06D33382cbFA9637318C3);
+        address(0xbaDF69305038a4E009f79416340B7f4Bc5ea7a6b);
 }

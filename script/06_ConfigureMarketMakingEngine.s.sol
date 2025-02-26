@@ -61,7 +61,7 @@ contract ConfigureMarketMakingEngine is BaseScript, ProtocolConfiguration {
         console.log("**************************");
         console.log("Environment variables:");
         console.log("Market Making Engine: ", address(marketMakingEngine));
-        console.log("Perps Engine: ", address(marketMakingEngine));
+        console.log("Perps Engine: ", address(perpsEngine));
         console.log("Perps Engine Usd Token: ", perpsEngineUsdToken);
         console.log("Chainlink Verifier: ", address(chainlinkVerifier));
         console.log("wEth: ", wEth);

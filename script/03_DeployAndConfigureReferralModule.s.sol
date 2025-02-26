@@ -30,7 +30,7 @@ contract DeployAndConfigureReferralModule is BaseScript, ProtocolConfiguration {
         console.log("**************************");
         console.log("Environment variables:");
         console.log("Market Making Engine: ", address(marketMakingEngine));
-        console.log("Perps Engine: ", address(marketMakingEngine));
+        console.log("Perps Engine: ", address(perpsEngine));
         console.log("**************************");
 
         console.log("**************************");

@@ -399,6 +399,10 @@ forge script script/08_CreateVaults.s.sol --sig "run(uint256,uint256)" 16 17 --r
 
 ————————————————————————————————————————————————————
 
+**I ran a script after to configure the usd token as colateral.**
+
+————————————————————————————————————————————————————
+
 forge script script/TestMonadTestnet.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv
 
 forge script script/testnet/UpgradeBranches.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY  --broadcast -vvvv

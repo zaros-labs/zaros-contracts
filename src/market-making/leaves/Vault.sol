@@ -598,11 +598,12 @@ library Vault {
                     : UD60x18_ZERO;
 
                 // calculate the delta applied to the market's total delegated credit
-                UD60x18 creditDeltaUsdX18 = newCreditDelegationUsdX18.sub(previousCreditDelegationUsdX18);
+                SD59x18 creditDeltaUsdResultX18 =
+                    newCreditDelegationUsdX18.intoSD59x18().sub(previousCreditDelegationUsdX18.intoSD59x18());
 
                 // loads the market's storage pointer and update total delegated credit
                 Market.Data storage market = Market.load(connectedMarketId);
-                market.updateTotalDelegatedCredit(creditDeltaUsdX18);
+                market.updateTotalDelegatedCredit(creditDeltaUsdResultX18);
 
                 // if new credit delegation is zero, we clear the credit delegation storage
                 if (newCreditDelegationUsdX18.isZero()) {

@@ -6,6 +6,7 @@ import { Usdc } from "script/market-making-engine-collaterals/Usdc.sol";
 import { WBtc } from "script/market-making-engine-collaterals/WBtc.sol";
 import { WEth } from "script/market-making-engine-collaterals/WEth.sol";
 import { WstEth } from "script/market-making-engine-collaterals/WstEth.sol";
+import { UsdToken } from "script/market-making-engine-collaterals/UsdToken.sol";
 
 // Zaros dependencies
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
@@ -15,7 +16,7 @@ import { Constants } from "@zaros/utils/Constants.sol";
 // Forge dependencies
 import { console } from "forge-std/console.sol";
 
-abstract contract MarketMakingEngineCollaterals is Usdc, WBtc, WEth, WstEth {
+abstract contract MarketMakingEngineCollaterals is Usdc, WBtc, WEth, WstEth, UsdToken {
     struct MarketMakingEngineCollateral {
         address collateral;
         address priceAdapter;
@@ -118,6 +119,28 @@ abstract contract MarketMakingEngineCollaterals is Usdc, WBtc, WEth, WstEth {
             decimals: WSTETH_MARKET_MAKING_ENGINE_DECIMALS
         });
         marketMakingEngineCollaterals[WSTETH_MARKET_MAKING_ENGINE_COLLATERAL_ID] = wstEthConfig;
+
+        collateralByChain[Constants.ARB_SEPOLIA_CHAIN_ID].collateral =
+            USD_TOKEN_ARB_SEPOLIA_MARKET_MAKING_ENGINE_ADDRESS;
+        collateralByChain[Constants.ARB_SEPOLIA_CHAIN_ID].priceAdapter =
+            USD_TOKEN_ARB_SEPOLIA_MARKET_MAKING_ENGINE_PRICE_ADAPTER;
+
+        collateralByChain[Constants.MONAD_TESTNET_CHAIN_ID].collateral =
+            USD_TOKEN_MONAD_TESTNET_MARKET_MAKING_ENGINE_ADDRESS;
+        collateralByChain[Constants.MONAD_TESTNET_CHAIN_ID].priceAdapter =
+            USD_TOKEN_MONAD_TESTNET_MARKET_MAKING_ENGINE_PRICE_ADAPTER;
+
+        collateralByChain[Constants.FORGE_CHAIN_ID].collateral = address(0x5);
+        collateralByChain[Constants.FORGE_CHAIN_ID].priceAdapter = address(0x5);
+
+        MarketMakingEngineCollateral memory usdTokenConfig = MarketMakingEngineCollateral({
+            collateral: collateralByChain[block.chainid].collateral,
+            priceAdapter: collateralByChain[block.chainid].priceAdapter,
+            creditRatio: USD_TOKEN_MARKET_MAKING_ENGINE_CREDIT_RATIO,
+            isEnabled: USD_TOKEN_MARKET_MAKING_ENGINE_IS_ENABLED,
+            decimals: USD_TOKEN_MARKET_MAKING_ENGINE_DECIMALS
+        });
+        marketMakingEngineCollaterals[USD_TOKEN_MARKET_MAKING_ENGINE_COLLATERAL_ID] = usdTokenConfig;
     }
 
     function getFilteredMarketMakingEngineCollateralsConfig(uint256[2] memory marketMakingEngineCollateralIdsRange)
