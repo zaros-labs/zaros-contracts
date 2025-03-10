@@ -27,9 +27,25 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
     //////////////////////////////////////////////////////////////////////////*/
     IPerpsEngine internal perpsEngine;
 
-    function run(uint256 initialMarketId, uint256 finalMarketId) public broadcaster {
+    function run(
+        uint256 initialMarketId,
+        uint256 finalMarketId,
+        bool shouldUseCustomMarketOrderKeeper,
+        address customMarketOrderKeeper
+    )
+        public
+        broadcaster
+    {
         perpsEngine = IPerpsEngine(payable(address(vm.envAddress("PERPS_ENGINE"))));
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));
+
+        console.log("**************************");
+        console.log("Environment variables:");
+        console.log("Perps Engine: ", address(perpsEngine));
+        console.log("Chainlink Verifier: ", address(chainlinkVerifier));
+        console.log("CONSTANS:");
+        console.log("OFFCHAIN_ORDERS_KEEPER_ADDRESS: ", OFFCHAIN_ORDERS_KEEPER_ADDRESS);
+        console.log("**************************");
 
         setupSequencerUptimeFeeds();
 
@@ -41,16 +57,30 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
 
         MarketConfig[] memory filteredMarketsConfig = getFilteredMarketsConfig(marketsIdsRange);
 
-        address marketOrderKeeperImplementation = address(new MarketOrderKeeper());
-        console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
+        address marketOrderKeeperImplementation;
+
+        console.log("**************************");
+        console.log("Creating Perp Markets...");
+        console.log("**************************");
+
+        if (!shouldUseCustomMarketOrderKeeper) {
+            marketOrderKeeperImplementation = address(new MarketOrderKeeper());
+            console.log("MarketOrderKeeper Implementation: ", marketOrderKeeperImplementation);
+        }
 
         for (uint256 i; i < filteredMarketsConfig.length; i++) {
             SettlementConfiguration.DataStreamsStrategy memory orderConfigurationData = SettlementConfiguration
                 .DataStreamsStrategy({ chainlinkVerifier: chainlinkVerifier, streamId: filteredMarketsConfig[i].streamId });
 
-            address marketOrderKeeper = deployMarketOrderKeeper(
-                filteredMarketsConfig[i].marketId, deployer, perpsEngine, marketOrderKeeperImplementation
-            );
+            address marketOrderKeeper;
+
+            if (shouldUseCustomMarketOrderKeeper) {
+                marketOrderKeeper = customMarketOrderKeeper;
+            } else {
+                deployMarketOrderKeeper(
+                    filteredMarketsConfig[i].marketId, deployer, perpsEngine, marketOrderKeeperImplementation
+                );
+            }
 
             console.log(
                 "Market Order Keeper Deployed: Market ID: ",
@@ -94,5 +124,8 @@ contract CreatePerpMarkets is BaseScript, ProtocolConfiguration {
                 })
             });
         }
+
+        console.log("Success! Created Perp Markets");
+        console.log("\n");
     }
 }

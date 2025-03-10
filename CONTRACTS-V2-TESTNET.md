@@ -43,8 +43,8 @@ forge script script/testnet/DeployTestnetTokens.s.sol --rpc-url arbitrum_sepolia
   USD Token Proxy:  0x8648d10fE74dD9b4B454B4db9B63b03998c087Ba
 ```
 
-- Update `USDC_ADDRESS` in the `Usdc.sol`
-- Update `USD_TOKEN_ADDRESS`in the `UsdToken.sol`
+- Update `USDC_ARB_SEPOLIA_ADDRESS` in the `Usdc.sol`
+- Update `USD_TOKEN_ARB_SEPOLIA_ADDRESS`in the `UsdToken.sol`
 - Update `USDC` environment variable in the `.env` file
 - Update `USD_TOKEN` environment variable in the `.env` file
 

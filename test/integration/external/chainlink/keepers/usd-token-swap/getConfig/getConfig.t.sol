@@ -16,7 +16,7 @@ contract UsdTokenSwapKeeper_GetConfig_Integration_Test is Base_Test {
 
     function testFuzz_WhenCallGetConfigFunction(uint256 vaultId) external givenInitializeContract {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-
+        changePrank({ msgSender: users.owner.account });
         address usdTokenSwapKeeper = deployUsdTokenSwapKeeper(
             users.owner.account, address(marketMakingEngine), fuzzVaultConfig.asset, fuzzVaultConfig.streamIdString
         );

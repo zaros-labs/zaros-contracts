@@ -23,16 +23,22 @@ abstract contract BnbUsd {
     OrderFees.Data internal bnbUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
 
     /// @notice Test only mocks
-    string internal constant MOCK_BNB_USD_STREAM_ID = "MOCK_BNB_USD_STREAM_ID";
+    string internal constant MOCK_BNB_USD_ARB_SEPOLIA_STREAM_ID = "MOCK_BNB_USD_ARB_SEPOLIA_STREAM_ID";
     uint256 internal constant MOCK_BNB_USD_PRICE = 600e18;
 
-    // TODO: Update address value
-    address internal constant BNB_USD_PRICE_FEED = address(0x53ab995fBb01C617aa1256698aD55b417168bfF9);
-    uint32 internal constant BNB_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    // Arbitrum Sepolia
+    address internal constant BNB_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED =
+        address(0x53ab995fBb01C617aa1256698aD55b417168bfF9);
+    uint32 internal constant BNB_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
     bool internal constant BNB_USD_USE_CUSTOM_PRICE_ADAPTER = false;
-
-    // TODO: Update stream id value
-    bytes32 internal constant BNB_USD_STREAM_ID = 0x000387d7c042a9d5c97c15354b531bd01bf6d3a351e190f2394403cf2f79bde9;
-    string internal constant STRING_BNB_USD_STREAM_ID =
+    bytes32 internal constant BNB_USD_ARB_SEPOLIA_STREAM_ID =
+        0x000387d7c042a9d5c97c15354b531bd01bf6d3a351e190f2394403cf2f79bde9;
+    string internal constant STRING_BNB_USD_ARB_SEPOLIA_STREAM_ID =
         "0x000387d7c042a9d5c97c15354b531bd01bf6d3a351e190f2394403cf2f79bde9";
+
+    // Monad Testnet
+    address internal constant BNB_USD_MONAD_TESTNET_PYTH_PRICE_FEED =
+        address(0x2880aB155794e7179c9eE2e38200202908C17B43);
+    bytes32 internal constant BNB_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID =
+        0x2f95862b045670cd22bee3114c39763a4a08beeb663b145d283c31d7d1101c4f;
 }

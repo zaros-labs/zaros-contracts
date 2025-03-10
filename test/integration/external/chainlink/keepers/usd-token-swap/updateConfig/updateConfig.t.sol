@@ -23,7 +23,7 @@ contract UsdTokenSwapKeeper_UpdateConfig_Integration_Test is Base_Test {
         givenInitializeContract
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-
+        changePrank({ msgSender: users.owner.account });
         address usdTokenSwapKeeper = deployUsdTokenSwapKeeper(
             users.owner.account, address(marketMakingEngine), fuzzVaultConfig.asset, fuzzVaultConfig.streamIdString
         );
@@ -49,7 +49,7 @@ contract UsdTokenSwapKeeper_UpdateConfig_Integration_Test is Base_Test {
         whenAddressOfMarketMakingEngineIsValid
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-
+        changePrank({ msgSender: users.owner.account });
         address usdTokenSwapKeeper = deployUsdTokenSwapKeeper(
             users.owner.account, address(marketMakingEngine), fuzzVaultConfig.asset, fuzzVaultConfig.streamIdString
         );
@@ -76,7 +76,7 @@ contract UsdTokenSwapKeeper_UpdateConfig_Integration_Test is Base_Test {
         whenAddressOfAssetIsNotZero
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-
+        changePrank({ msgSender: users.owner.account });
         address usdTokenSwapKeeper = deployUsdTokenSwapKeeper(
             users.owner.account, address(marketMakingEngine), fuzzVaultConfig.asset, fuzzVaultConfig.streamIdString
         );
@@ -99,7 +99,7 @@ contract UsdTokenSwapKeeper_UpdateConfig_Integration_Test is Base_Test {
         whenAddressOfAssetIsNotZero
     {
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
-
+        changePrank({ msgSender: users.owner.account });
         address usdTokenSwapKeeper = deployUsdTokenSwapKeeper(
             users.owner.account, address(marketMakingEngine), fuzzVaultConfig.asset, fuzzVaultConfig.streamIdString
         );

@@ -157,7 +157,7 @@ contract DexAdapterUtils {
         dexAdapterIds.push(uniswapV2Adapter.STRATEGY_ID());
 
         console.log(
-            "Uniswap V3 Swap Strategy configured in MarketMakingEngine: strategyId: %s, strategyAddress: %s",
+            "Uniswap V2 Swap Strategy configured in MarketMakingEngine: strategyId: %s, strategyAddress: %s",
             uniswapV2Adapter.STRATEGY_ID(),
             address(uniswapV2Adapter)
         );
@@ -198,7 +198,7 @@ contract DexAdapterUtils {
         curveAdapter =
             CurveAdapter(address(new ERC1967Proxy(address(curveAdapterImplementation), initializeCurveAdapter)));
 
-        console.log("curveStrategyRouter deployed at: %s", address(curveStrategyRouter));
+        console.log("CurveAdapter deployed at: %s", address(curveAdapter));
 
         for (uint256 i; i < assets.length; i++) {
             // set the swap asset config data in the Curve Adapter Proxy

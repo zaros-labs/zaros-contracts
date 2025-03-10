@@ -9,6 +9,8 @@ import { MarginCollaterals } from "script/margin-collaterals/MarginCollaterals.s
 import { SequencerUptimeFeeds } from "script/sequencer-uptime-feeds/SequencerUptimeFeeds.sol";
 import { PerpMarketsCreditConfig } from "script/perp-markets-credit-config/PerpMarketsCreditConfig.sol";
 import { DexAdapterUtils } from "script/utils/DexAdapterUtils.sol";
+import { MarketMakingEngineCollaterals } from
+    "script/market-making-engine-collaterals/MarketMakingEngineCollaterals.sol";
 
 // PRB Math dependencies
 import { uMAX_UD60x18 as LIB_uMAX_UD60x18 } from "@prb-math/UD60x18.sol";
@@ -20,12 +22,13 @@ abstract contract ProtocolConfiguration is
     Vaults,
     SequencerUptimeFeeds,
     PerpMarketsCreditConfig,
-    DexAdapterUtils
+    DexAdapterUtils,
+    MarketMakingEngineCollaterals
 {
     /// @notice Admin addresses.
 
     // TODO: Update to actual multisig address
-    address internal constant MSIG_ADDRESS = 0xeA6930f85b5F52507AbE7B2c5aF1153391BEb2b8;
+    address internal constant MSIG_ADDRESS = 0xE2658E63c85D8a469324afA377Bf5694cd55bD7B;
 
     /// @notice The maximum value that can be represented in a UD60x18.
     uint256 internal constant uMAX_UD60x18 = LIB_uMAX_UD60x18;
@@ -60,7 +63,7 @@ abstract contract ProtocolConfiguration is
     uint256 internal constant MAX_MARGIN_REQUIREMENTS = 1e18;
     uint256 internal constant MOCK_DATA_STREAMS_EXPIRATION_DELAY = 5 seconds;
     uint128 internal constant INITIAL_VAULT_ID = 1;
-    uint128 internal constant FINAL_VAULT_ID = 15;
+    uint128 internal constant FINAL_VAULT_ID = 17;
     uint128 internal constant INVALID_VAULT_ID = 0;
     uint128 internal constant INITIAL_PERP_MARKET_CREDIT_CONFIG_ID = 1;
     uint128 internal constant FINAL_PERP_MARKET_CREDIT_CONFIG_ID = 10;
@@ -71,4 +74,9 @@ abstract contract ProtocolConfiguration is
     /// @notice Dex adapter related constants
     uint256 internal constant SLIPPAGE_TOLERANCE_BPS = 100;
     uint24 internal constant UNI_V3_FEE = 3000;
+
+    /// @notice General market making engine system configuration parameters.
+    uint256 internal constant MSIG_SHARES_FEE_RECIPIENT = 0.3e18;
+    uint256 internal constant INITIAL_MARKET_MAKING_ENGINE_COLLATERAL_ID = 1;
+    uint256 internal constant FINAL_MARKET_MAKING_ENGINE_COLLATERAL_ID = 4;
 }

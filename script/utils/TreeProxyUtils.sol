@@ -108,7 +108,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     lookupBranchSelectors[2] = LookupBranch.branchAddresses.selector;
     lookupBranchSelectors[3] = LookupBranch.branchAddress.selector;
 
-    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](16);
+    bytes4[] memory perpsEngineConfigurationBranchSelectors = new bytes4[](17);
 
     perpsEngineConfigurationBranchSelectors[0] =
         PerpsEngineConfigurationBranch.getAccountsWithActivePositions.selector;
@@ -132,6 +132,8 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
         PerpsEngineConfigurationBranch.getCustomReferralCodeReferrer.selector;
     perpsEngineConfigurationBranchSelectors[14] = PerpsEngineConfigurationBranch.createCustomReferralCode.selector;
     perpsEngineConfigurationBranchSelectors[15] = PerpsEngineConfigurationBranch.configureReferralModule.selector;
+    perpsEngineConfigurationBranchSelectors[16] =
+        PerpsEngineConfigurationBranch.setMarketMakingEngineAllowance.selector;
 
     bytes4[] memory liquidationBranchSelectors = new bytes4[](2);
 
@@ -148,7 +150,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     orderBranchSelectors[5] = OrderBranch.cancelAllOffchainOrders.selector;
     orderBranchSelectors[6] = OrderBranch.cancelMarketOrder.selector;
 
-    bytes4[] memory perpMarketBranchSelectors = new bytes4[](11);
+    bytes4[] memory perpMarketBranchSelectors = new bytes4[](12);
 
     perpMarketBranchSelectors[0] = PerpMarketBranch.getName.selector;
     perpMarketBranchSelectors[1] = PerpMarketBranch.getSymbol.selector;
@@ -161,6 +163,7 @@ function getPerpsEngineBranchesSelectors(bool isTestnet) pure returns (bytes4[][
     perpMarketBranchSelectors[8] = PerpMarketBranch.getFundingRate.selector;
     perpMarketBranchSelectors[9] = PerpMarketBranch.getFundingVelocity.selector;
     perpMarketBranchSelectors[10] = PerpMarketBranch.getPerpMarketConfiguration.selector;
+    perpMarketBranchSelectors[11] = PerpMarketBranch.getUnrealizedDebt.selector;
 
     bytes4[] memory tradingAccountBranchSelectors = new bytes4[](isTestnet ? 15 : 13);
 
@@ -644,7 +647,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     distributionHarnessSelectors[2] = DistributionHarness.exposed_accumulateActor.selector;
     distributionHarnessSelectors[3] = DistributionHarness.exposed_getActorValueChange.selector;
 
-    bytes4[] memory marketHarnessSelectors = new bytes4[](18);
+    bytes4[] memory marketHarnessSelectors = new bytes4[](19);
     marketHarnessSelectors[0] = MarketHarness.workaround_getMarketId.selector;
     marketHarnessSelectors[1] = MarketHarness.workaround_setMarketId.selector;
     marketHarnessSelectors[2] = MarketHarness.workaround_getReceivedMarketFees.selector;
@@ -663,6 +666,7 @@ function getMarketMakingHarnessSelectors() pure returns (bytes4[][] memory) {
     marketHarnessSelectors[15] = MarketHarness.workaround_setMarketUsdTokenIssuance.selector;
     marketHarnessSelectors[16] = MarketHarness.workaround_getAutoDeleverageFactor.selector;
     marketHarnessSelectors[17] = MarketHarness.workaround_getCreditDepositsValueUsd.selector;
+    marketHarnessSelectors[18] = MarketHarness.workaround_getRealizedDebtUsd.selector;
 
     bytes4[] memory marketMakingEngineConfigurationSelectors = new bytes4[](7);
     marketMakingEngineConfigurationSelectors[0] =

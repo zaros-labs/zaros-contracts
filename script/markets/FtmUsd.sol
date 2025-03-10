@@ -23,16 +23,16 @@ abstract contract FtmUsd {
     OrderFees.Data internal ftmUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
 
     /// @notice Test only mocks
-    string internal constant MOCK_FTM_USD_STREAM_ID = "MOCK_FTM_USD_STREAM_ID";
+    string internal constant MOCK_FTM_USD_ARB_SEPOLIA_STREAM_ID = "MOCK_FTM_USD_ARB_SEPOLIA_STREAM_ID";
     uint256 internal constant MOCK_FTM_USD_PRICE = 0.8e18;
 
-    // TODO: Update address value
-    address internal constant FTM_USD_PRICE_FEED = address(0x8A592fCc0cA4cdA594919af08daD910013b361B8);
-    uint32 internal constant FTM_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    // Arbitrum Sepolia
+    address internal constant FTM_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED =
+        address(0x8A592fCc0cA4cdA594919af08daD910013b361B8);
+    uint32 internal constant FTM_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
     bool internal constant FTM_USD_USE_CUSTOM_PRICE_ADAPTER = false;
-
-    // TODO: Update stream id value
-    bytes32 internal constant FTM_USD_STREAM_ID = 0x0003c0cb688504dc63298cc1c61e5bdaa3542f8bf98c996f370c30f820e04a9f;
-    string internal constant STRING_FTM_USD_STREAM_ID =
+    bytes32 internal constant FTM_USD_ARB_SEPOLIA_STREAM_ID =
+        0x0003c0cb688504dc63298cc1c61e5bdaa3542f8bf98c996f370c30f820e04a9f;
+    string internal constant STRING_FTM_USD_ARB_SEPOLIA_STREAM_ID =
         "0x0003c0cb688504dc63298cc1c61e5bdaa3542f8bf98c996f370c30f820e04a9f";
 }

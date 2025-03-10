@@ -23,16 +23,22 @@ abstract contract SolUsd {
     OrderFees.Data internal solUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
 
     /// @notice Test only mocks
-    string internal constant MOCK_SOL_USD_STREAM_ID = "MOCK_SOL_USD_STREAM_ID";
+    string internal constant MOCK_SOL_USD_ARB_SEPOLIA_STREAM_ID = "MOCK_SOL_USD_ARB_SEPOLIA_STREAM_ID";
     uint256 internal constant MOCK_SOL_USD_PRICE = 167.72e18;
 
-    // TODO: Update address value
-    address internal constant SOL_USD_PRICE_FEED = address(0x32377717BC9F9bA8Db45A244bCE77e7c0Cc5A775);
-    uint32 internal constant SOL_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    // Arbitrum Sepolia
+    address internal constant SOL_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED =
+        address(0x32377717BC9F9bA8Db45A244bCE77e7c0Cc5A775);
+    uint32 internal constant SOL_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
     bool internal constant SOL_USD_USE_CUSTOM_PRICE_ADAPTER = false;
-
-    // TODO: Update stream id value
-    bytes32 internal constant SOL_USD_STREAM_ID = 0x0003d338ea2ac3be9e026033b1aa601673c37bab5e13851c59966f9f820754d6;
-    string internal constant STRING_SOL_USD_STREAM_ID =
+    bytes32 internal constant SOL_USD_ARB_SEPOLIA_STREAM_ID =
+        0x0003d338ea2ac3be9e026033b1aa601673c37bab5e13851c59966f9f820754d6;
+    string internal constant STRING_SOL_USD_ARB_SEPOLIA_STREAM_ID =
         "0x0003d338ea2ac3be9e026033b1aa601673c37bab5e13851c59966f9f820754d6";
+
+    // Monad Testnet
+    address internal constant SOL_USD_MONAD_TESTNET_PYTH_PRICE_FEED =
+        address(0x2880aB155794e7179c9eE2e38200202908C17B43);
+    bytes32 internal constant SOL_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID =
+        0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d;
 }

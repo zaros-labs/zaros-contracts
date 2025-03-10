@@ -9,6 +9,8 @@ import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 import { IAggregatorV3 } from "@zaros/external/chainlink/interfaces/IAggregatorV3.sol";
 import { ChainlinkUtil } from "@zaros/external/chainlink/ChainlinkUtil.sol";
 import { IPriceAdapter } from "@zaros/utils/interfaces/IPriceAdapter.sol";
+import { PythUtil } from "@zaros/external/pyth/PythUtil.sol";
+import { IPyth } from "@zaros/external/pyth/interfaces/IPyth.sol";
 
 // Open Zeppelin dependencies
 import { OwnableUpgradeable } from "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -18,6 +20,9 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /*//////////////////////////////////////////////////////////////////////////
                                      VARIABLES
     //////////////////////////////////////////////////////////////////////////*/
+
+    /// @notice The Price Feed Id.
+    bytes32 public priceFeedId;
 
     /// @notice The name of the Price Adapter.
     string public name;
@@ -48,6 +53,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice The initialization parameters.
+    /// @param priceFeedId The price feed id.
     /// @param name The name of the Price Adapter.
     /// @param symbol The symbol of the Price Adapter.
     /// @param owner The owner of the contract.
@@ -58,6 +64,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /// @param ethUsdPriceFeedHeartbeatSeconds The number of seconds between ETH/USD price feed updates.
     /// @param useEthPriceFeed A flag indicating if the price adapter is to use the custom version.
     struct InitializeParams {
+        bytes32 priceFeedId;
         string name;
         string symbol;
         address owner;
@@ -81,6 +88,7 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     function initialize(InitializeParams calldata params) external initializer {
         __Ownable_init(params.owner);
 
+        priceFeedId = params.priceFeedId;
         name = params.name;
         symbol = params.symbol;
         priceFeed = params.priceFeed;
@@ -98,34 +106,39 @@ contract PriceAdapter is IPriceAdapter, OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Returns the USD price of the configured asset.
     /// @return priceUsdX18 The USD quote of the token in zaros internal precision
     function getPrice() external view returns (UD60x18 priceUsdX18) {
-        if (useEthPriceFeed) {
-            address sequencerUptimeFeedCache = sequencerUptimeFeed;
+        if (priceFeedId == bytes32("")) {
+            if (useEthPriceFeed) {
+                address sequencerUptimeFeedCache = sequencerUptimeFeed;
 
-            UD60x18 quantityTokenInEth = ChainlinkUtil.getPrice(
-                ChainlinkUtil.GetPriceParams({
-                    priceFeed: IAggregatorV3(priceFeed),
-                    priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
-                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeedCache)
-                })
-            );
+                UD60x18 quantityTokenInEth = ChainlinkUtil.getPrice(
+                    ChainlinkUtil.GetPriceParams({
+                        priceFeed: IAggregatorV3(priceFeed),
+                        priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
+                        sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeedCache)
+                    })
+                );
 
-            UD60x18 ethUsdPrice = ChainlinkUtil.getPrice(
-                ChainlinkUtil.GetPriceParams({
-                    priceFeed: IAggregatorV3(ethUsdPriceFeed),
-                    priceFeedHeartbeatSeconds: ethUsdPriceFeedHeartbeatSeconds,
-                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeedCache)
-                })
-            );
+                UD60x18 ethUsdPrice = ChainlinkUtil.getPrice(
+                    ChainlinkUtil.GetPriceParams({
+                        priceFeed: IAggregatorV3(ethUsdPriceFeed),
+                        priceFeedHeartbeatSeconds: ethUsdPriceFeedHeartbeatSeconds,
+                        sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeedCache)
+                    })
+                );
 
-            priceUsdX18 = quantityTokenInEth.mul(ethUsdPrice);
+                priceUsdX18 = quantityTokenInEth.mul(ethUsdPrice);
+            } else {
+                priceUsdX18 = ChainlinkUtil.getPrice(
+                    ChainlinkUtil.GetPriceParams({
+                        priceFeed: IAggregatorV3(priceFeed),
+                        priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
+                        sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
+                    })
+                );
+            }
         } else {
-            priceUsdX18 = ChainlinkUtil.getPrice(
-                ChainlinkUtil.GetPriceParams({
-                    priceFeed: IAggregatorV3(priceFeed),
-                    priceFeedHeartbeatSeconds: priceFeedHeartbeatSeconds,
-                    sequencerUptimeFeed: IAggregatorV3(sequencerUptimeFeed)
-                })
-            );
+            priceUsdX18 =
+                PythUtil.getPrice(PythUtil.GetPriceParams({ pyth: IPyth(priceFeed), priceFeedId: priceFeedId }));
         }
     }
 

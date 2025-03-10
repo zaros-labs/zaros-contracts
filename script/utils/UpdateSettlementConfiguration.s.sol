@@ -27,7 +27,7 @@ contract UpdateSettlementConfiguration is BaseScript, ProtocolConfiguration {
         perpsEngine = IPerpsEngine(vm.envAddress("PERPS_ENGINE"));
 
         // get the matic usd stream id
-        maticUsdStreamId = MATIC_USD_STREAM_ID;
+        maticUsdStreamId = MATIC_USD_ARB_SEPOLIA_STREAM_ID;
 
         // get the chainlink verifier
         chainlinkVerifier = IVerifierProxy(vm.envAddress("CHAINLINK_VERIFIER"));

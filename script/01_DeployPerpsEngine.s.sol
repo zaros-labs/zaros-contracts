@@ -36,6 +36,17 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
     IPerpsEngine internal perpsEngine;
 
     function run() public broadcaster {
+        isTestnet = vm.envBool("IS_TESTNET");
+
+        console.log("**************************");
+        console.log("Environment variables:");
+        console.log("isTestnet: ", isTestnet);
+        console.log("**************************");
+
+        console.log("**************************");
+        console.log("Deploying Trading Account Token...");
+        console.log("**************************");
+
         address tradingAccountTokenImplementation = address(new TradingAccountNFT());
         bytes memory tradingAccountTokenInitializeData = abi.encodeWithSelector(
             TradingAccountNFT.initialize.selector, deployer, "Zaros Trading Accounts", "ZRS-TRADE-ACC"
@@ -47,7 +58,8 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
         console.log("Trading Account NFT Implementation: ", tradingAccountTokenImplementation);
         console.log("Trading Account NFT Proxy: ", address(tradingAccountToken));
 
-        isTestnet = vm.envBool("IS_TESTNET");
+        console.log("Success! Deployed Trading Account Token.");
+        console.log("\n");
 
         address[] memory branches = deployPerpsEngineBranches(isTestnet);
         bytes4[][] memory branchesSelectors = getPerpsEngineBranchesSelectors(isTestnet);
@@ -63,7 +75,14 @@ contract DeployPerpsEngine is BaseScript, ProtocolConfiguration {
             initializePayloads: initializePayloads
         });
 
+        console.log("**************************");
+        console.log("Deploying Perps Engine...");
+        console.log("**************************");
+
         perpsEngine = IPerpsEngine(address(new PerpsEngine(initParams)));
         console.log("Perps Engine: ", address(perpsEngine));
+
+        console.log("Success! Deployed Perps Engine.");
+        console.log("\n");
     }
 }

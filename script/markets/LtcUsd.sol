@@ -23,16 +23,22 @@ abstract contract LtcUsd {
     OrderFees.Data internal ltcUsdOrderFees = OrderFees.Data({ makerFee: 0.0005e18, takerFee: 0.001e18 });
 
     /// @notice Test only mocks
-    string internal constant MOCK_LTC_USD_STREAM_ID = "MOCK_LTC_USD_STREAM_ID";
+    string internal constant MOCK_LTC_USD_ARB_SEPOLIA_STREAM_ID = "MOCK_LTC_USD_ARB_SEPOLIA_STREAM_ID";
     uint256 internal constant MOCK_LTC_USD_PRICE = 85e18;
 
-    // TODO: Update address value
-    address internal constant LTC_USD_PRICE_FEED = address(0x474c723Cd790F02BaAffA10A50fb506F8B29856b);
-    uint32 internal constant LTC_USD_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
+    // Arbitrum Sepolia
+    address internal constant LTC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED =
+        address(0x474c723Cd790F02BaAffA10A50fb506F8B29856b);
+    uint32 internal constant LTC_USD_ARB_SEPOLIA_CHAINLINK_PRICE_FEED_HEARTBEATS_SECONDS = 86_400;
     bool internal constant LTC_USD_USE_CUSTOM_PRICE_ADAPTER = false;
-
-    // TODO: Update stream id value
-    bytes32 internal constant LTC_USD_STREAM_ID = 0x0003c915006ba88731510bb995c190e80b5c9cfe8cd8a19aaf00e0ed61d0b3bc;
-    string internal constant STRING_LTC_USD_STREAM_ID =
+    bytes32 internal constant LTC_USD_ARB_SEPOLIA_STREAM_ID =
+        0x0003c915006ba88731510bb995c190e80b5c9cfe8cd8a19aaf00e0ed61d0b3bc;
+    string internal constant STRING_LTC_USD_ARB_SEPOLIA_STREAM_ID =
         "0x0003c915006ba88731510bb995c190e80b5c9cfe8cd8a19aaf00e0ed61d0b3bc";
+
+    // Monad Testnet
+    address internal constant LTC_USD_MONAD_TESTNET_PYTH_PRICE_FEED =
+        address(0x2880aB155794e7179c9eE2e38200202908C17B43);
+    bytes32 internal constant LTC_USD_MONAD_TESTNET_PYTH_PRICE_FEED_ID =
+        0x6e3f3fa8253588df9326580180233eb791e03b443a3ba7a1d892e73874e19a54;
 }

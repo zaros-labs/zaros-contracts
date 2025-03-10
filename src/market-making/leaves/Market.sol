@@ -243,9 +243,9 @@ library Market {
             creditDepositsValueUsdX18 = getCreditDepositsValueUsd(self);
         }
 
-        // finally after determining the market's latest credit deposits usd value, sum it with the stored net usd
+        // finally after determining the market's latest credit deposits usd value, sub it from the stored net usd
         // token issuance to return the net realized debt usd value
-        realizedDebtUsdX18 = creditDepositsValueUsdX18.intoSD59x18().add(sd59x18(self.netUsdTokenIssuance));
+        realizedDebtUsdX18 = sd59x18(self.netUsdTokenIssuance).sub(creditDepositsValueUsdX18.intoSD59x18());
     }
 
     /// @notice Returns the market's total unrealized debt in USD.
@@ -336,7 +336,10 @@ library Market {
         returns (bool triggered)
     {
         SD59x18 sdDelegatedCreditUsdX18 = delegatedCreditUsdX18.intoSD59x18();
-        if (sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()) {
+        if (
+            sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()
+                || (totalDebtUsdX18.lt(SD59x18_ZERO) && sdDelegatedCreditUsdX18.gt(SD59x18_ZERO))
+        ) {
             return false;
         }
 

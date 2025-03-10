@@ -21,7 +21,7 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     //////////////////////////////////////////////////////////////////////////*/
 
     /// @notice Address of the Perpetuals Engine contract.
-    address public constant PERPS_ENGINE = 0x6f7b7e54a643E1285004AaCA95f3B2e6F5bcC1f3;
+    address public constant PERPS_ENGINE = 0x6D90B34da7e2AdCB07FDf096242875ff7941eC74;
 
     /// @notice Amount of tokens minted per address.
     uint256 public constant AMOUNT_TO_MINT_USDC = 100_000 * 10 ** 18;
@@ -77,17 +77,17 @@ contract LimitedMintingERC20 is UUPSUpgradeable, ERC20PermitUpgradeable, Ownable
     //////////////////////////////////////////////////////////////////////////*/
 
     function transfer(address to, uint256 value) public virtual override returns (bool) {
-        if (msg.sender != PERPS_ENGINE) {
-            revert LimitedMintingERC20_UserIsNotPermitted(msg.sender);
-        }
+        // if (msg.sender != PERPS_ENGINE) {
+        //     revert LimitedMintingERC20_UserIsNotPermitted(msg.sender);
+        // }
 
         return super.transfer(to, value);
     }
 
     function transferFrom(address from, address to, uint256 value) public virtual override returns (bool) {
-        if (msg.sender != PERPS_ENGINE) {
-            revert LimitedMintingERC20_UserIsNotPermitted(msg.sender);
-        }
+        // if (msg.sender != PERPS_ENGINE) {
+        //     revert LimitedMintingERC20_UserIsNotPermitted(msg.sender);
+        // }
 
         return super.transferFrom(from, to, value);
     }

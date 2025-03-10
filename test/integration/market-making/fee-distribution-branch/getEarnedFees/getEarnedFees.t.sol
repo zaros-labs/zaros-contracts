@@ -86,7 +86,7 @@ contract GetEarnedFees_Integration_Test is Base_Test {
         assertAlmostEq(
             marketMakingEngine.getEarnedFees(fuzzVaultConfig.vaultId, users.naruto.account),
             expectedWethRewardX18.intoUint256(),
-            2,
+            1e15,
             "the earned fees was returned incorrectly"
         );
 

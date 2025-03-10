@@ -6,7 +6,6 @@ pragma solidity 0.8.25;
 import { TradingAccountNFT } from "@zaros/trading-account-nft/TradingAccountNFT.sol";
 import { IPerpsEngine } from "@zaros/perpetuals/PerpsEngine.sol";
 import { IMarketMakingEngine } from "@zaros/market-making/MarketMakingEngine.sol";
-import { LimitedMintingERC20 } from "testnet/LimitedMintingERC20.sol";
 import { BaseScript } from "./Base.s.sol";
 import { ProtocolConfiguration } from "./utils/ProtocolConfiguration.sol";
 import { IReferral } from "@zaros/referral/interfaces/IReferral.sol";
@@ -37,14 +36,20 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         liquidationKeeper = vm.envAddress("LIQUIDATION_KEEPER");
         referralModule = IReferral(vm.envAddress("REFERRAL_MODULE"));
 
+        console.log("**************************");
+        console.log("Environment variables:");
+        console.log("Trading Account Token: ", address(tradingAccountToken));
+        console.log("Perps Engine: ", address(perpsEngine));
+        console.log("Market Making Engine: ", address(marketMakingEngine));
+        console.log("Usd Token: ", usdToken);
+        console.log("Liquidation Keeper: ", liquidationKeeper);
+        console.log("Referral Module: ", address(referralModule));
+        console.log("**************************");
+
         configureContracts(initialMarginCollateralId, finalMarginCollateralId);
     }
 
     function configureContracts(uint256 initialMarginCollateralId, uint256 finalMarginCollateralId) internal {
-        tradingAccountToken.transferOwnership(address(perpsEngine));
-
-        perpsEngine.setTradingAccountToken(address(tradingAccountToken));
-
         perpsEngine.configureSystemParameters({
             maxPositionsPerAccount: MAX_POSITIONS_PER_ACCOUNT,
             marketOrderMinLifetime: MARKET_ORDER_MIN_LIFETIME,
@@ -79,7 +84,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.configureLiquidators(liquidators, liquidatorStatus);
 
         console.log("Success! Liquidator address:");
-        console.log("\n");
         console.log(liquidators[0]);
 
         console.log("**************************");
@@ -89,7 +93,6 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.setUsdToken(usdToken);
 
         console.log("Success! USD Token token address:");
-        console.log("\n");
         console.log(usdToken);
 
         console.log("**************************");
@@ -99,16 +102,14 @@ contract ConfigurePerpsEngine is BaseScript, ProtocolConfiguration {
         perpsEngine.setTradingAccountToken(address(tradingAccountToken));
 
         console.log("Success! Trading account token address:");
-        console.log("\n");
         console.log(address(tradingAccountToken));
 
         console.log("**************************");
-        console.log("Transferring USD Token ownership to the market making engine...");
+        console.log("Transferring Trading Account Token ownership to the perps engine...");
         console.log("**************************");
 
-        // NOTE: Once the MM engine v1 is deployed, USD Token ownership must be transferred to the MM engine.
-        LimitedMintingERC20(USD_TOKEN_ADDRESS).transferOwnership(address(perpsEngine));
+        tradingAccountToken.transferOwnership(address(perpsEngine));
 
-        console.log("Success! USD Token token ownership transferred to the market making engine.");
+        console.log("Success! Trading Account Token token ownership transferred to the perps engine.");
     }
 }
