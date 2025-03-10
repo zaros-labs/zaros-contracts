@@ -336,7 +336,10 @@ library Market {
         returns (bool triggered)
     {
         SD59x18 sdDelegatedCreditUsdX18 = delegatedCreditUsdX18.intoSD59x18();
-        if (sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()) {
+        if (
+            sdDelegatedCreditUsdX18.lte(totalDebtUsdX18) || sdDelegatedCreditUsdX18.isZero()
+                || (totalDebtUsdX18.lt(SD59x18_ZERO) && sdDelegatedCreditUsdX18.gt(SD59x18_ZERO))
+        ) {
             return false;
         }
 
