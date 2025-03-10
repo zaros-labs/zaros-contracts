@@ -1,5 +1,7 @@
 # Zaros
 
+<img src="./assets/zaros-logo.png" width="250" height="250" />
+
 - [About](#about)
 - [Tree Proxy Pattern](#tree-proxy-pattern)
 - [Getting Started](#getting-started)
