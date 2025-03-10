@@ -11,6 +11,7 @@
 - [Audit Scope Details](#audit-scope-details)
   - [Roles](#roles)
   - [Known Issues](#known-issues)
+- [Testnet Branches](#testnet-branches)
 
 ## About
 
@@ -139,3 +140,8 @@ make scope
   accounts could temporarily turn unprofitable for keepers. This may be mitigated by emergency pausing the markets if happens
   for a prolonged period, or through additional financing from the DAO.
 - Function selectors of all branches must be explicitly set in order to be callable at the `RootProxy`.
+
+# Testnet Branches
+
+- Arbitrum Sepolia: main-testnet
+- Monad testnet: monad-testnet-v1
