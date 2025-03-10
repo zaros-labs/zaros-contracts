@@ -1,6 +1,6 @@
-# Zaros
+<p align="center"><img src="./zaros-logo.png" width="250" height="250" /></p>
 
-<img src="./zaros-logo.png" width="250" height="250" />
+# Zaros
 
 - [About](#about)
 - [Tree Proxy Pattern](#tree-proxy-pattern)
