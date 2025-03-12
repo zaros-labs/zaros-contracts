@@ -9,6 +9,9 @@ import { Errors } from "@zaros/utils/Errors.sol";
 import { SD59x18 } from "@prb-math/SD59x18.sol";
 import { UD60x18, ud60x18 } from "@prb-math/UD60x18.sol";
 
+// Open Zeppelin dependencies
+import { IERC20 } from "@openzeppelin/token/ERC20/ERC20.sol";
+
 contract CreditDelegationBranch_GetAdjustedProfitForMarketId_Integration_Test is Base_Test {
     function setUp() public virtual override {
         Base_Test.setUp();
@@ -99,5 +102,41 @@ contract CreditDelegationBranch_GetAdjustedProfitForMarketId_Integration_Test is
 
         // it should return the adjusted profit
         assertEq(ud60x18(profitUsd).mul(autoDeleverageFactorX18).intoUint256(), adjustedProfitUsdX18.intoUint256());
+    }
+
+    function test_WhenTheAutoDeleverageFactorIsTriggeredOnce(uint256 marketId)
+        external
+        whenTheMarketIsLive
+        whenTheCreditCapacityIsGreaterThanZero
+    {
+        uint256 profitUsd = 10e18;
+
+        PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
+
+        marketMakingEngine.workaround_setMarketUsdTokenIssuance(fuzzMarketConfig.marketId, 5e9 + 10);
+
+        UD60x18 delegatedCreditUsdX18 =
+            marketMakingEngine.workaround_getTotalDelegatedCreditUsd(fuzzMarketConfig.marketId);
+        SD59x18 totalDebtUsdX18 = marketMakingEngine.workaround_getTotalMarketDebt(fuzzMarketConfig.marketId);
+
+        UD60x18 autoDeleverageFactorX18 = marketMakingEngine.workaround_getAutoDeleverageFactor(
+            fuzzMarketConfig.marketId, delegatedCreditUsdX18, totalDebtUsdX18
+        );
+
+        UD60x18 adjustedProfitUsdX18 =
+            marketMakingEngine.getAdjustedProfitForMarketId(fuzzMarketConfig.marketId, profitUsd);
+
+        uint256 balBefore = IERC20(usdToken).balanceOf(address(perpsEngine));
+        // it should return the adjusted profit
+        // applying the Deleveraging factor we exepect to mint this much adjustedProfitUsdX18 to market
+        assertEq(ud60x18(profitUsd).mul(autoDeleverageFactorX18).intoUint256(), adjustedProfitUsdX18.intoUint256());
+        changePrank({ msgSender: address(perpsEngine) });
+        marketMakingEngine.withdrawUsdTokenFromMarket(fuzzMarketConfig.marketId, adjustedProfitUsdX18.intoUint256());
+        uint256 balAfter = IERC20(usdToken).balanceOf(address(perpsEngine));
+
+        assertEq(adjustedProfitUsdX18.intoUint256(), balAfter - balBefore);
+        // but the code apply deleverage twice
+        adjustedProfitUsdX18 = adjustedProfitUsdX18.mul(autoDeleverageFactorX18);
+        assertNotEq(adjustedProfitUsdX18.intoUint256(), balAfter - balBefore);
     }
 }
