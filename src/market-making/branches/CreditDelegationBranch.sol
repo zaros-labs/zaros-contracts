@@ -281,19 +281,7 @@ contract CreditDelegationBranch is EngineAccessControl {
         uint256 amountToMint = amount;
 
         // now we realize the added usd debt of the market
-        // note: USD Token is assumed to be 1:1 with the system's usd accounting
-        if (market.isAutoDeleverageTriggered(delegatedCreditUsdX18, marketTotalDebtUsdX18)) {
-            // if the market is in the ADL state, it reduces the requested USD
-            // Token amount by multiplying it by the ADL factor, which must be < 1
-            UD60x18 adjustedUsdTokenToMintX18 =
-                market.getAutoDeleverageFactor(delegatedCreditUsdX18, marketTotalDebtUsdX18).mul(amountX18);
-
-            amountToMint = adjustedUsdTokenToMintX18.intoUint256();
-            market.updateNetUsdTokenIssuance(adjustedUsdTokenToMintX18.intoSD59x18());
-        } else {
-            // if the market is not in the ADL state, it realizes the full requested USD Token amount
-            market.updateNetUsdTokenIssuance(amountX18.intoSD59x18());
-        }
+        market.updateNetUsdTokenIssuance(amountX18.intoSD59x18());
 
         // loads the market making engine configuration storage pointer
         MarketMakingEngineConfiguration.Data storage marketMakingEngineConfiguration =
