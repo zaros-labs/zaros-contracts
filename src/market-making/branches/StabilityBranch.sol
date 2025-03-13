@@ -108,7 +108,8 @@ contract StabilityBranch is EngineAccessControl {
 
         // fetch the vault's total assets in USD; if the vault is empty
         // revert here to prevent panic from subsequent divide by zero
-        UD60x18 vaultAssetsUsdX18 = ud60x18(IERC4626(vault.indexToken).totalAssets()).mul(indexPriceX18);
+        UD60x18 vaultAssetsUsdX18 =
+            vault.collateral.convertTokenAmountToUd60x18(IERC4626(vault.indexToken).totalAssets()).mul(indexPriceX18);
         if (vaultAssetsUsdX18.isZero()) revert Errors.InsufficientVaultBalance(vaultId, 0, 0);
 
         // we use the vault's net sum of all debt types coming from its connected markets to determine the swap rate
@@ -233,7 +234,7 @@ contract StabilityBranch is EngineAccessControl {
         ctx.collateralPriceX18 = currentVault.collateral.getPrice();
         ctx.maxExecTime = uint120(tokenSwapData.maxExecutionTime);
         // ctx.vaultAssetBalance in native precision of ctx.initialVaultCollateralAsset
-        ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(ctx.initialVaultIndexToken);
+        ctx.vaultAssetBalance = IERC20(ctx.initialVaultCollateralAsset).balanceOf(ctx.initialVaultIndexToken); // native dec
 
         for (uint256 i; i < amountsIn.length; i++) {
             // for all but first iteration, refresh the vault and enforce same collateral asset
@@ -261,7 +262,7 @@ contract StabilityBranch is EngineAccessControl {
             }
 
             // if there aren't enough assets in the vault to fulfill the swap request, we must revert
-            if (ctx.vaultAssetBalance < ctx.expectedAssetOut) {
+            if (currentVault.collateral.convertTokenAmountToUd60x18(ctx.vaultAssetBalance) < ctx.expectedAssetOut) {
                 revert Errors.InsufficientVaultBalance(vaultIds[i], ctx.vaultAssetBalance, ctx.expectedAssetOut);
             }
 
