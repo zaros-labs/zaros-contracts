@@ -555,8 +555,8 @@ contract VaultRouterBranch {
 
         // if the credit capacity delta is greater than the locked credit capacity before the state transition, revert
         if (
-            ctx.creditCapacityBeforeRedeemUsdX18.sub(vault.getTotalCreditCapacityUsd()).lte(
-                ctx.lockedCreditCapacityBeforeRedeemUsdX18.intoSD59x18()
+            ctx.creditCapacityBeforeRedeemUsdX18.sub(vault.getTotalCreditCapacityUsd()).gt(
+               ctx.creditCapacityBeforeRedeemUsdX18.sub(ctx.lockedCreditCapacityBeforeRedeemUsdX18.intoSD59x18())
             )
         ) {
             revert Errors.NotEnoughUnlockedCreditCapacity();

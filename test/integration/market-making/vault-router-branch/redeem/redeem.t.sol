@@ -413,4 +413,53 @@ contract Redeem_Integration_Test is Base_Test {
 
         // attacker generated a loss
     }
+
+    function test_IncorrectCreditCapacityValidationInRedeem() public {
+        uint128 vaultId = 1;
+        address user = users.naruto.account;
+
+        // Set up vault with 30% credit locking
+        Vault.UpdateParams memory params = Vault.UpdateParams({
+            vaultId: vaultId,
+            depositCap: 1000e18,
+            withdrawalDelay: 1 days,
+            isLive: true,
+            lockedCreditRatio: 0.3e18 // 30% locked
+        });
+
+        changePrank(users.owner.account);
+        marketMakingEngine.updateVaultConfiguration(params);
+
+        // Deposit 100 assets
+        fundUserAndDepositInVault(user, vaultId, 100e18);
+
+        // Verify the total credit capacity and unlocked amount before withdrawal
+        uint256 totalCreditCapacityBeforeRedeem = marketMakingEngine.getVaultCreditCapacity(vaultId);
+        uint256 unlockedCreditCapacityBeforeRedeem = totalCreditCapacityBeforeRedeem * (1e18 - params.lockedCreditRatio) / 1e18;
+
+        // Initiate withdrawal of all account share balance
+        ( , , , , address indexToken, ) = marketMakingEngine.getVaultData(vaultId);
+        uint256 accountSharesBeforeRedeem = IERC20(indexToken).balanceOf(user);
+
+        // Verify that the withdrawal is above the unlocked ratio
+        uint128 sharesToWithdraw = uint128(accountSharesBeforeRedeem);
+        uint256 assetsToWithdraw = marketMakingEngine.getIndexTokenSwapRate(vaultId, uint256(sharesToWithdraw), false).intoUint256();
+        assertFalse(assetsToWithdraw <= unlockedCreditCapacityBeforeRedeem, "Withdrawal is below the unlocked amount");
+
+        vm.startPrank(user);
+        marketMakingEngine.initiateWithdrawal(vaultId, sharesToWithdraw);
+        skip(1 days + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NotEnoughUnlockedCreditCapacity.selector));
+        // Should revert but succeed due to vulnerability
+        marketMakingEngine.redeem(vaultId, WITHDRAW_REQUEST_ID, 0);
+
+        // Verify the user account shares are zero after redeem
+        uint256 accountSharesAfterRedeem = IERC20(indexToken).balanceOf(user);
+
+        // Verify the total credit capacity after redeem
+        uint256 totalCreditCapacityAfterRedeem = marketMakingEngine.getVaultCreditCapacity(vaultId);
+        uint256 totalCreditCapacityChange = totalCreditCapacityBeforeRedeem - totalCreditCapacityAfterRedeem;
+        assertTrue(totalCreditCapacityChange <= unlockedCreditCapacityBeforeRedeem, "Total credit capacity change is below the unlocked amount");
+    }
 }
