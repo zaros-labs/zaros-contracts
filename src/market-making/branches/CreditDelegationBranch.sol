@@ -433,7 +433,7 @@ contract CreditDelegationBranch is EngineAccessControl {
                 DexSwapStrategy.loadExisting(vault.swapStrategy.assetDexSwapStrategyId);
 
             // if the vault is in debt, swap its assets to USDC
-            if (ctx.vaultUnsettledRealizedDebtUsdX18.lt(SD59x18_ZERO)) {
+            if (ctx.vaultUnsettledRealizedDebtUsdX18.gt(SD59x18_ZERO)) {
                 // get swap amount; both input and output in native precision
                 ctx.swapAmount = calculateSwapAmount(
                     dexSwapStrategy.dexAdapter,

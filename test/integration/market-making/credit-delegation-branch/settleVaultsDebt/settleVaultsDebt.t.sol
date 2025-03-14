@@ -68,7 +68,7 @@ contract CreditDelegationBranch_SettleVaultsDebt_Integration_Test is Base_Test {
         whenVaultIdIsValid
     {
         // vm.assume(debtAmount < -1e13); // reasonable debt amount needed or reverts with ZeroOutputTokens
-        debtAmount = -1e30;
+        debtAmount = 1e30;
 
         VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
         PerpMarketCreditConfig memory fuzzMarketConfig = getFuzzPerpMarketCreditConfig(marketId);
@@ -115,13 +115,13 @@ contract CreditDelegationBranch_SettleVaultsDebt_Integration_Test is Base_Test {
     function testFuzz_WhenTheVaultUnsettledRealizedDebtIsGreaterThanZero(
         uint256 vaultId,
         uint256 marketId,
-        uint128 debtAmount,
+        int128 debtAmount,
         uint128 adapterIndex
     )
         external
         whenVaultIdIsValid
     {
-        debtAmount = 1e30;
+        debtAmount = -1e30;
 
         uint128 depositedUsdc = 0.5e30;
 
