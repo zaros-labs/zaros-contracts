@@ -285,11 +285,11 @@ contract Unstake_Integration_Test is Base_Test {
 
         // verify user has pending rewards and no asset tokens once again
         assertEq(
-            marketMakingEngine.getEarnedFees(vaultId, user), 899_999_999_999_999_999, "Staker has pending rewards"
+            marketMakingEngine.getEarnedFees(vaultId, user), 17_647_404_844_154_961, "Staker has pending rewards"
         );
         assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(user), 0, "Staker has no asset tokens prior to unstake");
 
         marketMakingEngine.claimFees(vaultId);
-        assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(user), 899_999_999_999_999_999, "Staker claimed fees");
+        assertEq(IERC20(fuzzVaultConfig.asset).balanceOf(user), 17_647_404_844_154_961, "Staker claimed fees");
     }
 }
