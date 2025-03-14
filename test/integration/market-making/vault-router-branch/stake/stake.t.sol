@@ -120,4 +120,38 @@ contract Stake_Integration_Test is Base_Test {
         assertEq(post.stakerShares, pre.stakerVaultBal, "Staker shares == staked vault balance");
         assertEq(post.stakerLastValuePerShare, 0, "Staker has no value per share as no value distributed");
     }
+
+    function test_StakeRewardsNotLostAfterRestake() external {
+        uint128 vaultId = WETH_CORE_VAULT_ID;
+        VaultConfig memory fuzzVaultConfig = getFuzzVaultConfig(vaultId);
+
+        // Setup user account
+        address user = users.naruto.account;
+        uint128 assetsToDeposit = 2 * uint128(calculateMinOfSharesToStake(vaultId));
+        fundUserAndDepositInVault(user, vaultId, assetsToDeposit);
+
+        // 1. User stake to the selected vault
+        vm.prank(user);
+        marketMakingEngine.stake(vaultId, 100_000);
+
+        // Engine send fees to the selected vault
+        uint128 marketFees = uint128(calculateMinOfSharesToStake(vaultId));
+        deal(fuzzVaultConfig.asset, address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine), marketFees);
+        changePrank({ msgSender: address(perpMarketsCreditConfig[ETH_USD_MARKET_ID].engine) });
+        marketMakingEngine.receiveMarketFee(ETH_USD_MARKET_ID, fuzzVaultConfig.asset, marketFees);
+
+        // Assert that before second stake() the user has earned fees to claim
+        uint256 rewardsBeforeSecondStaking = marketMakingEngine.getEarnedFees(vaultId, user);
+        assertGt(rewardsBeforeSecondStaking, 0);
+
+        vm.expectRevert();
+
+        // 2. User stake again to the same vault without claiming
+        vm.startPrank(user);
+        marketMakingEngine.stake(vaultId, 100_000);
+
+        // Assert that after second stake() the user has lost his unclaimed earned fees!
+        uint256 rewardsAfterSecondStaking = marketMakingEngine.getEarnedFees(vaultId, user);
+        assertGt(rewardsAfterSecondStaking, 0);
+    }
 }
